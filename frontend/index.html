@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Kho Hàng Thông Minh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Check authentication when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            Auth.redirectIfNotAuthenticated();
+        });
+    </script>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Vanta.js Background -->
+    <div id="vanta-background"></div>
+    
+    <!-- Sidebar Navigation -->
+    <div class="sidebar bg-blue-900 text-white w-72 min-h-screen flex flex-col">
+        <div class="p-5 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i data-feather="package" class="mr-2"></i> SMART STOCK
+            </h1>
+            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto pt-5">
+            <div class="px-4 space-y-2">
+                <a href="index.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
+                    <i data-feather="home" class="mr-3"></i> Tổng quan
+                </a>
+                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
+                </a>
+                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
+                </a>
+                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
+                </a>
+                <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="truck" class="mr-3"></i> Đơn hàng & NCC
+                </a>
+                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
+                </a>
+                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
+                </a>
+            </div>
+        </nav>
+        
+        <div class="p-4 border-t border-blue-800">
+            <div class="flex items-center">
+                <img src="http://static.photos/people/200x200/1" class="h-10 w-10 rounded-full" alt="User">
+                <div class="ml-3">
+                    <p class="text-sm font-medium">Nguyễn Văn A</p>
+                    <p class="text-xs text-blue-300">Quản lý kho</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center">
+                    <h2 class="text-xl font-semibold">Tổng quan hệ thống</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Tìm kiếm..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+                    </div>
+                    <button id="quickActionsBtn" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+                        <i data-feather="zap"></i>
+                    </button>
+                    <button class="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+                        <i data-feather="bell"></i>
+                    </button>
+                    <button class="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+                        <i data-feather="settings"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <main class="p-6">
+            <!-- Alert Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-sm" role="alert">
+                    <div class="flex items-center">
+                        <i data-feather="info" class="mr-2"></i>
+                        <p class="font-bold">Thông tin</p>
+                    </div>
+                    <p class="text-sm">3 đơn hàng mới cần xử lý</p>
+                </div>
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm" role="alert">
+                    <div class="flex items-center">
+                        <i data-feather="check-circle" class="mr-2"></i>
+                        <p class="font-bold">Hoạt động</p>
+                    </div>
+                    <p class="text-sm">Hệ thống hoạt động ổn định</p>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="dashboard-card bg-white p-6 rounded-lg shadow-md" data-aos="fade-up">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i data-feather="package"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm">Tổng sản phẩm</p>
+                            <p class="text-2xl font-bold">1,248</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card bg-white p-6 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i data-feather="trending-up"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm">Nhập kho tháng</p>
+                            <p class="text-2xl font-bold">284</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card bg-white p-6 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i data-feather="trending-down"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm">Xuất kho tháng</p>
+                            <p class="text-2xl font-bold">196</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card bg-white p-6 rounded-lg shadow-md" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i data-feather="dollar-sign"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm">Tổng giá trị</p>
+                            <p class="text-2xl font-bold">2.5B VNĐ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Recent Activities -->
+        </main>
+    </div>
+
+    <!-- Quick Actions Modal -->
+    <div id="quickActionsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Thao tác nhanh</h3>
+                <button id="closeQuickActionsModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Form Thêm sản phẩm -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-md font-semibold mb-3 flex items-center">
+                            <i data-feather="plus-circle" class="mr-2 text-blue-500"></i> Thêm sản phẩm
+                        </h4>
+                        <form id="addProductForm" class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
+                                <input type="text" id="productName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
+                                <input type="text" id="productCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập mã sản phẩm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng</label>
+                                <input type="number" id="productQuantity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập số lượng">
+                            </div>
+                            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">Thêm sản phẩm</button>
+                        </form>
+                    </div>
+
+                    <!-- Form Nhập kho -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-md font-semibold mb-3 flex items-center">
+                            <i data-feather="log-in" class="mr-2 text-green-500"></i> Nhập kho
+                        </h4>
+                        <form id="importStockForm" class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
+                                <input type="text" id="importProductCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập mã sản phẩm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng nhập</label>
+                                <input type="number" id="importQuantity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập số lượng">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
+                                <input type="text" id="supplier" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên nhà cung cấp">
+                            </div>
+                            <button type="submit" class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors">Nhập kho</button>
+                        </form>
+                    </div>
+
+                    <!-- Form Xuất kho -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-md font-semibold mb-3 flex items-center">
+                            <i data-feather="log-out" class="mr-2 text-red-500"></i> Xuất kho
+                        </h4>
+                        <form id="exportStockForm" class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
+                                <input type="text" id="exportProductCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập mã sản phẩm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng xuất</label>
+                                <input type="number" id="exportQuantity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập số lượng">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Khách hàng</label>
+                                <input type="text" id="customer" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên khách hàng">
+                            </div>
+                            <button type="submit" class="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors">Xuất kho</button>
+                        </form>
+                    </div>
+
+                    <!-- Form Tạo báo cáo -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-md font-semibold mb-3 flex items-center">
+                            <i data-feather="clipboard" class="mr-2 text-purple-500"></i> Tạo báo cáo
+                        </h4>
+                        <form id="generateReportForm" class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Loại báo cáo</label>
+                                <select id="reportType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn loại báo cáo</option>
+                                    <option value="inventory">Báo cáo tồn kho</option>
+                                    <option value="import">Báo cáo nhập kho</option>
+                                    <option value="export">Báo cáo xuất kho</option>
+                                    <option value="financial">Báo cáo tài chính</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian</label>
+                                <select id="reportPeriod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Chọn thời gian</option>
+                                    <option value="daily">Hàng ngày</option>
+                                    <option value="weekly">Hàng tuần</option>
+                                    <option value="monthly">Hàng tháng</option>
+                                    <option value="quarterly">Hàng quý</option>
+                                    <option value="yearly">Hàng năm</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 transition-colors">Tạo báo cáo</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script>
+        // Initialize Vanta.js background
+        VANTA.GLOBE({
+            el: "#vanta-background",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x3a86ff,
+            backgroundColor: 0xf8fafc,
+            size: 0.8
+        });
+    </script>
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Kho Bãi - SMART STOCK</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar bg-blue-900 text-white w-64 min-h-screen flex flex-col">
+        <div class="p-5 border-b border-blue-800">
+            <h1 class="text-xl font-bold flex items-center">
+                <i data-feather="package" class="mr-2"></i> SMART STOCK
+            </h1>
+            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto pt-5">
+            <div class="px-4 space-y-2">
+                <a href="index.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="home" class="mr-3"></i> Tổng quan
+                </a>
+                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
+                </a>
+                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
+                </a>
+                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
+                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
+                </a>
+                <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="truck" class="mr-3"></i> Đơn hàng & NCC
+                </a>
+                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
+                </a>
+                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
+                </a>
+            </div>
+        </nav>
+        
+        <div class="极端的
+        <div class="p-4 border-t border-blue-800">
+            <div class="flex items-center">
+                <img src="http://static.photos/people/200x200/1" class="h-10 w-10 rounded-full" alt="User">
+                <div class="ml-3">
+                    <p class="text-sm font-medium">Nguyễn Văn A</p>
+                    <p class="text-xs text-blue-300">Quản lý kho</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center">
+                    <h2 class="text-xl font-semibold">Quản Lý Kho Bãi</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Tìm kiếm vị trí..." class="pl-10 pr-4 py-2 border rounded-lg focus:极端的
+                        <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm kho
+                        </button>
+                        <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                            <i data-feather="move" class="mr-2 h-4 w-4"></i> Điều chuyển
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white border-b">
+            <div class="flex px-6">
+                <button class="px-4 py-3 tab-active">Danh sách kho</button>
+                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Sơ đồ kho</button>
+                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Vị trí lưu trữ</button>
+                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Điều chuyển hàng</button>
+            </div>
+        </div>
+
+        <!-- Filter and Actions -->
+        <div class="bg-white border-b p-4">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Tất cả kho</option>
+                        <option>Kho chính</option>
+                        <option>Kho phụ</option>
+                        <option>Kho lạnh</option>
+                    </select>
+                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Tất cả trạng thái</option>
+                        <option>Đang hoạt động</option>
+                        <option>Bảo trì</option>
+                        <option>Đầy</option>
+                    </select>
+                    <input type="text" placeholder="Tìm theo khu vực..." class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                        <i data-feather="filter"></i>
+                    </button>
+                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                        <i data-feather="map"></i>
+                    </button>
+                    <button class="p极端的
+                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                        <i data-feather="printer"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Content -->
+        <main class="p-6">
+            <!-- Warehouse Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Tổng số kho</p>
+                            <p class="text-2xl font-bold text-blue-600" id="total-warehouses">0</p>
+                            <p class="text-sm text-gray-500">Kho đang hoạt động</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i data-feather="database"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Tổng sức chứa</p>
+                            <p class="text-2xl font-bold text-green-600" id="total-capacity">0</p>
+                            <p class="text-sm text-gray-500">Sản phẩm tối đa</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i data-feather="box"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Đang sử dụng</p>
+                            <p class="text-2xl font-bold text-purple-600" id="current-usage">0</p>
+                            <p class="text-sm text-gray-500">Sản phẩm hiện có</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i data-feather="package"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Tỷ lệ sử dụng</p>
+                            <p class="text-2xl font-bold text-yellow-600" id="usage-rate">0%</p>
+                            <p class="text-sm text-gray-500">Mức độ lấp đầy</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i data-feather="bar-chart-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warehouses Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="warehouses-grid">
+                <!-- Warehouse cards will be dynamically generated here -->
+            </div>
+
+            <!-- Recent Stock Movements -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold">Điều chuyển gần đây</h3>
+                    <a href="#" class="text-blue-600 text-sm flex items-center">
+                        Xem tất cả <i data-feather="chevron-right" class="ml-1 h-4 w-4"></i>
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Mã điều chuyển
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Ngày
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Từ kho
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Đến kho
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Số lượng
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray极端的
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Trạng thái
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thao tác
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr class="table-row hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    DC001
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    15/01/2024
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    Kho chính
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    Kho phụ
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    50
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                        Hoàn thành
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i data-feather="eye" class="h-4 w-4"></i>
+                                        </button>
+                                        <button class="text-green-600 hover:text-green-800">
+                                            <i data-feather="download" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="table-row hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    DC002
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    14/01/2024
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    Kho phụ
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    Kho lạnh
+                                </td>
+                                <td class="px-6极端的
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    25
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                                        Đang xử lý
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i data-feather="eye" class="极端的
+                                            <i data-feather="eye" class="h-4 w-4"></i>
+                                        </button>
+                                        <button class="text-green-600 hover:text-green-800">
+                                            <i data-feather="download" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/quan-ly-kho-bai.js"></script>
+</body>
+</html>

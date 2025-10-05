@@ -1,0 +1,85 @@
+/* Common styles for all pages */
+
+/* Sidebar styles */
+.sidebar {
+    transition: all 0.3s ease;
+}
+
+/* Table row hover effect */
+.table-row:hover {
+    background-color: #f8fafc;
+}
+
+/* Tab active style */
+.tab-active {
+    border-bottom: 3px solid #3b82f6;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+/* Status badge style */
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Location badge style */
+.location-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Vanta background */
+#vanta-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        min-height: 0;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hidden-mobile {
+        display: none;
+    }
+    
+    .text-right {
+        text-align: left;
+    }
+    
+    .flex-row {
+        flex-direction: column;
+    }
+    
+    .w-1\/2 {
+        width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .lg\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
