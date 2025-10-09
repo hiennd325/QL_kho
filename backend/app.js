@@ -80,6 +80,9 @@ fs.readFile(schemaPath, 'utf8', (err, data) => {
             console.error('Error executing schema:', err.message);
         } else {
             console.log('Database schema applied.');
+            // Seed database với dữ liệu giả
+            console.log('Starting database seeding...');
+            require('./seed')();
         }
     });
 });
@@ -111,8 +114,17 @@ app.use('/dashboard', authenticate, dashboardRoutes); // Routes cho dashboard
 const warehouseRoutes = require('./routes/warehouse');
 app.use('/warehouses', authenticate, warehouseRoutes); // Routes cho quản lý kho
 
+const transferRoutes = require('./routes/transfers');
+app.use('/transfers', authenticate, transferRoutes); // Routes cho điều chuyển hàng
+
 const supplierRoutes = require('./routes/supplier');
 app.use('/suppliers', authenticate, supplierRoutes); // Routes cho quản lý nhà cung cấp
+
+const salesOrderRoutes = require('./routes/sales_order');
+app.use('/sales-orders', authenticate, salesOrderRoutes);
+
+const notificationRoutes = require('./routes/notifications');
+app.use('/notifications', authenticate, notificationRoutes); // Routes cho thông báo
 
 // Middleware xử lý lỗi toàn cục
 app.use((err, req, res, next) => {

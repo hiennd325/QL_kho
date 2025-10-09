@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Kho Trung Tâm",
+    "location": "123 Đường Công Nghiệp, Quận 9, TP.HCM",
+    "capacity": 10000,
+    "current_usage": 0,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 2,
+    "name": "Kho Miền Bắc",
+    "location": "456 Đường Thương Mại, Hà Nội",
+    "capacity": 8000,
+    "current_usage": 0,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 3,
+    "name": "Kho Miền Trung",
+    "location": "789 Đường Kinh Tế, Đà Nẵng",
+    "capacity": 6000,
+    "current_usage": 0,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 4,
+    "name": "Kho Online",
+    "location": "321 Đường E-commerce, TP.HCM",
+    "capacity": 5000,
+    "current_usage": 0,
+    "created_at": "2025-10-07 11:19:35"
+  }
+]

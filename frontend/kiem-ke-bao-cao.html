@@ -38,9 +38,12 @@
                 <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
                     <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
                 </a>
-                <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Đơn hàng & NCC
-                </a>
+                 <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                     <i data-feather="shopping-cart" class="mr-3"></i> Đơn hàng
+                 </a>
+                 <a href="xuat-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                     <i data-feather="truck" class="mr-3"></i> Xuất hàng
+                 </a>
                 <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
                     <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
                 </a>
@@ -96,17 +99,17 @@
                 <div class="flex flex-wrap items-center gap-4">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
-                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Tất cả kho</option>
-                        <option>Kho chính</option>
-                        <option>Kho phụ</option>
-                    </select>
-                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Tất cả trạng thái</option>
-                        <option>Đã cân bằng</option>
-                        <option>Chờ xử lý</option>
-                        <option>Đã hủy</option>
-                    </select>
+                     <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                         <option>Tất cả kho</option>
+                         <option>Kho chính</option>
+                         <option>Kho phụ</option>
+                     </select>
+                     <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                         <option>Tất cả trạng thái</option>
+                         <option>Đã cân bằng</option>
+                         <option>Chờ xử lý</option>
+                         <option>Đã hủy</option>
+                     </select>
                 </div>
                 <div class="flex items-center gap-2">
                     <button class="p-2 border rounded-lg hover:bg-gray-50">
@@ -223,6 +226,51 @@
             </div>
         </main>
 
+    </div>
+
+    <!-- Inventory Count Modal -->
+    <div id="inventoryCountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Tạo phiếu kiểm kê</h3>
+                <button id="closeInventoryCountModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="inventoryCountForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mã phiếu</label>
+                            <input type="text" id="inventoryCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tự động tạo" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày kiểm kê</label>
+                            <input type="date" id="inventoryDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kho kiểm kê</label>
+                        <select id="inventoryWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="">Chọn kho</option>
+                            <!-- Warehouses will be loaded here -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Người kiểm kê</label>
+                        <input type="text" id="inventoryChecker" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên người kiểm kê" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                        <textarea id="inventoryNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Ghi chú thêm (tùy chọn)"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelInventoryCountBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Tạo phiếu kiểm kê</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="js/app.js"></script>

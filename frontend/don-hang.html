@@ -38,9 +38,12 @@
                 <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
                     <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
                 </a>
-                <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Đơn hàng & NCC
-                </a>
+                  <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg active">
+                      <i data-feather="shopping-cart" class="mr-3"></i> Đơn hàng
+                  </a>
+                  <a href="xuat-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                      <i data-feather="truck" class="mr-3"></i> Xuất hàng
+                  </a>
                 <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
                     <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
                 </a>
@@ -75,9 +78,12 @@
                         <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
                     </div>
                     <div class="flex space-x-2">
-                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center" onclick="openOrderModal()">
-                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Tạo đơn hàng
-                        </button>
+                <div class="flex items-center">
+                    <button id="openModalBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i data-feather="plus" class="w-5 h-5 mr-2"></i>
+                        Tạo đơn hàng
+                    </button>
+                </div>
                         <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
                             <i data-feather="user-plus" class="mr-2 h-4 w-4"></i> Thêm NCC
                         </button>
@@ -102,14 +108,14 @@
                 <div class="flex flex-wrap items-center gap-4">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
-                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Tất cả trạng thái</option>
-                        <option>Chờ xác nhận</option>
-                        <option>Đã xác nhận</option>
-                        <option>Đang giao</option>
-                        <option>Hoàn thành</option>
-                        <option>Đã hủy</option>
-                    </select>
+                     <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                         <option>Tất cả trạng thái</option>
+                         <option>Chờ xác nhận</option>
+                         <option>Đã xác nhận</option>
+                         <option>Đang giao</option>
+                         <option>Hoàn thành</option>
+                         <option>Đã hủy</option>
+                     </select>
                     <select id="supplierFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="all">Tất cả NCC</option>
                     </select>
@@ -245,7 +251,8 @@
                     <i data-feather="x" class="h-5 w-5"></i>
                 </button>
             </div>
-            <form id="orderForm" class="space-y-4">
+                        <form id="orderForm">
+                            <input type="hidden" id="orderId">
                 <!-- Customer info -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

@@ -1,14 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const orderModel = require('../models/order');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const inventoryModel = require('../models/inventory');
+const inventoryTransactionModel = require('../models/inventory_transaction');
 
-const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
-    if (err) {
-        console.error('Could not connect to database:', err.message);
-    }
-});
+const productModel = require('../models/product');
 
 // Get all orders (optional user filter)
 router.get('/', async (req, res) => {
@@ -34,17 +30,7 @@ router.get('/:id', async (req, res) => {
         }
         
         // Get order items
-        const items = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name AS product_name
-                FROM order_items oi
-                JOIN products p ON oi.product_id = p.id
-                WHERE oi.order_id = ?
-            `, [req.params.id], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
+        const items = await orderModel.getOrderItems(req.params.id);
         
         res.json({ ...order, items });
     } catch (err) {
@@ -70,12 +56,7 @@ router.post('/', async (req, res) => {
         let totalAmount = 0;
         const itemsWithPrice = [];
         for (const item of items) {
-            const product = await new Promise((resolve, reject) => {
-                db.get('SELECT id, name, price FROM products WHERE id = ?', [item.productId], (err, row) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                });
-            });
+            const product = await productModel.getProductById(item.productId);
             
             if (!product) {
                 return res.status(400).json({ error: `Product with ID ${item.productId} not found` });
@@ -91,33 +72,46 @@ router.post('/', async (req, res) => {
         
         // Insert order items
         for (const item of itemsWithPrice) {
-            await new Promise((resolve, reject) => {
-                db.run(
-                    'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-                    [order.id, item.productId, item.quantity, item.price],
-                    (err) => (err ? reject(err) : resolve())
-                );
-            });
+            await orderModel.createOrderItem(order.id, item.productId, item.quantity, item.price);
         }
         
         // Fetch order with items for response
         const fullOrder = await orderModel.getOrderById(order.id);
-        const orderItems = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT oi.*, p.name AS product_name
-                FROM order_items oi
-                JOIN products p ON oi.product_id = p.id
-                WHERE oi.order_id = ?
-            `, [order.id], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
+        const orderItems = await orderModel.getOrderItems(order.id);
         
         res.status(201).json({ ...fullOrder, items: orderItems });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to create order' });
+    }
+});
+
+// Receive order
+router.put('/:id/receive', async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const order = await orderModel.getOrderById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        if (order.status === 'completed') {
+            return res.status(400).json({ error: 'Order already completed' });
+        }
+
+        const items = await orderModel.getOrderItems(orderId);
+
+        for (const item of items) {
+            await inventoryModel.updateInventoryQuantity(item.product_id, item.quantity);
+            await inventoryTransactionModel.createTransaction(item.product_id, 1, item.quantity, 'nhap');
+        }
+
+        const updatedOrder = await orderModel.updateOrderStatus(orderId, 'completed');
+        res.json(updatedOrder);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to receive order' });
     }
 });
 

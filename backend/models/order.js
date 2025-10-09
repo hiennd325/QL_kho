@@ -104,11 +104,48 @@ const deleteOrder = async (id) => {
     }
 };
 
+const getOrderItems = async (orderId) => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT oi.id, oi.product_id, oi.quantity, oi.price, p.name AS product_name
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = ?
+            `, [orderId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
+const createOrderItem = async (orderId, productId, quantity, price) => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.run(
+                'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+                [orderId, productId, quantity, price],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve({ id: this.lastID });
+                }
+            );
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     createOrder,
     getOrderById,
     getAllOrders,
     getOrdersByUserId,
     updateOrderStatus,
-    deleteOrder
+    deleteOrder,
+    getOrderItems,
+    createOrderItem
 };

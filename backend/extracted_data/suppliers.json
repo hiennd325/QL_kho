@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Công ty TNHH ABC",
+    "contact_person": "Nguyễn Văn A",
+    "phone": "0123456789",
+    "email": "contact@abc.com",
+    "address": "123 Đường ABC, Quận 1, TP.HCM",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 2,
+    "name": "Công ty CP XYZ",
+    "contact_person": "Trần Thị B",
+    "phone": "0987654321",
+    "email": "info@xyz.com",
+    "address": "456 Đường XYZ, Quận 2, TP.HCM",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 3,
+    "name": "Nhà cung cấp DEF",
+    "contact_person": "Lê Văn C",
+    "phone": "0111111111",
+    "email": "sales@def.com",
+    "address": "789 Đường DEF, Quận 3, TP.HCM",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 4,
+    "name": "Công ty Minh Long",
+    "contact_person": "Phạm Thị D",
+    "phone": "0222222222",
+    "email": "minhlong@company.com",
+    "address": "321 Đường Minh Long, Bình Dương",
+    "created_at": "2025-10-07 11:19:35"
+  }
+]

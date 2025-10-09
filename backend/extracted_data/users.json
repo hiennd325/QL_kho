@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "$2b$10$0yp3Y/2jMWMh3UvQkMbn3.4i6qaNKBEhRglQn8kIVvmZ4PgvR/js6",
+    "role": "admin",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 2,
+    "username": "staff1",
+    "password": "$2b$10$0yp3Y/2jMWMh3UvQkMbn3.4i6qaNKBEhRglQn8kIVvmZ4PgvR/js6",
+    "role": "staff",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 3,
+    "username": "staff2",
+    "password": "$2b$10$0yp3Y/2jMWMh3UvQkMbn3.4i6qaNKBEhRglQn8kIVvmZ4PgvR/js6",
+    "role": "staff",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 4,
+    "username": "manager",
+    "password": "$2b$10$0yp3Y/2jMWMh3UvQkMbn3.4i6qaNKBEhRglQn8kIVvmZ4PgvR/js6",
+    "role": "manager",
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 5,
+    "username": "Duchien12",
+    "password": "$2b$10$LF9T37BzAo5ygbsiGxoVmeoqoNYxuGNKsltl.Q0EVW3WgICN9DHvG",
+    "role": "staff",
+    "created_at": "2025-10-07 12:51:47"
+  }
+]

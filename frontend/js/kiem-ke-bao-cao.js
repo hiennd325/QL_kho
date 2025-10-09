@@ -6,7 +6,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Báo cáo nhập/xuất': document.getElementById('bao-cao-nhap-xuat-tab'),
     };
 
+    let currentTab = 'Phiếu kiểm kê';
+
+    // Modal elements
+    const inventoryCountModal = document.getElementById('inventoryCountModal');
+    const inventoryCountForm = document.getElementById('inventoryCountForm');
+    const closeInventoryCountModal = document.getElementById('closeInventoryCountModal');
+    const cancelInventoryCountBtn = document.getElementById('cancelInventoryCountBtn');
+
+    // Button
+    const createInventoryCountBtn = document.querySelector('.bg-blue-600.text-white.px-4.py-2.rounded-lg.hover\\:bg-blue-700.flex.items-center');
+
     const setActiveTab = (tabName) => {
+        currentTab = tabName;
         tabs.forEach(tab => {
             if (tab.textContent === tabName) {
                 tab.classList.add('tab-active');
@@ -35,7 +47,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/reports/audits`, { headers });
+
+            // Get filter values
+            const startDate = document.querySelector('input[type="date"]:first-of-type')?.value;
+            const endDate = document.querySelector('input[type="date"]:nth-of-type(2)')?.value;
+            const warehouseFilter = document.getElementById('warehouseFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            // Build query parameters
+            const queryParams = new URLSearchParams();
+            if (startDate) queryParams.append('startDate', startDate);
+            if (endDate) queryParams.append('endDate', endDate);
+            if (warehouseFilter && warehouseFilter !== 'Tất cả kho') {
+                queryParams.append('warehouse', warehouseFilter);
+            }
+            if (statusFilter && statusFilter !== 'Tất cả trạng thái') {
+                const statusMap = {
+                    'Đã cân bằng': 'balanced',
+                    'Chờ xử lý': 'pending',
+                    'Đã hủy': 'cancelled'
+                };
+                queryParams.append('status', statusMap[statusFilter]);
+            }
+
+            const response = await fetch(`${baseUrl}/reports/audits?${queryParams.toString()}`, { headers });
             if (!response.ok) throw new Error('Failed to fetch audits');
             const audits = await response.json();
 
@@ -78,7 +113,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/reports/inventory`, { headers });
+
+            // Get filter values for inventory report
+            const warehouseFilter = document.getElementById('warehouseFilter').value;
+            const queryParams = new URLSearchParams();
+            if (warehouseFilter && warehouseFilter !== 'Tất cả kho') {
+                queryParams.append('warehouse', warehouseFilter);
+            }
+
+            const response = await fetch(`${baseUrl}/reports/inventory?${queryParams.toString()}`, { headers });
             if (!response.ok) throw new Error('Failed to fetch inventory report');
             const inventory = await response.json();
 
@@ -107,9 +150,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/inventory/transactions`, { headers });
+            const response = await fetch(`${baseUrl}/inventory/transactions?page=1&limit=100`, { headers });
             if (!response.ok) throw new Error('Failed to fetch transactions');
-            const transactions = await response.json();
+            const data = await response.json();
+            const transactions = data.transactions || data;
 
             const monthlyData = transactions.reduce((acc, t) => {
                 const month = new Date(t.transaction_date).getMonth();
@@ -140,6 +184,226 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error loading chart data:', error);
         }
+    }
+
+    // Modal functions
+    function openInventoryCountModal() {
+        resetInventoryCountForm();
+        loadWarehousesForSelect();
+        generateInventoryCode();
+        inventoryCountModal.classList.remove('hidden');
+    }
+
+    function closeInventoryCountModal() {
+        inventoryCountModal.classList.add('hidden');
+        resetInventoryCountForm();
+    }
+
+    function resetInventoryCountForm() {
+        document.getElementById('inventoryCode').value = '';
+        document.getElementById('inventoryDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('inventoryWarehouse').value = '';
+        document.getElementById('inventoryChecker').value = '';
+        document.getElementById('inventoryNotes').value = '';
+    }
+
+    function generateInventoryCode() {
+        const date = new Date();
+        const code = `KK${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+        document.getElementById('inventoryCode').value = code;
+    }
+
+    async function loadWarehousesForSelect() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const response = await fetch(`${baseUrl}/warehouses`, { headers });
+
+            if (!response.ok) throw new Error('Failed to fetch warehouses');
+
+            const warehouses = await response.json();
+            const select = document.getElementById('inventoryWarehouse');
+            select.innerHTML = '<option value="">Chọn kho</option>';
+
+            warehouses.forEach(warehouse => {
+                const option = document.createElement('option');
+                option.value = warehouse.id;
+                option.textContent = warehouse.name;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading warehouses:', error);
+        }
+    }
+
+    // Handle form submission
+    async function handleInventoryCountFormSubmit(event) {
+        event.preventDefault();
+
+        const formData = {
+            code: document.getElementById('inventoryCode').value,
+            date: document.getElementById('inventoryDate').value,
+            warehouse_id: document.getElementById('inventoryWarehouse').value,
+            checker: document.getElementById('inventoryChecker').value,
+            notes: document.getElementById('inventoryNotes').value
+        };
+
+        // Validate required fields
+        if (!formData.date || !formData.warehouse_id || !formData.checker) {
+            alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+            return;
+        }
+
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+
+            const response = await fetch(`${baseUrl}/inventory/audits`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create inventory count');
+            }
+
+            closeInventoryCountModal();
+            loadAudits();
+            alert('Tạo phiếu kiểm kê thành công');
+
+        } catch (error) {
+            console.error('Error creating inventory count:', error);
+            alert('Lỗi tạo phiếu kiểm kê: ' + error.message);
+        }
+    }
+
+    // Event listeners
+    if (createInventoryCountBtn) {
+        createInventoryCountBtn.addEventListener('click', openInventoryCountModal);
+    }
+
+    if (closeInventoryCountModal) {
+        closeInventoryCountModal.addEventListener('click', closeInventoryCountModal);
+    }
+
+    if (cancelInventoryCountBtn) {
+        cancelInventoryCountBtn.addEventListener('click', closeInventoryCountModal);
+    }
+
+    if (inventoryCountModal) {
+        inventoryCountModal.addEventListener('click', (e) => {
+            if (e.target === inventoryCountModal) {
+                closeInventoryCountModal();
+            }
+        });
+    }
+
+    if (inventoryCountForm) {
+        inventoryCountForm.addEventListener('submit', handleInventoryCountFormSubmit);
+    }
+
+    // Add event listeners for filter inputs and buttons
+    const filterInputs = document.querySelectorAll('input[type="date"], select');
+    filterInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            loadAudits(); // Reload audits with filters
+            loadInventoryReport();
+        });
+    });
+
+    // Add event listeners for action buttons
+    const actionButtons = document.querySelectorAll('.p-2.border.rounded-lg.hover\\:bg-gray-50');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const icon = button.querySelector('i');
+            if (icon) {
+                const iconName = icon.getAttribute('data-feather');
+                switch(iconName) {
+                    case 'filter':
+                        // Toggle advanced filters
+                        const filterSection = document.querySelector('.flex.flex-wrap.items-center.gap-4');
+                        if (filterSection) {
+                            filterSection.classList.toggle('hidden');
+                        }
+                        break;
+                    case 'download':
+                        // Export reports to CSV
+                        exportReportsToCSV();
+                        break;
+                    case 'printer':
+                        // Print current tab content
+                        printCurrentTab();
+                        break;
+                }
+            }
+        });
+    });
+
+    // Export reports to CSV
+    async function exportReportsToCSV() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            let endpoint = '/reports/audits/export';
+            if (currentTab === 'Báo cáo tồn kho') {
+                endpoint = '/reports/inventory/export';
+            } else if (currentTab === 'Báo cáo nhập/xuất') {
+                endpoint = '/reports/transactions/export';
+            }
+
+            const response = await fetch(`${baseUrl}${endpoint}`, { headers });
+            if (!response.ok) throw new Error('Failed to export reports');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentTab.toLowerCase().replace(/\s+/g, '_')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            alert('Xuất báo cáo thành công');
+        } catch (error) {
+            console.error('Error exporting reports:', error);
+            alert('Lỗi xuất báo cáo');
+        }
+    }
+
+    // Print current tab content
+    function printCurrentTab() {
+        const printWindow = window.open('', '_blank');
+        const tabContent = document.querySelector(`#${currentTab.replace(/\s+/g, '').toLowerCase()}-tab`);
+        const contentHTML = tabContent ? tabContent.innerHTML : 'Không có nội dung';
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>${currentTab}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f5f5f5; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>${currentTab}</h1>
+                    ${contentHTML}
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.print();
     }
 
     loadAudits();

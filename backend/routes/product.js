@@ -70,4 +70,43 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Export products to CSV
+router.get('/export', async (req, res) => {
+    try {
+        const { search, category, brand, supplier } = req.query;
+        const products = await productModel.getProducts(search, category, brand, supplier, 1, 1000); // Get all products
+
+        // Create CSV content
+        const csvHeaders = ['ID', 'Tên sản phẩm', 'Mô tả', 'Giá', 'Danh mục', 'Thương hiệu', 'Nhà cung cấp', 'Số lượng', 'Ngày tạo'];
+        let csvContent = csvHeaders.join(',') + '\n';
+
+        products.products.forEach(product => {
+            const row = [
+                product.id,
+                `"${product.name}"`,
+                `"${product.description || ''}"`,
+                product.price,
+                `"${product.category || ''}"`,
+                `"${product.brand || ''}"`,
+                `"${product.supplier_name || ''}"`,
+                product.quantity || 0,
+                product.created_at
+            ];
+            csvContent += row.join(',') + '\n';
+        });
+
+        // Set headers for CSV download
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="products.csv"');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        res.send('\ufeff' + csvContent); // Add BOM for UTF-8
+    } catch (err) {
+        console.error('Export error:', err);
+        res.status(500).json({ error: 'Failed to export products' });
+    }
+});
+
 module.exports = router;

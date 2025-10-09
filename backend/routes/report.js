@@ -14,9 +14,10 @@ router.get('/inventory', async (req, res) => {
     try {
         const inventory = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT inventory.id, inventory.product_id, products.name, products.description, inventory.quantity
+                SELECT products.id as product_id, products.name, products.description, SUM(inventory.quantity) as quantity
                 FROM inventory
                 JOIN products ON inventory.product_id = products.id
+                GROUP BY products.id, products.name, products.description
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
@@ -52,14 +53,21 @@ router.get('/sales', async (req, res) => {
 
 router.get('/alerts', async (req, res) => {
     try {
+        const { warehouse } = req.query;
+        let query = `
+            SELECT p.id, p.name, i.quantity, p.price, (p.price * i.quantity) as value, w.name as warehouse_name
+            FROM inventory i
+            JOIN products p ON i.product_id = p.id
+            JOIN warehouses w ON i.warehouse_id = w.id
+            WHERE i.quantity <= 10
+        `;
+        const params = [];
+        if (warehouse) {
+            query += ' AND i.warehouse_id = ?';
+            params.push(warehouse);
+        }
         const alerts = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT p.id, p.name, i.quantity, w.name as warehouse_name
-                FROM inventory i
-                JOIN products p ON i.product_id = p.id
-                JOIN warehouses w ON i.warehouse_id = w.id
-                WHERE i.quantity <= 10
-            `, (err, rows) => {
+            db.all(query, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
@@ -92,26 +100,129 @@ router.get('/quick-stats', async (req, res) => {
 
 router.get('/audits', async (req, res) => {
     try {
-        const audits = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT 
-                    'PKK' || substr('000' || id, -3) as code,
-                    created_at as date,
-                    'Kho chính' as warehouse,
-                    'Nguyễn Văn A' as createdBy,
-                    0 as discrepancy,
-                    'completed' as status
-                FROM inventory_transactions
-                WHERE type = 'nhap'
-                LIMIT 10
-            `, (err, rows) => {
+        // Return mock audit data since we don't have an audits table
+        const audits = [
+            {
+                code: 'PKK001',
+                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                warehouse: 'Kho chính',
+                createdBy: 'Nguyễn Văn A',
+                discrepancy: 0,
+                status: 'completed'
+            },
+            {
+                code: 'PKK002',
+                date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                warehouse: 'Kho phụ',
+                createdBy: 'Trần Thị B',
+                discrepancy: -5,
+                status: 'completed'
+            },
+            {
+                code: 'PKK003',
+                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                warehouse: 'Kho online',
+                createdBy: 'Lê Văn C',
+                discrepancy: 2,
+                status: 'pending'
+            }
+        ];
+        res.json(audits);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get audits' });
+    }
+});
+
+// Generate report based on type and period
+router.get('/generate', async (req, res) => {
+    try {
+        const { type, period } = req.query;
+
+        if (!type || !period) {
+            return res.status(400).json({ error: 'Type and period are required' });
+        }
+
+        let dateFilter = '';
+        switch (period) {
+            case 'daily':
+                dateFilter = "DATE(transaction_date) = DATE('now')";
+                break;
+            case 'weekly':
+                dateFilter = "transaction_date >= datetime('now', '-7 days')";
+                break;
+            case 'monthly':
+                dateFilter = "transaction_date >= datetime('now', '-30 days')";
+                break;
+            case 'quarterly':
+                dateFilter = "transaction_date >= datetime('now', '-90 days')";
+                break;
+            case 'yearly':
+                dateFilter = "transaction_date >= datetime('now', '-365 days')";
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid period' });
+        }
+
+        let query = '';
+        let title = '';
+
+        switch (type) {
+            case 'inventory':
+                query = `
+                    SELECT p.name, i.quantity, p.price, (p.price * i.quantity) as total_value
+                    FROM inventory i
+                    JOIN products p ON i.product_id = p.id
+                `;
+                title = 'Báo cáo tồn kho';
+                break;
+            case 'import':
+                query = `
+                    SELECT p.name, SUM(it.quantity) as total_quantity, COUNT(it.id) as transaction_count
+                    FROM inventory_transactions it
+                    JOIN products p ON it.product_id = p.id
+                    WHERE it.type = 'nhap' AND ${dateFilter}
+                    GROUP BY p.id
+                `;
+                title = 'Báo cáo nhập kho';
+                break;
+            case 'export':
+                query = `
+                    SELECT p.name, SUM(it.quantity) as total_quantity, COUNT(it.id) as transaction_count
+                    FROM inventory_transactions it
+                    JOIN products p ON it.product_id = p.id
+                    WHERE it.type = 'xuat' AND ${dateFilter}
+                    GROUP BY p.id
+                `;
+                title = 'Báo cáo xuất kho';
+                break;
+            case 'financial':
+                query = `
+                    SELECT
+                        (SELECT SUM(p.price * it.quantity) FROM inventory_transactions it JOIN products p ON it.product_id = p.id WHERE it.type = 'nhap' AND ${dateFilter}) as total_import_value,
+                        (SELECT SUM(p.price * it.quantity) FROM inventory_transactions it JOIN products p ON it.product_id = p.id WHERE it.type = 'xuat' AND ${dateFilter}) as total_export_value,
+                        (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.id) as current_inventory_value
+                `;
+                title = 'Báo cáo tài chính';
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid report type' });
+        }
+
+        const data = await new Promise((resolve, reject) => {
+            db.all(query, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
-        res.json(audits);
+
+        res.json({
+            title,
+            period,
+            generated_at: new Date().toISOString(),
+            data
+        });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to get audits' });
+        res.status(500).json({ error: 'Failed to generate report' });
     }
 });
 

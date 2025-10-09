@@ -47,6 +47,16 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// GET products in a warehouse
+router.get('/:id/products', async (req, res) => {
+    try {
+        const products = await warehouseModel.getWarehouseProducts(req.params.id);
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get warehouse products' });
+    }
+});
+
 // DELETE warehouse
 router.delete('/:id', async (req, res) => {
     try {

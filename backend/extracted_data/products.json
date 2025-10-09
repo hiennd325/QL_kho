@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "name": "iPhone 15 Pro",
+    "description": "Điện thoại thông minh cao cấp",
+    "price": 25000000,
+    "category": "Điện tử",
+    "brand": "Apple",
+    "supplier_id": 1,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 2,
+    "name": "Samsung Galaxy S24",
+    "description": "Điện thoại Android flagship",
+    "price": 20000000,
+    "category": "Điện tử",
+    "brand": "Samsung",
+    "supplier_id": 2,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 3,
+    "name": "MacBook Air M3",
+    "description": "Laptop siêu mỏng",
+    "price": 35000000,
+    "category": "Điện tử",
+    "brand": "Apple",
+    "supplier_id": 1,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 4,
+    "name": "Dell XPS 13",
+    "description": "Laptop doanh nhân",
+    "price": 28000000,
+    "category": "Điện tử",
+    "brand": "Dell",
+    "supplier_id": 3,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 5,
+    "name": "Sony WH-1000XM5",
+    "description": "Tai nghe chống ồn",
+    "price": 8000000,
+    "category": "Âm thanh",
+    "brand": "Sony",
+    "supplier_id": 2,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 6,
+    "name": "Logitech MX Master 3S",
+    "description": "Chuột không dây",
+    "price": 2500000,
+    "category": "Phụ kiện",
+    "brand": "Logitech",
+    "supplier_id": 4,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 7,
+    "name": "Samsung 4K TV 55\"",
+    "description": "Smart TV 4K",
+    "price": 15000000,
+    "category": "Điện tử",
+    "brand": "Samsung",
+    "supplier_id": 2,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 8,
+    "name": "Nike Air Max",
+    "description": "Giày thể thao",
+    "price": 4500000,
+    "category": "Thời trang",
+    "brand": "Nike",
+    "supplier_id": 3,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 9,
+    "name": "Adidas Ultraboost",
+    "description": "Giày chạy bộ",
+    "price": 5200000,
+    "category": "Thời trang",
+    "brand": "Adidas",
+    "supplier_id": 4,
+    "created_at": "2025-10-07 11:19:35"
+  },
+  {
+    "id": 10,
+    "name": "Rolex Submariner",
+    "description": "Đồng hồ cao cấp",
+    "price": 10000000,
+    "category": "Đồng hồ",
+    "brand": "Rolex",
+    "supplier_id": 2,
+    "created_at": "2025-10-07 11:19:35"
+  }
+]

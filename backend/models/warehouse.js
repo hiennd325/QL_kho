@@ -85,6 +85,25 @@ const updateWarehouse = async (id, updates) => {
     }
 };
 
+const getWarehouseProducts = async (warehouseId) => {
+    try {
+        const query = `SELECT p.id, p.name, p.price, i.quantity
+                       FROM inventory i
+                       JOIN products p ON i.product_id = p.id
+                       WHERE i.warehouse_id = ?
+                       ORDER BY p.name`;
+
+        return await new Promise((resolve, reject) => {
+            db.all(query, [warehouseId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 const deleteWarehouse = async (id) => {
     try {
         await new Promise((resolve, reject) => {
@@ -104,5 +123,6 @@ module.exports = {
     getWarehouses,
     getWarehouseById,
     updateWarehouse,
+    getWarehouseProducts,
     deleteWarehouse
 };

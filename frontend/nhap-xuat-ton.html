@@ -8,8 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="js/auth.js"></script>
     <link rel="stylesheet" href="css/styles.css">
@@ -38,9 +37,12 @@
                 <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
                     <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
                 </a>
-                <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Đơn hàng & NCC
-                </a>
+                 <a href="don-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                     <i data-feather="shopping-cart" class="mr-3"></i> Đơn hàng
+                 </a>
+                 <a href="xuat-hang.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
+                     <i data-feather="truck" class="mr-3"></i> Xuất hàng
+                 </a>
                 <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
                     <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
                 </a>
@@ -89,10 +91,9 @@
         <!-- Tabs Navigation -->
         <div class="bg-white border-b">
             <div class="flex px-6">
-                <button class="px-4 py-3 tab-active">Phiếu nhập kho</button>
-                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Phiếu xuất kho</button>
-                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Tồn kho thực tế</button>
-                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Cảnh báo tồn kho</button>
+                 <button class="px-4 py-3 tab-active">Phiếu nhập kho</button>
+                 <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Phiếu xuất kho</button>
+                 <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Cảnh báo tồn kho</button>
             </div>
         </div>
 
@@ -102,17 +103,17 @@
                 <div class="flex flex-wrap items-center gap-4">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
-                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Tất cả kho</option>
-                        <option>Kho chính</option>
-                        <option>Kho phụ</option>
-                    </select>
-                    <select class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Tất cả trạng thái</option>
-                        <option>Đã duyệt</option>
-                        <option>Chờ duyệt</option>
-                        <option>Đã hủy</option>
-                    </select>
+                     <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                         <option>Tất cả kho</option>
+                         <option>Kho chính</option>
+                         <option>Kho phụ</option>
+                     </select>
+                     <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                         <option>Tất cả trạng thái</option>
+                         <option>Đã duyệt</option>
+                         <option>Chờ duyệt</option>
+                         <option>Đã hủy</option>
+                     </select>
                 </div>
                 <div class="flex items-center gap-2">
                     <button class="p-2 border rounded-lg hover:bg-gray-50">
@@ -251,34 +252,89 @@
                         Xem tất cả <i data-feather="chevron-right" class="ml-1 h-4 w-4"></i>
                     </a>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <div class="flex items-center mb-2">
-                            <div class="p-2 rounded-full bg-red-100 text-red-600 mr-3">
-                                <i data-feather="alert-triangle" class="h-4 w-4"></i>
-                            </div>
-                            <div>
-                                <p class="font-medium text-red-800">Sắp hết hàng</p>
-                                <p class="text-sm text-red-600">iPhone 14 Pro Max</p>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-600">Tồn kho: 5 | Mức tối thiểu: 10</p>
-                    </div>
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <div class="flex items-center mb-2">
-                            <div class="p-2 rounded-full bg-red-100 text-red-600 mr-3">
-                                <i data-feather="alert-triangle" class="h-4 w-4"></i>
-                            </div>
-                            <div>
-                                <p class="font-medium text-red-800">Sắp hết hàng</p>
-                                <p class="text-sm text-red-600">MacBook Air M2</p>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-600">Tồn kho: 8 | Mức tối thiểu: 15</p>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="stock-alerts-container">
+                    <!-- Stock alerts will be dynamically loaded here -->
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Nhập kho</h3>
+                <button id="closeImportModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="importForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
+                        <input type="text" id="importProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng nhập</label>
+                        <input type="number" id="importQuantity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập số lượng" min="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
+                        <input type="text" id="importSupplier" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên nhà cung cấp">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
+                        <select id="importWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="1">Kho chính</option>
+                            <option value="2">Kho phụ</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelImportBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
+                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Nhập kho</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Xuất kho</h3>
+                <button id="closeExportModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="exportForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
+                        <input type="text" id="exportProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng xuất</label>
+                        <input type="number" id="exportQuantity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập số lượng" min="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Khách hàng</label>
+                        <input type="text" id="exportCustomer" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên khách hàng">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
+                        <select id="exportWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="1">Kho chính</option>
+                            <option value="2">Kho phụ</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelExportBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
+                        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Xuất kho</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="js/app.js"></script>

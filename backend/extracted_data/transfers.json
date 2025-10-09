@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "code": "TRF001",
+    "from_warehouse_id": 1,
+    "to_warehouse_id": 2,
+    "product_id": 1,
+    "quantity": 10,
+    "status": "completed",
+    "user_id": 2,
+    "notes": "Điều chuyển iPhone từ kho trung tâm",
+    "created_at": "2025-10-07 11:19:36",
+    "updated_at": "2025-10-07 11:19:36"
+  },
+  {
+    "id": 2,
+    "code": "TRF002",
+    "from_warehouse_id": 2,
+    "to_warehouse_id": 1,
+    "product_id": 2,
+    "quantity": 8,
+    "status": "in_progress",
+    "user_id": 3,
+    "notes": "Điều chuyển Samsung Galaxy",
+    "created_at": "2025-10-07 11:19:36",
+    "updated_at": "2025-10-07 11:19:36"
+  },
+  {
+    "id": 3,
+    "code": "TRF003",
+    "from_warehouse_id": 1,
+    "to_warehouse_id": 4,
+    "product_id": 5,
+    "quantity": 15,
+    "status": "pending",
+    "user_id": 2,
+    "notes": "Tai nghe Sony cho kho online",
+    "created_at": "2025-10-07 11:19:36",
+    "updated_at": "2025-10-07 11:19:36"
+  },
+  {
+    "id": 4,
+    "code": "TRF004",
+    "from_warehouse_id": 3,
+    "to_warehouse_id": 1,
+    "product_id": 4,
+    "quantity": 5,
+    "status": "completed",
+    "user_id": 4,
+    "notes": "Dell XPS từ Đà Nẵng về HCM",
+    "created_at": "2025-10-07 11:19:36",
+    "updated_at": "2025-10-07 11:19:36"
+  },
+  {
+    "id": 5,
+    "code": "TRF005",
+    "from_warehouse_id": 2,
+    "to_warehouse_id": 3,
+    "product_id": 6,
+    "quantity": 20,
+    "status": "pending",
+    "user_id": 3,
+    "notes": "Chuột Logitech cho kho miền trung",
+    "created_at": "2025-10-07 11:19:36",
+    "updated_at": "2025-10-07 11:19:36"
+  }
+]

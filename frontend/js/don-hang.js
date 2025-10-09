@@ -24,10 +24,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const productError = document.getElementById('productError');
     const quantityError = document.getElementById('quantityError');
 
+    const orderIdInput = document.getElementById('orderId');
+
     // Open order modal
-    function openOrderModal() {
+    function openOrderModal(order = null) {
         fetchProducts();
         fetchSuppliers();
+        if (order) {
+            orderIdInput.value = order.id;
+            supplierSelect.value = order.supplier_id;
+            customerName.value = order.customer_name || '';
+            phone.value = order.phone || '';
+            email.value = order.email || '';
+            address.value = order.address || '';
+
+            cartItemsContainer.innerHTML = '';
+            order.items.forEach(item => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'flex justify-between items-center p-2 bg-gray-50 rounded-md';
+                cartItem.dataset.productId = item.product_id;
+                
+                const productNameSpan = document.createElement('span');
+                productNameSpan.textContent = `${item.product_name} x ${item.quantity}`;
+                
+                const removeButton = document.createElement('button');
+                removeButton.className = 'text-red-500 hover:text-red-700';
+                removeButton.innerHTML = '<i data-feather="x" class="h-4 w-4"></i>';
+                removeButton.addEventListener('click', () => {
+                    cartItem.remove();
+                });
+                
+                cartItem.appendChild(productNameSpan);
+                cartItem.appendChild(removeButton);
+                cartItemsContainer.appendChild(cartItem);
+            });
+            feather.replace();
+
+            document.getElementById('submitOrder').textContent = 'Cập nhật đơn hàng';
+        } else {
+            orderIdInput.value = '';
+            document.getElementById('submitOrder').textContent = 'Tạo đơn hàng';
+        }
         orderModal.classList.remove('hidden');
     }
 
@@ -106,8 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showFormStatus('Lỗi kết nối máy chủ. Vui lòng kiểm tra kết nối mạng.', 'error');
         }
     }
-// Load suppliers for filter
-async function loadSuppliersForFilter() {
+
+    async function loadSuppliersForFilter() {
     try {
         const baseUrl = `http://localhost:3000`;
         const token = localStorage.getItem('token');
@@ -141,6 +178,7 @@ async function loadSuppliersForFilter() {
         console.error('Lỗi khi tải nhà cung cấp cho filter:', error);
     }
 }
+
 
     // Reset form fields
     function resetForm() {
@@ -312,7 +350,7 @@ async function loadSuppliersForFilter() {
         productSelect.value = '';
     }
 
-    // Load orders from backend
+    // Load orders from backend with filters
     async function loadOrders() {
         try {
             const baseUrl = `http://localhost:3000`;
@@ -321,8 +359,32 @@ async function loadSuppliersForFilter() {
                 window.location.href = '/login.html';
                 return;
             }
-            
-            const response = await fetch(`${baseUrl}/orders`, {
+
+            // Get filter values
+            const startDate = document.querySelector('input[type="date"]:first-of-type')?.value;
+            const endDate = document.querySelector('input[type="date"]:nth-of-type(2)')?.value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const supplierFilter = document.getElementById('supplierFilter')?.value;
+
+            // Build query parameters
+            const queryParams = new URLSearchParams();
+            if (startDate) queryParams.append('startDate', startDate);
+            if (endDate) queryParams.append('endDate', endDate);
+            if (statusFilter && statusFilter !== 'Tất cả trạng thái') {
+                const statusMap = {
+                    'Chờ xác nhận': 'pending',
+                    'Đã xác nhận': 'confirmed',
+                    'Đang giao': 'shipping',
+                    'Hoàn thành': 'completed',
+                    'Đã hủy': 'cancelled'
+                };
+                queryParams.append('status', statusMap[statusFilter]);
+            }
+            if (supplierFilter && supplierFilter !== 'all') {
+                queryParams.append('supplierId', supplierFilter);
+            }
+
+            const response = await fetch(`${baseUrl}/orders?${queryParams.toString()}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -331,11 +393,11 @@ async function loadSuppliersForFilter() {
             if (!response.ok) {
                 throw new Error('Không thể tải danh sách đơn hàng');
             }
-            
+
             const orders = await response.json();
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
-            
+
             orders.forEach(order => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -350,13 +412,13 @@ async function loadSuppliersForFilter() {
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(order.created_at).toLocaleDateString('vi-VN')}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-indigo-600 hover:text-indigo-900 mr-2">Xem</button>
-                        <button class="text-indigo-600 hover:text-indigo-900">Sửa</button>
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-2 view-order-btn" data-id="${order.id}">Xem</button>
+                        <button class="text-indigo-600 hover:text-indigo-900 edit-order-btn" data-id="${order.id}">Sửa</button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
-            
+
             updateStats(orders);
         } catch (error) {
             console.error('Lỗi khi tải đơn hàng:', error);
@@ -506,6 +568,7 @@ async function loadSuppliersForFilter() {
         // Get token
         const token = localStorage.getItem('token');
         const supplierId = supplierSelect.value;
+        const orderId = orderIdInput.value;
         
         if (!token) {
             window.location.href = '/login.html';
@@ -514,12 +577,15 @@ async function loadSuppliersForFilter() {
         
         // Show loading state
         submitOrder.disabled = true;
-        submitOrder.innerHTML = '<span class="flex items-center"><i data-feather="loader" class="h-4 w-4 mr-2"></i> Đang tạo đơn hàng...</span>';
+        submitOrder.innerHTML = '<span class="flex items-center"><i data-feather="loader" class="h-4 w-4 mr-2"></i> Đang xử lý...</span>';
         
         try {
             const baseUrl = `http://localhost:3000`;
-            const response = await fetch(`${baseUrl}/orders`, {
-                method: 'POST',
+            const url = orderId ? `${baseUrl}/orders/${orderId}` : `${baseUrl}/orders`;
+            const method = orderId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -529,35 +595,408 @@ async function loadSuppliersForFilter() {
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Tạo đơn hàng thất bại');
+                throw new Error(errorData.error || 'Thao tác thất bại');
             }
             
-            showFormStatus('Tạo đơn hàng thành công!', 'success');
+            showFormStatus(orderId ? 'Cập nhật đơn hàng thành công!' : 'Tạo đơn hàng thành công!', 'success');
             resetForm();
             closeOrderModal();
-            loadOrders(); // Reload orders after creation
+            loadOrders(); // Reload orders after creation/update
         } catch (error) {
-            console.error('Lỗi khi tạo đơn hàng:', error);
+            console.error('Lỗi khi xử lý đơn hàng:', error);
             showFormStatus(error.message, 'error');
         } finally {
             submitOrder.disabled = false;
-            submitOrder.innerHTML = 'Tạo đơn hàng';
+            submitOrder.innerHTML = orderId ? 'Cập nhật đơn hàng' : 'Tạo đơn hàng';
             feather.replace();
         }
     }
 
     // Event listeners
-    document.querySelector('.bg-blue-600.text-white.px-4.py-2.rounded-lg.hover\\:bg-blue-700.flex.items-center').addEventListener('click', openOrderModal);
+    const openModalBtn = document.getElementById('openModalBtn');
+
+    openModalBtn.addEventListener('click', openOrderModal);
     closeModal.addEventListener('click', closeOrderModal);
     cancelOrder.addEventListener('click', closeOrderModal);
     addProductBtn.addEventListener('click', addToCart);
     orderForm.addEventListener('submit', handleFormSubmit);
+
+    // Event listeners for table action buttons
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('view-order-btn')) {
+            const orderId = e.target.dataset.id;
+            viewOrderDetails(orderId);
+        } else if (e.target.classList.contains('edit-order-btn')) {
+            const orderId = e.target.dataset.id;
+            editOrder(orderId);
+        }
+    });
     
+    // Add event listeners for filter inputs and buttons
+    const filterInputs = document.querySelectorAll('input[type="date"], select');
+    filterInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            loadOrders(); // Reload orders with filters
+        });
+    });
+
+    // Add event listeners for action buttons
+    const actionButtons = document.querySelectorAll('.p-2.border.rounded-lg.hover\\:bg-gray-50');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const icon = button.querySelector('i');
+            if (icon) {
+                const iconName = icon.getAttribute('data-feather');
+                switch(iconName) {
+                    case 'filter':
+                        // Toggle advanced filters
+                        const filterSection = document.querySelector('.flex.flex-wrap.items-center.gap-4');
+                        if (filterSection) {
+                            filterSection.classList.toggle('hidden');
+                        }
+                        break;
+                    case 'download':
+                        // Export orders to CSV
+                        exportOrdersToCSV();
+                        break;
+                    case 'printer':
+                        // Print orders table
+                        printOrdersTable();
+                        break;
+                }
+            }
+        });
+    });
+
+    // Export orders to CSV
+    async function exportOrdersToCSV() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/orders/export`, { headers });
+            if (!response.ok) throw new Error('Failed to export orders');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'orders.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            alert('Xuất dữ liệu đơn hàng thành công');
+        } catch (error) {
+            console.error('Error exporting orders:', error);
+            alert('Lỗi xuất dữ liệu đơn hàng');
+        }
+    }
+
+    // Print orders table
+    function printOrdersTable() {
+        const printWindow = window.open('', '_blank');
+        const tableHTML = document.querySelector('table').outerHTML;
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Danh sách đơn hàng</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f5f5f5; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>Danh sách đơn hàng</h1>
+                    ${tableHTML}
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.print();
+    }
+
     // Load initial data
     loadSuppliersForFilter();
     loadOrders();
     loadTopSuppliers();
-    
+
+    // View order details
+    async function viewOrderDetails(orderId) {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/orders/${orderId}`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch order details');
+
+            const order = await response.json();
+
+            // Create detail modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="border-b px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Chi tiết đơn hàng #${order.id}</h3>
+                        <div>
+                            ${order.status === 'pending' ? '<button id="receiveOrderBtn" class="text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg mr-2">Nhận hàng</button>' : ''}
+                            <button id="closeDetailModal" class="text-gray-500 hover:text-gray-700">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="font-semibold mb-3">Thông tin đơn hàng</h4>
+                                <div class="space-y-2">
+                                    <p><span class="font-medium">Mã đơn:</span> ${order.id}</p>
+                                    <p><span class="font-medium">Nhà cung cấp:</span> ${order.supplier_name || 'N/A'}</p>
+                                    <p><span class="font-medium">Trạng thái:</span> <span class="px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(order.status)}">${getStatusText(order.status)}</span></p>
+                                    <p><span class="font-medium">Ngày tạo:</span> ${new Date(order.created_at).toLocaleString('vi-VN')}</p>
+                                    <p><span class="font-medium">Tổng tiền:</span> ${order.total_amount?.toLocaleString('vi-VN')} ₫</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-3">Sản phẩm</h4>
+                                <div id="orderProducts" class="space-y-2">
+                                    ${order.items.map(product => `
+                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <div>
+                                                <p class="font-medium">${product.product_name}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-medium">${product.quantity}</p>
+                                                <p class="text-sm text-gray-500">${product.price?.toLocaleString('vi-VN')} ₫</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            feather.replace();
+
+            // Close modal
+            modal.querySelector('#closeDetailModal').addEventListener('click', () => {
+                modal.remove();
+            });
+
+            if (order.status === 'pending') {
+                modal.querySelector('#receiveOrderBtn').addEventListener('click', () => {
+                    receiveOrder(orderId, modal);
+                });
+            }
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+
+        } catch (error) {
+            console.error('Error viewing order details:', error);
+            alert('Lỗi tải chi tiết đơn hàng');
+        }
+    }
+
+    // Edit order
+    async function editOrder(orderId) {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/orders/${orderId}`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch order details');
+
+            const order = await response.json();
+
+            openOrderModal(order);
+        } catch (error) {
+            console.error('Error editing order:', error);
+            alert('Lỗi tải đơn hàng để chỉnh sửa');
+        }
+    }
+
+    async function receiveOrder(orderId, modal) {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/orders/${orderId}/receive`, { 
+                method: 'PUT',
+                headers 
+            });
+            if (!response.ok) throw new Error('Failed to receive order');
+
+            modal.remove();
+            loadOrders();
+            alert('Đã nhận hàng thành công');
+        } catch (error) {
+            console.error('Error receiving order:', error);
+            alert('Lỗi nhận hàng');
+        }
+    }
+
+    // Tab switching functionality
+    const tabs = document.querySelectorAll('.tab-active, .text-gray-600.hover\\:text-blue-600');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs
+            tabs.forEach(t => {
+                t.classList.remove('tab-active');
+                t.classList.add('text-gray-600', 'hover:text-blue-600');
+            });
+            // Add active class to clicked tab
+            tab.classList.add('tab-active');
+            tab.classList.remove('text-gray-600', 'hover:text-blue-600');
+
+            // Switch content based on tab
+            const tabText = tab.textContent.trim();
+            switch(tabText) {
+                case 'Đơn hàng mua':
+                    showPurchaseOrders();
+                    break;
+                case 'Đơn hàng bán':
+                    showSalesOrders();
+                    break;
+                case 'Nhà cung cấp':
+                    showSuppliers();
+                    break;
+                case 'Khách hàng':
+                    showCustomers();
+                    break;
+            }
+        });
+    });
+
+    function showPurchaseOrders() {
+        // Show purchase orders content
+        document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4.gap-6.mb-8').style.display = 'grid';
+        document.querySelector('.bg-white.rounded-lg.shadow-md.overflow-hidden.mb-6').style.display = 'block';
+        document.getElementById('topSuppliersGrid').parentElement.style.display = 'block';
+        // Hide other content if any
+    }
+
+    function showSalesOrders() {
+        // Similar to purchase orders but for sales
+        loadSalesOrdersForTab();
+    }
+
+    function showSuppliers() {
+        // Show suppliers management
+        loadSuppliersManagement();
+    }
+
+    function showCustomers() {
+        // Show customers management
+        loadCustomersManagement();
+    }
+
+    async function loadSalesOrdersForTab() {
+        // Load sales orders similar to loadOrders but for sales
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const response = await fetch(`${baseUrl}/sales-orders`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Không thể tải danh sách đơn bán hàng');
+            }
+
+            const orders = await response.json();
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.customer_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.total_amount.toLocaleString('vi-VN')} ₫</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(order.status)}">
+                            ${getStatusText(order.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(order.created_at).toLocaleDateString('vi-VN')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-2 view-sales-order-btn" data-id="${order.id}">Xem</button>
+                        <button class="text-indigo-600 hover:text-indigo-900 edit-sales-order-btn" data-id="${order.id}">Sửa</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Lỗi khi tải đơn bán hàng:', error);
+        }
+    }
+
+    async function loadSuppliersManagement() {
+        // Load suppliers list for management
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${baseUrl}/suppliers`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const suppliers = await response.json();
+
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = '';
+
+            suppliers.forEach(supplier => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.contact_person || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.phone || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.email || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-2 edit-supplier-btn" data-id="${supplier.id}">Sửa</button>
+                        <button class="text-red-600 hover:text-red-900 delete-supplier-btn" data-id="${supplier.id}">Xóa</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error loading suppliers:', error);
+        }
+    }
+
+    async function loadCustomersManagement() {
+        // For now, show a message as customers might be managed elsewhere
+        const tbody = document.getElementById('orders-table-body');
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Chức năng quản lý khách hàng đang được phát triển</td></tr>';
+    }
+
     // Initialize feather icons
     feather.replace();
 });
