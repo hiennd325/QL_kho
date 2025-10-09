@@ -118,11 +118,25 @@ const deleteWarehouse = async (id) => {
     }
 };
 
+const getWarehousesCount = async () => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM warehouses', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     createWarehouse,
     getWarehouses,
     getWarehouseById,
     updateWarehouse,
     getWarehouseProducts,
-    deleteWarehouse
+    deleteWarehouse,
+    getWarehousesCount
 };

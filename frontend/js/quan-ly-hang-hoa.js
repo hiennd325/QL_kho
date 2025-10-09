@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tableBody.innerHTML = '';
         if (products.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Không tìm thấy sản phẩm nào</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không tìm thấy sản phẩm nào</td></tr>`;
             return;
         }
 
@@ -39,30 +39,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.quantity || 0}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.supplier_name || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                        <button type="button" class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${product.id}" data-name="${product.name}" data-description="${product.description || ''}" data-price="${product.price}" data-brand="${product.brand || ''}" data-supplier-id="${product.supplier_id || ''}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                        </button>
-                        <button type="button" class="text-green-600 hover:text-green-800 view-btn" data-id="${product.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                        <button type="button" class="text-red-600 hover:text-red-800 delete-btn" data-id="${product.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                <line x1="10" y1="11" x2="10" y2="17"></line>
-                                <line x1="14" y1="11" x2="14" y2="17"></line>
-                            </svg>
-                        </button>
-                    </div>
-                </td>
+                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                     <div class="flex space-x-2">
+                         <button type="button" class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${product.id}" data-name="${product.name}" data-description="${product.description || ''}" data-price="${product.price}" data-brand="${product.brand || ''}" data-supplier-id="${product.supplier_id || ''}">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                             </svg>
+                         </button>
+                         <button type="button" class="text-red-600 hover:text-red-800 delete-btn" data-id="${product.id}">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                 <polyline points="3 6 5 6 21 6"></polyline>
+                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                 <line x1="10" y1="11" x2="10" y2="17"></line>
+                                 <line x1="14" y1="11" x2="14" y2="17"></line>
+                             </svg>
+                         </button>
+                     </div>
+                 </td>
             `;
 
             tableBody.appendChild(row);
@@ -229,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         } catch (error) {
             console.error('Error loading products:', error);
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
         }
     }
     
@@ -257,7 +251,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('click', async (e) => {
         const deleteBtn = e.target.closest('.delete-btn');
         const editBtn = e.target.closest('.edit-btn');
-        const viewBtn = e.target.closest('.view-btn');
 
         if (deleteBtn) {
             const productId = deleteBtn.getAttribute('data-id');
@@ -291,76 +284,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             showEditModal(productId, productName, productDescription, productPrice, productBrand, supplierId);
         }
-
-        if (viewBtn) {
-            const productId = viewBtn.getAttribute('data-id');
-            showViewModal(productId);
-        }
     });
     
-    const showViewModal = async (id) => {
-        try {
-            const baseUrl = `http://localhost:3000`;
-            const token = localStorage.getItem('token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/products/${id}`, { headers });
-            if (!response.ok) throw new Error('Failed to fetch product details');
 
-            const product = await response.json();
-
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white p-6 rounded-lg w-full max-w-md">
-                    <h3 class="text-xl font-semibold mb-4">Chi tiết sản phẩm</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">ID</label>
-                            <p class="text-sm text-gray-900">${product.id}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Tên sản phẩm</label>
-                            <p class="text-sm text-gray-900">${product.name}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Mô tả</label>
-                            <p class="text-sm text-gray-900">${product.description || 'Chưa có mô tả'}</p>
-                        </div>
-                         <div>
-                             <label class="block text-sm font-medium text-gray-700">Giá</label>
-                             <p class="text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</p>
-                         </div>
-                         <div>
-                             <label class="block text-sm font-medium text-gray-700">Nhãn hiệu</label>
-                             <p class="text-sm text-gray-900">${product.brand || 'N/A'}</p>
-                         </div>
-                         <div>
-                             <label class="block text-sm font-medium text-gray-700">Số lượng</label>
-                             <p class="text-sm text-gray-900">${product.quantity || 0}</p>
-                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Nhà cung cấp</label>
-                            <p class="text-sm text-gray-900">${product.supplier_name || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Ngày tạo</label>
-                            <p class="text-sm text-gray-900">${new Date(product.created_at).toLocaleDateString('vi-VN')}</p>
-                        </div>
-                    </div>
-                    <div class="flex justify-end mt-4">
-                        <button type="button" class="bg-gray-300 px-4 py-2 rounded" id="closeViewBtn">Đóng</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            document.getElementById('closeViewBtn').addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-        } catch (error) {
-            alert('Lỗi tải chi tiết sản phẩm: ' + error.message);
-        }
-    };
 
     const showEditModal = (id, name, description, price, brand, supplierId) => {
         const modal = document.createElement('div');

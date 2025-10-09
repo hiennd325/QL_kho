@@ -159,11 +159,25 @@ const deleteUser = async (id) => {
     }
 };
 
+const getUsersCount = async () => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM users', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     createUser,
     findUserByUsername,
     getAllUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    getUsersCount
 };

@@ -182,10 +182,24 @@ const deleteProduct = async (id) => {
     }
 };
 
+const getProductsCount = async () => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     createProduct,
     getProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getProductsCount
 };

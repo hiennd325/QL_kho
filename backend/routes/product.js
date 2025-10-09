@@ -109,4 +109,13 @@ router.get('/export', async (req, res) => {
     }
 });
 
+router.get('/count', async (req, res) => {
+    try {
+        const count = await productModel.getProductsCount();
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get products count' });
+    }
+});
+
 module.exports = router;

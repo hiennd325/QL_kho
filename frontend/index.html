@@ -170,9 +170,167 @@
                  </div>
              </div>
 
+             <!-- Function Overview -->
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" data-aos="fade-up" data-aos-delay="400">
+                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                     <div class="flex items-center justify-between">
+                         <div>
+                             <p class="text-gray-500 text-sm font-medium">Quản lý hàng hóa</p>
+                             <p class="text-2xl font-bold text-gray-900" id="products-count">1,248</p>
+                             <p class="text-green-500 text-sm">+12% so với tháng trước</p>
+                         </div>
+                         <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                             <i data-feather="box"></i>
+                         </div>
+                     </div>
+                     <a href="quan-ly-hang-hoa.html" class="text-blue-500 text-sm mt-2 inline-block hover:text-blue-700">Xem chi tiết →</a>
+                 </div>
 
-            <!-- Recent Activities -->
-        </main>
+                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                     <div class="flex items-center justify-between">
+                         <div>
+                             <p class="text-gray-500 text-sm font-medium">Quản lý kho bãi</p>
+                             <p class="text-2xl font-bold text-gray-900" id="warehouses-count">5</p>
+                             <p class="text-blue-500 text-sm">Tất cả hoạt động</p>
+                         </div>
+                         <div class="p-3 rounded-full bg-green-100 text-green-600">
+                             <i data-feather="database"></i>
+                         </div>
+                     </div>
+                     <a href="quan-ly-kho-bai.html" class="text-blue-500 text-sm mt-2 inline-block hover:text-blue-700">Xem chi tiết →</a>
+                 </div>
+
+                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                     <div class="flex items-center justify-between">
+                         <div>
+                             <p class="text-gray-500 text-sm font-medium">Quản lý người dùng</p>
+                             <p class="text-2xl font-bold text-gray-900" id="users-count">24</p>
+                             <p class="text-purple-500 text-sm">3 người dùng mới</p>
+                         </div>
+                         <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                             <i data-feather="users"></i>
+                         </div>
+                     </div>
+                     <a href="quan-ly-nguoi-dung.html" class="text-blue-500 text-sm mt-2 inline-block hover:text-blue-700">Xem chi tiết →</a>
+                 </div>
+
+                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                     <div class="flex items-center justify-between">
+                         <div>
+                             <p class="text-gray-500 text-sm font-medium">Nhà cung cấp</p>
+                             <p class="text-2xl font-bold text-gray-900" id="suppliers-count">18</p>
+                             <p class="text-orange-500 text-sm">2 NCC mới</p>
+                         </div>
+                         <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                             <i data-feather="truck"></i>
+                         </div>
+                     </div>
+                     <a href="#" class="text-blue-500 text-sm mt-2 inline-block hover:text-blue-700">Xem chi tiết →</a>
+                 </div>
+
+                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                     <div class="flex items-center justify-between">
+                         <div>
+                             <p class="text-gray-500 text-sm font-medium">Đơn hàng</p>
+                             <p class="text-2xl font-bold text-gray-900" id="orders-count">156</p>
+                             <p class="text-red-500 text-sm">12 đơn chờ xử lý</p>
+                         </div>
+                         <div class="p-3 rounded-full bg-red-100 text-red-600">
+                             <i data-feather="shopping-cart"></i>
+                         </div>
+                     </div>
+                     <a href="don-hang.html" class="text-blue-500 text-sm mt-2 inline-block hover:text-blue-700">Xem chi tiết →</a>
+                 </div>
+
+                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
+                     <div class="flex items-center justify-between">
+                         <div>
+                             <p class="text-gray-500 text-sm font-medium">Kiểm kê & Báo cáo</p>
+                             <p class="text-2xl font-bold text-gray-900" id="reports-count">8</p>
+                             <p class="text-indigo-500 text-sm">Báo cáo tháng này</p>
+                         </div>
+                         <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                             <i data-feather="clipboard"></i>
+                         </div>
+                     </div>
+                     <a href="kiem-ke-bao-cao.html" class="text-blue-500 text-sm mt-2 inline-block hover:text-blue-700">Xem chi tiết →</a>
+                 </div>
+             </div>
+
+             <!-- Recent Activities -->
+             <div class="bg-white rounded-lg shadow-md border border-gray-100 mb-8" data-aos="fade-up" data-aos-delay="500">
+                 <div class="px-6 py-4 border-b border-gray-200">
+                     <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                         <i data-feather="activity" class="mr-2 text-blue-600"></i>
+                         Hoạt động gần đây
+                     </h3>
+                 </div>
+                 <div class="p-6">
+                     <div class="space-y-4" id="recent-activities">
+                         <div class="flex items-start space-x-3">
+                             <div class="flex-shrink-0">
+                                 <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                     <i data-feather="plus" class="w-4 h-4 text-blue-600"></i>
+                                 </div>
+                             </div>
+                             <div class="flex-1 min-w-0">
+                                 <p class="text-sm font-medium text-gray-900">Thêm sản phẩm mới</p>
+                                 <p class="text-sm text-gray-500">iPhone 14 Pro Max - 50 chiếc</p>
+                                 <p class="text-xs text-gray-400">2 giờ trước</p>
+                             </div>
+                         </div>
+                         <div class="flex items-start space-x-3">
+                             <div class="flex-shrink-0">
+                                 <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                     <i data-feather="log-in" class="w-4 h-4 text-green-600"></i>
+                                 </div>
+                             </div>
+                             <div class="flex-1 min-w-0">
+                                 <p class="text-sm font-medium text-gray-900">Nhập kho</p>
+                                 <p class="text-sm text-gray-500">Samsung Galaxy S23 - 30 chiếc từ FPT</p>
+                                 <p class="text-xs text-gray-400">4 giờ trước</p>
+                             </div>
+                         </div>
+                         <div class="flex items-start space-x-3">
+                             <div class="flex-shrink-0">
+                                 <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                     <i data-feather="log-out" class="w-4 h-4 text-red-600"></i>
+                                 </div>
+                             </div>
+                             <div class="flex-1 min-w-0">
+                                 <p class="text-sm font-medium text-gray-900">Xuất kho</p>
+                                 <p class="text-sm text-gray-500">MacBook Pro M2 - 5 chiếc cho khách hàng ABC</p>
+                                 <p class="text-xs text-gray-400">6 giờ trước</p>
+                             </div>
+                         </div>
+                         <div class="flex items-start space-x-3">
+                             <div class="flex-shrink-0">
+                                 <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                     <i data-feather="user-plus" class="w-4 h-4 text-purple-600"></i>
+                                 </div>
+                             </div>
+                             <div class="flex-1 min-w-0">
+                                 <p class="text-sm font-medium text-gray-900">Thêm người dùng mới</p>
+                                 <p class="text-sm text-gray-500">Nguyễn Thị B - Nhân viên kho</p>
+                                 <p class="text-xs text-gray-400">1 ngày trước</p>
+                             </div>
+                         </div>
+                         <div class="flex items-start space-x-3">
+                             <div class="flex-shrink-0">
+                                 <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                     <i data-feather="clipboard" class="w-4 h-4 text-orange-600"></i>
+                                 </div>
+                             </div>
+                             <div class="flex-1 min-w-0">
+                                 <p class="text-sm font-medium text-gray-900">Tạo báo cáo</p>
+                                 <p class="text-sm text-gray-500">Báo cáo tồn kho tháng 9</p>
+                                 <p class="text-xs text-gray-400">2 ngày trước</p>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </main>
     </div>
 
     <!-- Quick Actions Modal -->

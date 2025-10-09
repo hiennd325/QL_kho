@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!dashboardData) return;
         updateAlerts(dashboardData.alerts);
         updateStats(dashboardData.stats);
+        updateFunctionOverview(dashboardData.functionCounts);
         setupQuickActions(dashboardData.quickActions);
         updateRecentActivities(dashboardData.recentActivities);
         feather.replace();
@@ -593,29 +594,50 @@ async function fetchDashboardData() {
         // Use absolute URL with port 3000 for backend API
         const baseUrl = `http://localhost:3000`;
         
-        const [alertsRes, statsRes, activitiesRes] = await Promise.all([
+        const [alertsRes, statsRes, activitiesRes, productsRes, warehousesRes, usersRes, suppliersRes, ordersRes] = await Promise.all([
             fetch(`${baseUrl}/dashboard/alerts`, { headers }),
             fetch(`${baseUrl}/dashboard/stats`, { headers }),
-            fetch(`${baseUrl}/dashboard/recent-activities`, { headers })
+            fetch(`${baseUrl}/dashboard/recent-activities`, { headers }),
+            fetch(`${baseUrl}/products/count`, { headers }),
+            fetch(`${baseUrl}/warehouses/count`, { headers }),
+            fetch(`${baseUrl}/users/count`, { headers }),
+            fetch(`${baseUrl}/suppliers/count`, { headers }),
+            fetch(`${baseUrl}/orders/count`, { headers })
         ]);
 
         // Check for unauthorized responses (401)
-        if (alertsRes.status === 401 || statsRes.status === 401 || activitiesRes.status === 401) {
+        if (alertsRes.status === 401 || statsRes.status === 401 || activitiesRes.status === 401 ||
+            productsRes.status === 401 || warehousesRes.status === 401 || usersRes.status === 401 ||
+            suppliersRes.status === 401 || ordersRes.status === 401) {
             window.location.href = '/login.html';
             return;
         }
 
-        if (!alertsRes.ok || !statsRes.ok || !activitiesRes.ok) {
+        if (!alertsRes.ok || !statsRes.ok || !activitiesRes.ok ||
+            !productsRes.ok || !warehousesRes.ok || !usersRes.ok ||
+            !suppliersRes.ok || !ordersRes.ok) {
             throw new Error('Failed to fetch dashboard data');
         }
 
         const alertsData = await alertsRes.json();
         const statsData = await statsRes.json();
         const activitiesData = await activitiesRes.json();
+        const productsCount = await productsRes.json();
+        const warehousesCount = await warehousesRes.json();
+        const usersCount = await usersRes.json();
+        const suppliersCount = await suppliersRes.json();
+        const ordersCount = await ordersRes.json();
         return {
             alerts: alertsData,
             stats: statsData,
-            recentActivities: activitiesData
+            recentActivities: activitiesData,
+            functionCounts: {
+                products: productsCount.count || 0,
+                warehouses: warehousesCount.count || 0,
+                users: usersCount.count || 0,
+                suppliers: suppliersCount.count || 0,
+                orders: ordersCount.count || 0
+            }
         };
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -640,6 +662,44 @@ function updateStats(stats) {
     statsContainer.children[1].querySelector('.text-2xl').textContent = stats.monthlyImports.toLocaleString('vi-VN');
     statsContainer.children[2].querySelector('.text-2xl').textContent = stats.monthlyExports.toLocaleString('vi-VN');
     statsContainer.children[3].querySelector('.text-2xl').textContent = `${(stats.totalValue / 1000000000).toFixed(1)}B VNĐ`;
+}
+
+function updateFunctionOverview(counts) {
+    // Update products count
+    const productsCountEl = document.getElementById('products-count');
+    if (productsCountEl) {
+        productsCountEl.textContent = counts.products.toLocaleString('vi-VN');
+    }
+
+    // Update warehouses count
+    const warehousesCountEl = document.getElementById('warehouses-count');
+    if (warehousesCountEl) {
+        warehousesCountEl.textContent = counts.warehouses.toLocaleString('vi-VN');
+    }
+
+    // Update users count
+    const usersCountEl = document.getElementById('users-count');
+    if (usersCountEl) {
+        usersCountEl.textContent = counts.users.toLocaleString('vi-VN');
+    }
+
+    // Update suppliers count
+    const suppliersCountEl = document.getElementById('suppliers-count');
+    if (suppliersCountEl) {
+        suppliersCountEl.textContent = counts.suppliers.toLocaleString('vi-VN');
+    }
+
+    // Update orders count
+    const ordersCountEl = document.getElementById('orders-count');
+    if (ordersCountEl) {
+        ordersCountEl.textContent = counts.orders.toLocaleString('vi-VN');
+    }
+
+    // For reports, we can hardcode or fetch separately if needed
+    const reportsCountEl = document.getElementById('reports-count');
+    if (reportsCountEl) {
+        reportsCountEl.textContent = '8'; // Placeholder
+    }
 }
 
 function setupQuickActions(quickActions) {

@@ -87,4 +87,13 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+router.get('/count', async (req, res) => {
+    try {
+        const count = await userModel.getUsersCount();
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get users count' });
+    }
+});
+
 module.exports = router;

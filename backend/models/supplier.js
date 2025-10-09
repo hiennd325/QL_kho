@@ -136,11 +136,25 @@ const getTopSuppliers = async (limit = 3) => {
     }
 };
 
+const getSuppliersCount = async () => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM suppliers', (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     createSupplier,
     getSuppliers,
     getSupplierById,
     updateSupplier,
     deleteSupplier,
-    getTopSuppliers
+    getTopSuppliers,
+    getSuppliersCount
 };
