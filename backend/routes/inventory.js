@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 const inventoryModel = require('../models/inventory');
 const inventoryTransactionModel = require('../models/inventory_transaction');
+
+const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
+    if (err) {
+        console.error('Could not connect to database:', err.message);
+    }
+});
 
 // Get all inventory items (with product details)
 router.get('/', async (req, res) => {
@@ -85,25 +93,27 @@ router.post('/minus', async (req, res) => {
 // POST create inventory audit
 router.post('/audits', async (req, res) => {
     try {
-        const { code, date, warehouse_id, checker, notes } = req.body;
-        if (!code || !date || !warehouse_id || !checker) {
+        const { code, date, warehouse_id, notes } = req.body;
+        const created_by_user_id = req.user.id; // Get user ID from authenticated user
+
+        if (!code || !date || !warehouse_id || !created_by_user_id) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // For now, just return success. In a real implementation, you'd save this to a database
-        const audit = {
-            id: Date.now(),
-            code,
-            date,
-            warehouse_id,
-            checker,
-            notes,
-            status: 'pending',
-            created_at: new Date().toISOString()
-        };
+        const audit = await new Promise((resolve, reject) => {
+            db.run(
+                `INSERT INTO audits (code, date, warehouse_id, created_by_user_id, discrepancy, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [code, date, warehouse_id, created_by_user_id, 0, 'pending', notes],
+                function (err) {
+                    if (err) reject(err);
+                    else resolve({ id: this.lastID, code, date, warehouse_id, created_by_user_id, discrepancy: 0, status: 'pending', notes });
+                }
+            );
+        });
 
         res.status(201).json(audit);
     } catch (err) {
+        console.error('Error creating inventory audit:', err);
         res.status(500).json({ error: 'Failed to create inventory audit' });
     }
 });

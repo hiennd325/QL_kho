@@ -133,6 +133,15 @@ async function seedDatabase() {
             ('TRF005', 2, 3, 6, 20, 'pending', 3, 'Chuột Logitech cho kho miền trung')`
         );
 
+        // 10. Tạo audits
+        console.log('Seeding audits...');
+        await runQuery(
+            `INSERT OR IGNORE INTO audits (code, date, warehouse_id, created_by_user_id, discrepancy, status, notes) VALUES
+            ('KK20231015001', DATE('now', '-7 days'), 1, 1, 0, 'completed', 'Kiểm kê định kỳ hàng tuần'),
+            ('KK20231016002', DATE('now', '-3 days'), 2, 2, -5, 'pending', 'Phát hiện chênh lệch 5 sản phẩm'),
+            ('KK20231017003', DATE('now', '-1 day'), 1, 1, 2, 'pending', 'Kiểm kê đột xuất')`
+        );
+
         console.log('Database seeding completed successfully!');
 
     } catch (error) {

@@ -129,3 +129,18 @@ CREATE TABLE IF NOT EXISTS sales_order_items (
     FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id),
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+DROP TABLE IF EXISTS audits;
+CREATE TABLE IF NOT EXISTS audits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    date DATETIME NOT NULL,
+    warehouse_id INTEGER NOT NULL,
+    created_by_user_id INTEGER NOT NULL,
+    discrepancy REAL NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'cancelled')),
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (created_by_user_id) REFERENCES users(id)
+);

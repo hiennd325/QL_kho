@@ -33,32 +33,32 @@ router.get('/alerts', async (req, res) => {
 // Get stats data
 router.get('/stats', async (req, res) => {
     try {
-        // Total products
+        // Total products (count of product types)
         const totalProducts = await new Promise((resolve, reject) => {
-            db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
+            db.get('SELECT COUNT(*) as total FROM products', (err, row) => {
                 if (err) reject(err);
-                else resolve(row.count);
+                else resolve(row.total || 0);
             });
         });
 
-        // Monthly imports: sum of quantities from 'nhap' transactions in last 30 days
+        // Monthly imports: sum of quantities from 'nhap' transactions in current month
         const monthlyImports = await new Promise((resolve, reject) => {
             db.get(`
                 SELECT SUM(quantity) as total
                 FROM inventory_transactions
-                WHERE type = 'nhap' AND transaction_date >= datetime('now', '-30 days')
+                WHERE type = 'nhap' AND strftime('%Y-%m', transaction_date) = strftime('%Y-%m', 'now')
             `, (err, row) => {
                 if (err) reject(err);
                 else resolve(row.total || 0);
             });
         });
 
-        // Monthly exports: sum of quantities from 'xuat' transactions in last 30 days
+        // Monthly exports: sum of quantities from 'xuat' transactions in current month
         const monthlyExports = await new Promise((resolve, reject) => {
             db.get(`
                 SELECT SUM(quantity) as total
                 FROM inventory_transactions
-                WHERE type = 'xuat' AND transaction_date >= datetime('now', '-30 days')
+                WHERE type = 'xuat' AND strftime('%Y-%m', transaction_date) = strftime('%Y-%m', 'now')
             `, (err, row) => {
                 if (err) reject(err);
                 else resolve(row.total || 0);

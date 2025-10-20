@@ -100,33 +100,44 @@ router.get('/quick-stats', async (req, res) => {
 
 router.get('/audits', async (req, res) => {
     try {
-        // Return mock audit data since we don't have an audits table
-        const audits = [
-            {
-                code: 'PKK001',
-                date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                warehouse: 'Kho chính',
-                createdBy: 'Nguyễn Văn A',
-                discrepancy: 0,
-                status: 'completed'
-            },
-            {
-                code: 'PKK002',
-                date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-                warehouse: 'Kho phụ',
-                createdBy: 'Trần Thị B',
-                discrepancy: -5,
-                status: 'completed'
-            },
-            {
-                code: 'PKK003',
-                date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-                warehouse: 'Kho online',
-                createdBy: 'Lê Văn C',
-                discrepancy: 2,
-                status: 'pending'
-            }
-        ];
+        const { startDate, endDate, warehouse, status } = req.query;
+        let query = `
+            SELECT
+                a.id, a.code, a.date, a.discrepancy, a.status, a.notes,
+                w.name as warehouse_name,
+                u.username as created_by_username
+            FROM audits a
+            JOIN warehouses w ON a.warehouse_id = w.id
+            JOIN users u ON a.created_by_user_id = u.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (startDate) {
+            query += ' AND date(a.date) >= date(?)';
+            params.push(startDate);
+        }
+        if (endDate) {
+            query += ' AND date(a.date) <= date(?)';
+            params.push(endDate);
+        }
+        if (warehouse && warehouse !== 'Tất cả kho') {
+            query += ' AND w.name = ?';
+            params.push(warehouse);
+        }
+        if (status && status !== 'Tất cả trạng thái') {
+            query += ' AND a.status = ?';
+            params.push(status);
+        }
+
+        query += ' ORDER BY a.date DESC';
+
+        const audits = await new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
         res.json(audits);
     } catch (err) {
         res.status(500).json({ error: 'Failed to get audits' });
