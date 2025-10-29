@@ -77,4 +77,15 @@ router.post('/login', async (req, res) => {
     }
 });
 
+/**
+ * Route đăng xuất
+ * POST /auth/logout
+ */
+router.post('/logout', (req, res) => {
+    // Đối với JWT, việc "đăng xuất" chủ yếu là xóa token ở phía client.
+    // Server không cần làm gì nhiều ngoài việc xác nhận yêu cầu.
+    // Nếu có sử dụng refresh token hoặc blacklist token, logic sẽ phức tạp hơn.
+    res.status(200).json({ message: 'Logged out successfully' });
+});
+
 module.exports = router;

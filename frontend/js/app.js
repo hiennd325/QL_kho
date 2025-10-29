@@ -207,6 +207,14 @@ const App = {
             App.utils.showNotification('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
         });
 
+        // Logout button event listener
+        const logoutButton = document.getElementById('logoutButton');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                Auth.logout();
+            });
+        }
+
         // Service worker registration for PWA support
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js')
