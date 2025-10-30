@@ -206,17 +206,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openTransferModal() {
         if (transferModal) {
-            transferModal.classList.remove('hidden');
             // Reset form
             if (transferForm) {
                 transferForm.reset();
+            }
+            
+            // Reset select options to show placeholder
+            const selects = transferForm.querySelectorAll('select');
+            selects.forEach(select => {
+                select.selectedIndex = 0;
+            });
+            
+            // Show modal with animation
+            transferModal.classList.remove('hidden');
+            
+            // Trigger animation
+            const modalContent = transferModal.querySelector('.rounded-xl');
+            if (modalContent) {
+                modalContent.classList.remove('scale-95');
+                setTimeout(() => {
+                    modalContent.classList.add('scale-100');
+                }, 10);
             }
         }
     }
 
     function closeTransferModal() {
         if (transferModal) {
-            transferModal.classList.add('hidden');
+            // Add closing animation
+            const modalContent = transferModal.querySelector('.rounded-xl');
+            if (modalContent) {
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                
+                // Hide modal after animation completes
+                setTimeout(() => {
+                    transferModal.classList.add('hidden');
+                }, 300);
+            } else {
+                transferModal.classList.add('hidden');
+            }
         }
     }
 
