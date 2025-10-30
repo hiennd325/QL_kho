@@ -241,6 +241,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Transfer tab
+    const transferTab = document.getElementById('transfer-tab');
+    const transferSection = document.getElementById('transfer-section');
+    if (transferTab) {
+        transferTab.addEventListener('click', () => {
+            // Hide warehouse grid and show transfer section
+            warehouseGrid.classList.add('hidden');
+            if (transferSection) {
+                transferSection.classList.remove('hidden');
+            }
+            
+            // Load transfer data
+            loadTransferData();
+        });
+    }
+
     // Modal functions
     function openWarehouseModal(warehouseId = null) {
         currentWarehouseId = warehouseId;
@@ -384,6 +400,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function loadTabContent() {
+        // Show warehouse grid by default
+        warehouseGrid.classList.remove('hidden');
+        
+        // Hide transfer section by default
+        if (transferSection) {
+            transferSection.classList.add('hidden');
+        }
+
         switch(currentTab) {
             case 'Danh sách kho':
                 loadWarehouses();
@@ -395,7 +419,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadStorageLocations();
                 break;
             case 'Điều chuyển hàng':
-                loadTransferRequests();
+                // Hide warehouse grid and show transfer section
+                warehouseGrid.classList.add('hidden');
+                if (transferSection) {
+                    transferSection.classList.remove('hidden');
+                }
+                loadTransferData();
                 break;
         }
     }
@@ -441,6 +470,100 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         feather.replace();
     }
+
+    async function loadTransferData() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            
+            // Load transfers
+            const response = await fetch(`${baseUrl}/transfers?limit=20`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch transfers');
+            
+            const transfers = await response.json();
+            renderTransfersInManagement(transfers);
+        } catch (error) {
+            console.error('Error loading transfer data:', error);
+        }
+    }
+
+    function renderTransfersInManagement(transfers) {
+        const tableBody = document.querySelector('#transfersTable tbody');
+        if (!tableBody) return;
+
+        if (transfers.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        Chưa có dữ liệu điều chuyển
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = transfers.map(transfer => `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${transfer.code}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${transfer.date}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${transfer.from_warehouse}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${transfer.to_warehouse}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${transfer.quantity}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs font-medium ${getStatusClass(transfer.status)} rounded-full">
+                        ${getStatusText(transfer.status)}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="updateTransferStatus(${transfer.id}, 'completed')" class="text-green-600 hover:text-green-900 mr-2" title="Hoàn thành">
+                        <i data-feather="check-circle"></i>
+                    </button>
+                    <button onclick="updateTransferStatus(${transfer.id}, 'cancelled')" class="text-red-600 hover:text-red-900" title="Hủy bỏ">
+                        <i data-feather="x-circle"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        feather.replace();
+    }
+
+    // Make function available globally
+    window.updateTransferStatus = async function(transferId, status) {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            } : { 'Content-Type': 'application/json' };
+
+            const response = await fetch(`${baseUrl}/transfers/${transferId}/status`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify({ status })
+            });
+
+            if (!response.ok) throw new Error('Failed to update transfer status');
+
+            alert('Cập nhật trạng thái thành công!');
+            loadTransferData(); // Refresh transfers list
+        } catch (error) {
+            console.error('Error updating transfer status:', error);
+            alert('Lỗi khi cập nhật trạng thái: ' + error.message);
+        }
+    };
 
     // Event listeners
     if (addWarehouseBtn) {

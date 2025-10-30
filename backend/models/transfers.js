@@ -80,6 +80,10 @@ const getTransferById = async (id) => {
 
 const updateTransferStatus = async (id, status) => {
     try {
+        // First get the transfer details
+        const transfer = await getTransferById(id);
+        
+        // Update the transfer status
         const result = await new Promise((resolve, reject) => {
             db.run('UPDATE transfers SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
                 [status, id], function(err) {
@@ -90,7 +94,71 @@ const updateTransferStatus = async (id, status) => {
                     }
                 });
         });
+        
+        // If status is completed, update inventory
+        if (status === 'completed' && transfer) {
+            // Reduce inventory in from_warehouse
+            await updateInventoryForTransfer(transfer.product_id, transfer.from_warehouse_id, -transfer.quantity);
+            // Increase inventory in to_warehouse
+            await updateInventoryForTransfer(transfer.product_id, transfer.to_warehouse_id, transfer.quantity);
+        }
+        
         return result;
+    } catch (err) {
+        throw err;
+    }
+};
+
+// Helper function to update inventory for a transfer
+const updateInventoryForTransfer = async (productId, warehouseId, quantityChange) => {
+    try {
+        // Check if inventory record exists
+        const inventoryRecord = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM inventory WHERE product_id = ? AND warehouse_id = ?', 
+                [productId, warehouseId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+        });
+        
+        if (inventoryRecord) {
+            // Update existing record
+            const newQuantity = inventoryRecord.quantity + quantityChange;
+            if (newQuantity < 0) {
+                throw new Error('Insufficient inventory');
+            }
+            
+            await new Promise((resolve, reject) => {
+                db.run('UPDATE inventory SET quantity = ? WHERE product_id = ? AND warehouse_id = ?', 
+                    [newQuantity, productId, warehouseId], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+        } else {
+            // Create new record
+            if (quantityChange < 0) {
+                throw new Error('Insufficient inventory');
+            }
+            
+            await new Promise((resolve, reject) => {
+                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', 
+                    [productId, warehouseId, quantityChange], (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+            });
+        }
+        
+        // Add transaction record
+        await new Promise((resolve, reject) => {
+            db.run('INSERT INTO inventory_transactions (product_id, warehouse_id, quantity, type) VALUES (?, ?, ?, ?)',
+                [productId, warehouseId, Math.abs(quantityChange), quantityChange > 0 ? 'nhap' : 'xuat'],
+                (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        });
     } catch (err) {
         throw err;
     }
