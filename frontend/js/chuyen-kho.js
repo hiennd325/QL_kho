@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Event listeners
     document.getElementById('openTransferModal').addEventListener('click', openTransferModal);
+        document.getElementById('openTransferModal2').addEventListener('click', openTransferModal);
     
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeTransferModal);
