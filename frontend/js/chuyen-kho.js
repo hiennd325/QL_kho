@@ -127,43 +127,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (transfers.length === 0) {
             transfersTableBody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                        Chưa có dữ liệu điều chuyển
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <i data-feather="inbox" class="w-12 h-12 text-gray-300 mb-3"></i>
+                            <p class="text-lg font-medium">Chưa có dữ liệu điều chuyển</p>
+                            <p class="text-sm mt-1">Hãy tạo phiếu điều chuyển đầu tiên</p>
+                        </div>
                     </td>
                 </tr>
             `;
+            // Initialize Feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
             return;
         }
         
-        transfersTableBody.innerHTML = transfers.map(transfer => `
-            <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${transfer.code}
+        transfersTableBody.innerHTML = transfers.map((transfer, index) => `
+            <tr class="hover:bg-blue-50 transition-all duration-150 border-b border-gray-100 animate-fade-in" style="animation-delay: ${index * 50}ms">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                            <i data-feather="tag" class="w-4 h-4 text-blue-600"></i>
+                        </div>
+                        ${transfer.code}
+                    </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${transfer.date}
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <div class="flex items-center">
+                        <i data-feather="calendar" class="w-4 h-4 text-gray-400 mr-2"></i>
+                        ${transfer.date}
+                    </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${transfer.from_warehouse}
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <div class="flex items-center">
+                        <div class="bg-green-100 p-1 rounded mr-2">
+                            <i data-feather="home" class="w-3 h-3 text-green-600"></i>
+                        </div>
+                        <span class="font-medium">${transfer.from_warehouse}</span>
+                    </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${transfer.to_warehouse}
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <div class="flex items-center">
+                        <div class="bg-indigo-100 p-1 rounded mr-2">
+                            <i data-feather="navigation" class="w-3 h-3 text-indigo-600"></i>
+                        </div>
+                        <span class="font-medium">${transfer.to_warehouse}</span>
+                    </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${transfer.quantity}
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <div class="flex items-center">
+                        <div class="bg-yellow-100 p-1 rounded mr-2">
+                            <i data-feather="package" class="w-3 h-3 text-yellow-600"></i>
+                        </div>
+                        <span class="font-semibold">${transfer.quantity}</span>
+                    </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs font-medium ${getStatusClass(transfer.status)} rounded-full">
-                        ${getStatusText(transfer.status)}
+                    <span class="px-3 py-1 text-xs font-semibold ${getStatusClass(transfer.status)} rounded-full inline-flex items-center">
+                        ${getStatusIcon(transfer.status)}
+                        <span class="ml-1">${getStatusText(transfer.status)}</span>
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="updateTransferStatus(${transfer.id}, 'completed')" class="text-green-600 hover:text-green-900 mr-2">
-                        <i data-feather="check-circle"></i>
-                    </button>
-                    <button onclick="updateTransferStatus(${transfer.id}, 'cancelled')" class="text-red-600 hover:text-red-900">
-                        <i data-feather="x-circle"></i>
-                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="updateTransferStatus(${transfer.id}, 'completed')" class="text-green-600 hover:text-white hover:bg-green-600 p-2 rounded-lg transition-all duration-200 border border-green-300 hover:border-green-600">
+                            <i data-feather="check-circle" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="updateTransferStatus(${transfer.id}, 'cancelled')" class="text-red-600 hover:text-white hover:bg-red-600 p-2 rounded-lg transition-all duration-200 border border-red-300 hover:border-red-600">
+                            <i data-feather="x-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -204,6 +238,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function getStatusIcon(status) {
+        switch (status) {
+            case 'completed':
+                return '<i data-feather="check-circle" class="w-3 h-3"></i>';
+            case 'in_progress':
+                return '<i data-feather="loader" class="w-3 h-3"></i>';
+            case 'pending':
+                return '<i data-feather="clock" class="w-3 h-3"></i>';
+            case 'cancelled':
+                return '<i data-feather="x-circle" class="w-3 h-3"></i>';
+            default:
+                return '<i data-feather="help-circle" class="w-3 h-3"></i>';
+        }
+    }
+
     function openTransferModal() {
         if (transferModal) {
             // Reset form
@@ -217,27 +266,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                 select.selectedIndex = 0;
             });
             
-            // Show modal with animation
+            // Show modal with enhanced animation
             transferModal.classList.remove('hidden');
             
             // Trigger animation
-            const modalContent = transferModal.querySelector('.rounded-xl');
+            const modalContent = transferModal.querySelector('.rounded-2xl');
             if (modalContent) {
                 modalContent.classList.remove('scale-95');
-                setTimeout(() => {
-                    modalContent.classList.add('scale-100');
-                }, 10);
+                modalContent.classList.add('scale-100');
+                modalContent.classList.add('opacity-100');
             }
+            
+            // Focus on first input
+            setTimeout(() => {
+                const firstSelect = document.getElementById('from_warehouse_id');
+                if (firstSelect) firstSelect.focus();
+            }, 300);
         }
     }
 
     function closeTransferModal() {
         if (transferModal) {
             // Add closing animation
-            const modalContent = transferModal.querySelector('.rounded-xl');
+            const modalContent = transferModal.querySelector('.rounded-2xl');
             if (modalContent) {
                 modalContent.classList.remove('scale-100');
+                modalContent.classList.remove('opacity-100');
                 modalContent.classList.add('scale-95');
+                modalContent.classList.add('opacity-0');
                 
                 // Hide modal after animation completes
                 setTimeout(() => {
