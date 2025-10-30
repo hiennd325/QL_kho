@@ -80,9 +80,6 @@ fs.readFile(schemaPath, 'utf8', (err, data) => {
             console.error('Error executing schema:', err.message);
         } else {
             console.log('Database schema applied.');
-            // Seed database với dữ liệu giả - Tắt để giữ dữ liệu vĩnh viễn
-            // console.log('Starting database seeding...');
-            // require('./seed')();
         }
     });
 });

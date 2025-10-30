@@ -665,40 +665,71 @@ function updateStats(stats) {
 }
 
 function updateFunctionOverview(counts) {
-    // Update products count
+    // Update products count and growth
     const productsCountEl = document.getElementById('products-count');
     if (productsCountEl) {
         productsCountEl.textContent = counts.products.toLocaleString('vi-VN');
     }
+    
+    const productsGrowthEl = document.getElementById('products-growth');
+    if (productsGrowthEl) {
+        // Tạm thời hiển thị 0% cho đến khi có dữ liệu thực
+        productsGrowthEl.textContent = '+0% so với tháng trước';
+    }
 
-    // Update warehouses count
+    // Update warehouses count and status
     const warehousesCountEl = document.getElementById('warehouses-count');
     if (warehousesCountEl) {
         warehousesCountEl.textContent = counts.warehouses.toLocaleString('vi-VN');
     }
+    
+    const warehousesStatusEl = document.getElementById('warehouses-status');
+    if (warehousesStatusEl) {
+        warehousesStatusEl.textContent = counts.warehouses > 0 ? 'Tất cả hoạt động' : 'Chưa có dữ liệu';
+    }
 
-    // Update users count
+    // Update users count and new users
     const usersCountEl = document.getElementById('users-count');
     if (usersCountEl) {
         usersCountEl.textContent = counts.users.toLocaleString('vi-VN');
     }
+    
+    const usersNewEl = document.getElementById('users-new');
+    if (usersNewEl) {
+        usersNewEl.textContent = '0 người dùng mới';
+    }
 
-    // Update suppliers count
+    // Update suppliers count and new suppliers
     const suppliersCountEl = document.getElementById('suppliers-count');
     if (suppliersCountEl) {
         suppliersCountEl.textContent = counts.suppliers.toLocaleString('vi-VN');
     }
+    
+    const suppliersNewEl = document.getElementById('suppliers-new');
+    if (suppliersNewEl) {
+        suppliersNewEl.textContent = '0 NCC mới';
+    }
 
-    // Update orders count
+    // Update orders count and pending orders
     const ordersCountEl = document.getElementById('orders-count');
     if (ordersCountEl) {
         ordersCountEl.textContent = counts.orders.toLocaleString('vi-VN');
     }
+    
+    const ordersPendingEl = document.getElementById('orders-pending');
+    if (ordersPendingEl) {
+        ordersPendingEl.textContent = '0 đơn chờ xử lý';
+    }
 
-    // For reports, we can hardcode or fetch separately if needed
+    // Update reports count and monthly reports
     const reportsCountEl = document.getElementById('reports-count');
     if (reportsCountEl) {
-        reportsCountEl.textContent = '8'; // Placeholder
+        reportsCountEl.textContent = '0';
+    }
+    
+    const reportsMonthlyEl = document.getElementById('reports-monthly');
+    if (reportsMonthlyEl) {
+        reportsMonthlyEl.textContent = 'Chưa có báo cáo';
     }
 }
 

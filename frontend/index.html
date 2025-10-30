@@ -161,14 +161,14 @@
                         <i data-feather="info" class="mr-2"></i>
                         <p class="font-bold">Thông tin</p>
                     </div>
-                    <p class="text-sm">3 đơn hàng mới cần xử lý</p>
+                    <p class="text-sm" id="new-orders-alert">0 đơn hàng mới cần xử lý</p>
                 </div>
                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-sm" role="alert">
                     <div class="flex items-center">
                         <i data-feather="check-circle" class="mr-2"></i>
                         <p class="font-bold">Hoạt động</p>
                     </div>
-                    <p class="text-sm">Hệ thống hoạt động ổn định</p>
+                    <p class="text-sm" id="system-status">Hệ thống hoạt động ổn định</p>
                 </div>
             </div>
 
@@ -181,7 +181,7 @@
                          </div>
                          <div class="ml-4">
                              <p class="text-gray-500 text-sm font-medium">Tổng sản phẩm</p>
-                             <p class="stats-number text-2xl font-bold text-gray-900" id="total-products">1,248</p>
+                             <p class="stats-number text-2xl font-bold text-gray-900" id="total-products">0</p>
                          </div>
                      </div>
                  </div>
@@ -193,7 +193,7 @@
                          </div>
                          <div class="ml-4">
                              <p class="text-gray-500 text-sm font-medium">Nhập kho tháng</p>
-                             <p class="stats-number text-2xl font-bold text-gray-900" id="monthly-imports">284</p>
+                             <p class="stats-number text-2xl font-bold text-gray-900" id="monthly-imports">0</p>
                          </div>
                      </div>
                  </div>
@@ -205,7 +205,7 @@
                          </div>
                          <div class="ml-4">
                              <p class="text-gray-500 text-sm font-medium">Xuất kho tháng</p>
-                             <p class="stats-number text-2xl font-bold text-gray-900" id="monthly-exports">196</p>
+                             <p class="stats-number text-2xl font-bold text-gray-900" id="monthly-exports">0</p>
                          </div>
                      </div>
                  </div>
@@ -217,7 +217,7 @@
                          </div>
                          <div class="ml-4">
                              <p class="text-gray-500 text-sm font-medium">Tổng giá trị</p>
-                             <p class="stats-number text-2xl font-bold text-gray-900" id="total-value">2.5B VNĐ</p>
+                             <p class="stats-number text-2xl font-bold text-gray-900" id="total-value">0 VNĐ</p>
                          </div>
                      </div>
                  </div>
@@ -229,8 +229,8 @@
                      <div class="flex items-center justify-between">
                          <div>
                              <p class="text-gray-500 text-sm font-medium">Quản lý hàng hóa</p>
-                             <p class="text-2xl font-bold text-gray-900" id="products-count">1,248</p>
-                             <p class="text-green-500 text-sm">+12% so với tháng trước</p>
+                             <p class="text-2xl font-bold text-gray-900" id="products-count">0</p>
+                             <p class="text-green-500 text-sm" id="products-growth">+0% so với tháng trước</p>
                          </div>
                          <div class="p-3 rounded-full bg-blue-100 text-blue-600">
                              <i data-feather="box"></i>
@@ -243,8 +243,8 @@
                      <div class="flex items-center justify-between">
                          <div>
                              <p class="text-gray-500 text-sm font-medium">Quản lý kho bãi</p>
-                             <p class="text-2xl font-bold text-gray-900" id="warehouses-count">5</p>
-                             <p class="text-blue-500 text-sm">Tất cả hoạt động</p>
+                             <p class="text-2xl font-bold text-gray-900" id="warehouses-count">0</p>
+                             <p class="text-blue-500 text-sm" id="warehouses-status">Chưa có dữ liệu</p>
                          </div>
                          <div class="p-3 rounded-full bg-green-100 text-green-600">
                              <i data-feather="database"></i>
@@ -257,8 +257,8 @@
                      <div class="flex items-center justify-between">
                          <div>
                              <p class="text-gray-500 text-sm font-medium">Quản lý người dùng</p>
-                             <p class="text-2xl font-bold text-gray-900" id="users-count">24</p>
-                             <p class="text-purple-500 text-sm">3 người dùng mới</p>
+                             <p class="text-2xl font-bold text-gray-900" id="users-count">0</p>
+                             <p class="text-purple-500 text-sm" id="users-new">0 người dùng mới</p>
                          </div>
                          <div class="p-3 rounded-full bg-purple-100 text-purple-600">
                              <i data-feather="users"></i>
@@ -271,8 +271,8 @@
                      <div class="flex items-center justify-between">
                          <div>
                              <p class="text-gray-500 text-sm font-medium">Nhà cung cấp</p>
-                             <p class="text-2xl font-bold text-gray-900" id="suppliers-count">18</p>
-                             <p class="text-orange-500 text-sm">2 NCC mới</p>
+                             <p class="text-2xl font-bold text-gray-900" id="suppliers-count">0</p>
+                             <p class="text-orange-500 text-sm" id="suppliers-new">0 NCC mới</p>
                          </div>
                          <div class="p-3 rounded-full bg-orange-100 text-orange-600">
                              <i data-feather="truck"></i>
@@ -285,8 +285,8 @@
                      <div class="flex items-center justify-between">
                          <div>
                              <p class="text-gray-500 text-sm font-medium">Đơn hàng</p>
-                             <p class="text-2xl font-bold text-gray-900" id="orders-count">156</p>
-                             <p class="text-red-500 text-sm">12 đơn chờ xử lý</p>
+                             <p class="text-2xl font-bold text-gray-900" id="orders-count">0</p>
+                             <p class="text-red-500 text-sm" id="orders-pending">0 đơn chờ xử lý</p>
                          </div>
                          <div class="p-3 rounded-full bg-red-100 text-red-600">
                              <i data-feather="shopping-cart"></i>
@@ -299,8 +299,8 @@
                      <div class="flex items-center justify-between">
                          <div>
                              <p class="text-gray-500 text-sm font-medium">Kiểm kê & Báo cáo</p>
-                             <p class="text-2xl font-bold text-gray-900" id="reports-count">8</p>
-                             <p class="text-indigo-500 text-sm">Báo cáo tháng này</p>
+                             <p class="text-2xl font-bold text-gray-900" id="reports-count">0</p>
+                             <p class="text-indigo-500 text-sm" id="reports-monthly">Chưa có báo cáo</p>
                          </div>
                          <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
                              <i data-feather="clipboard"></i>
