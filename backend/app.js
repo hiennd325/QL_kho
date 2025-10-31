@@ -59,8 +59,12 @@ app.use((req, res, next) => {
 // Serve static files từ thư mục frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Kiểm tra xem tệp cơ sở dữ liệu đã tồn tại chưa
+const dbPath = './database.db';
+const dbExists = fs.existsSync(dbPath);
+
 // Kết nối đến cơ sở dữ liệu SQLite
-const db = new sqlite3.Database('./database.db', (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Could not connect to database:', err.message);
     } else {
@@ -68,21 +72,25 @@ const db = new sqlite3.Database('./database.db', (err) => {
     }
 });
 
-// Đọc và thực thi schema từ file schema.sql
-const schemaPath = path.join(__dirname, 'schema.sql');
-fs.readFile(schemaPath, 'utf8', (err, data) => {
-    if (err) {
-        console.error('Error reading schema.sql:', err);
-        return;
-    }
-    db.exec(data, (err) => {
+// Nếu tệp cơ sở dữ liệu chưa tồn tại, đọc và thực thi schema từ file schema.sql
+if (!dbExists) {
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    fs.readFile(schemaPath, 'utf8', (err, data) => {
         if (err) {
-            console.error('Error executing schema:', err.message);
-        } else {
-            console.log('Database schema applied.');
+            console.error('Error reading schema.sql:', err);
+            return;
         }
+        db.exec(data, (err) => {
+            if (err) {
+                console.error('Error executing schema:', err.message);
+            } else {
+                console.log('Database schema applied.');
+            }
+        });
     });
-});
+} else {
+    console.log('Using existing database file.');
+}
 
 
 
@@ -130,6 +138,58 @@ app.use((err, req, res, next) => {
 });
 
 // Khởi động server
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
+});
+
+// Hàm tạo backup database
+function createDatabaseBackup() {
+    const backupPath = `./database.db.backup.${Date.now()}`;
+    fs.copyFile('./database.db', backupPath, (err) => {
+        if (err) {
+            console.error('Error creating database backup:', err.message);
+        } else {
+            console.log(`Database backup created: ${backupPath}`);
+        }
+    });
+}
+
+// Hàm xử lý shutdown graceful
+function gracefulShutdown() {
+    console.log('Received shutdown signal, creating database backup and closing connections...');
+    
+    // Tạo backup database trước khi đóng
+    createDatabaseBackup();
+    
+    // Đóng database connection
+    db.close((err) => {
+        if (err) {
+            console.error('Error closing database:', err.message);
+        } else {
+            console.log('Database connection closed.');
+        }
+        
+        // Đóng server
+        server.close(() => {
+            console.log('Server closed.');
+            process.exit(0);
+        });
+    });
+}
+
+// Xử lý các tín hiệu shutdown
+process.on('SIGINT', gracefulShutdown);  // Ctrl+C
+process.on('SIGTERM', gracefulShutdown); // Termination signal
+process.on('SIGUSR2', gracefulShutdown); // Nodemon restart
+
+// Xử lý uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    gracefulShutdown();
+});
+
+// Xử lý unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    gracefulShutdown();
 });
