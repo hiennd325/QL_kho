@@ -744,20 +744,23 @@ function setupQuickActions(quickActions) {
 }
 
 function updateRecentActivities(activities) {
-    const activityContainer = document.querySelector('.bg-white.rounded-lg.shadow-md .space-y-4');
+    const activityContainer = document.getElementById('recent-activities');
     if (!activityContainer) return;
 
     activityContainer.innerHTML = '';
 
     activities.forEach(activity => {
         const activityElement = `
-            <div class="flex items-start">
-                <div class="p-2 rounded-full bg-${activity.color}-100 text-${activity.color}-600 mr-3">
-                    <i data-feather="${activity.icon}" class="h-4 w-4"></i>
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-${activity.color}-100 rounded-full flex items-center justify-center">
+                        <i data-feather="${activity.icon}" class="w-4 h-4 text-${activity.color}-600"></i>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <p class="font-medium">${activity.title}</p>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900">${activity.title}</p>
                     <p class="text-sm text-gray-500">${activity.description}</p>
+                    <p class="text-xs text-gray-400">${activity.time}</p>
                 </div>
             </div>
         `;

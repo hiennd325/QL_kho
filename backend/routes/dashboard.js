@@ -114,7 +114,7 @@ router.get('/recent-activities', async (req, res) => {
                         WHEN type = 'xuat' THEN 'red'
                         ELSE 'blue'
                     END as color,
-                    datetime(transaction_date, 'localtime') as time
+                    transaction_date as time
                 FROM inventory_transactions it
                 JOIN products p ON it.product_id = p.id
                 ORDER BY transaction_date DESC
@@ -125,7 +125,7 @@ router.get('/recent-activities', async (req, res) => {
                     // Format time to Vietnamese
                     const formattedRows = rows.map(row => ({
                         ...row,
-                        description: row.description + ' - ' + new Date(row.time).toLocaleString('vi-VN')
+                        time: new Date(row.time).toLocaleString('vi-VN')
                     }));
                     resolve(formattedRows);
                 }
