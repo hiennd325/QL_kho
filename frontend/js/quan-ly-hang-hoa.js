@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tableBody.innerHTML = '';
         if (products.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không tìm thấy sản phẩm nào</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Không tìm thấy sản phẩm nào</td></tr>`;
             return;
         }
 
@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.name}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.description || 'Chưa có mô tả'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.brand || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.quantity || 0}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.supplier_name || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
@@ -223,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         } catch (error) {
             console.error('Error loading products:', error);
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
         }
     }
     
@@ -263,11 +264,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         method: 'DELETE',
                         headers
                     });
-                    if (response.ok) {
-                        loadProducts();
-                    } else {
-                        throw new Error('Xóa thất bại');
-                    }
+                     if (response.ok) {
+                         loadProducts();
+                         loadBrandsForFilter(); // Refresh brands filter after deleting product
+                     } else {
+                         throw new Error('Xóa thất bại');
+                     }
                 } catch (error) {
                     alert(error.message);
                 }
@@ -358,12 +360,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     })
                 });
 
-                if (response.ok) {
-                    loadProducts();
-                    document.body.removeChild(modal);
-                } else {
-                    throw new Error('Cập nhật sản phẩm thất bại');
-                }
+                 if (response.ok) {
+                     loadProducts();
+                     loadBrandsForFilter(); // Refresh brands filter after editing product
+                     document.body.removeChild(modal);
+                 } else {
+                     throw new Error('Cập nhật sản phẩm thất bại');
+                 }
             } catch (error) {
                 alert(error.message);
             }
@@ -442,12 +445,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify({ name, description, price, brand, quantity, supplierId })
                 });
 
-                if (response.ok) {
-                    loadProducts();
-                    document.body.removeChild(modal);
-                } else {
-                    throw new Error('Thêm sản phẩm thất bại');
-                }
+                 if (response.ok) {
+                     loadProducts();
+                     loadBrandsForFilter(); // Refresh brands filter after adding new product
+                     document.body.removeChild(modal);
+                 } else {
+                     throw new Error('Thêm sản phẩm thất bại');
+                 }
             } catch (error) {
                 alert(error.message);
             }
@@ -597,8 +601,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Load brands for filter dropdown
+    async function loadBrandsForFilter() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/products/brands`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch brands');
+
+            const brands = await response.json();
+            const brandFilter = document.getElementById('brand-filter');
+
+            if (brandFilter) {
+                brandFilter.innerHTML = '<option value="all">Tất cả nhãn hiệu</option>';
+                brands.forEach(brand => {
+                    const option = document.createElement('option');
+                    option.value = brand;
+                    option.textContent = brand;
+                    brandFilter.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading brands:', error);
+        }
+    }
+
     (async () => {
         await loadSuppliersForFilter();
+        await loadBrandsForFilter();
         loadProducts();
     })();
 });
