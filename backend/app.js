@@ -142,6 +142,9 @@ const server = app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
 
+// Import hàm dọn dẹp backup
+const cleanupOldBackups = require('./cleanup_backups');
+
 // Hàm tạo backup database
 function createDatabaseBackup() {
     const backupPath = `./database.db.backup.${Date.now()}`;
@@ -150,6 +153,8 @@ function createDatabaseBackup() {
             console.error('Error creating database backup:', err.message);
         } else {
             console.log(`Database backup created: ${backupPath}`);
+            // Dọn dẹp các backup cũ, chỉ giữ lại 3 file mới nhất
+            cleanupOldBackups(3);
         }
     });
 }
