@@ -195,11 +195,25 @@ const getProductsCount = async () => {
     }
 };
 
+const getUniqueBrands = async () => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.all('SELECT DISTINCT brand FROM products WHERE brand IS NOT NULL AND brand != "" ORDER BY brand', (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows.map(row => row.brand));
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 module.exports = {
     createProduct,
     getProducts,
     getProductById,
     updateProduct,
     deleteProduct,
-    getProductsCount
+    getProductsCount,
+    getUniqueBrands
 };

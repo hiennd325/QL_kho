@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
         const { search, category, brand, supplier, page = 1, limit = 10 } = req.query;
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
-        
+
         // Validate page and limit
         if (isNaN(pageNum) || pageNum < 1) {
             return res.status(400).json({ error: 'Invalid page parameter' });
@@ -15,11 +15,21 @@ router.get('/', async (req, res) => {
         if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
             return res.status(400).json({ error: 'Invalid limit parameter (must be between 1 and 100)' });
         }
-        
+
         const result = await productModel.getProducts(search, category, brand, supplier, pageNum, limitNum);
         res.json(result);
     } catch (err) {
         res.status(500).json({ error: 'Failed to get products' });
+    }
+});
+
+// This route needs authentication in production
+router.get('/brands', async (req, res) => {
+    try {
+        const brands = await productModel.getUniqueBrands();
+        res.json(brands);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get brands' });
     }
 });
 
@@ -115,6 +125,16 @@ router.get('/count', async (req, res) => {
         res.json({ count });
     } catch (err) {
         res.status(500).json({ error: 'Failed to get products count' });
+    }
+});
+
+// This route needs authentication in production
+router.get('/brands', async (req, res) => {
+    try {
+        const brands = await productModel.getUniqueBrands();
+        res.json(brands);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get brands' });
     }
 });
 
