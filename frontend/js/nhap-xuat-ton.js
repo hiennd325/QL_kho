@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inventoryStats = document.getElementById('inventory-value');
     const valueStats = document.getElementById('value-value');
     const stockAlertsContainer = document.getElementById('stock-alerts-container');
-    const tabs = document.querySelectorAll('.bg-white.border-b button');
+    const tabs = document.querySelectorAll('.tab-button');
     let allTransactions = [];
     let inventoryData = [];
     let alertData = [];
@@ -31,6 +31,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             return warehouses;
         } catch (error) {
             console.error('Error loading warehouses:', error);
+            return [];
+        }
+    };
+
+    // Load products from API
+    const loadProducts = async () => {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${baseUrl}/products`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch products');
+            }
+            const productsData = await response.json();
+            return productsData.products || [];
+        } catch (error) {
+            console.error('Error loading products:', error);
             return [];
         }
     };
@@ -71,6 +92,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
+    // Populate product selects in modals
+    const populateProductSelects = async () => {
+        const importProductSelect = document.getElementById('importProductName');
+        const exportProductSelect = document.getElementById('exportProductName');
+
+        // Create datalist elements for autocomplete
+        let importDatalist = document.getElementById('importProductList');
+        let exportDatalist = document.getElementById('exportProductList');
+        
+        if (!importDatalist) {
+            importDatalist = document.createElement('datalist');
+            importDatalist.id = 'importProductList';
+            document.body.appendChild(importDatalist);
+        }
+        
+        if (!exportDatalist) {
+            exportDatalist = document.createElement('datalist');
+            exportDatalist.id = 'exportProductList';
+            document.body.appendChild(exportDatalist);
+        }
+
+        const products = await loadProducts();
+        
+        // Clear existing options
+        importDatalist.innerHTML = '';
+        exportDatalist.innerHTML = '';
+
+        // Add products to datalists
+        products.forEach(product => {
+            const importOption = document.createElement('option');
+            importOption.value = product.name;
+            importOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
+            importDatalist.appendChild(importOption);
+
+            const exportOption = document.createElement('option');
+            exportOption.value = product.name;
+            exportOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
+            exportDatalist.appendChild(exportOption);
+        });
+
+        // Associate datalists with input fields
+        if (importProductSelect) {
+            importProductSelect.setAttribute('list', 'importProductList');
+        }
+        
+        if (exportProductSelect) {
+            exportProductSelect.setAttribute('list', 'exportProductList');
+        }
+    };
+
     // Tab switching functionality
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -80,8 +151,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             tab.classList.remove('text-gray-600', 'hover:text-blue-600');
             tab.classList.add('tab-active');
             
-            currentTab = tab.textContent.trim();
-            filterAndRenderTransactions();
+            currentTab = tab.dataset.tab;
+            currentPage = 1; // Reset to first page when switching tabs
+            loadTransactions();
         });
     });
 
@@ -436,22 +508,42 @@ document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
 
             // Get filter values
-            const startDate = document.querySelector('input[type="date"]:first-of-type')?.value;
-            const endDate = document.querySelector('input[type="date"]:nth-of-type(2)')?.value;
+            const startDate = document.getElementById('startDate')?.value;
+            const endDate = document.getElementById('endDate')?.value;
             const warehouseFilter = document.getElementById('warehouseFilter').value;
             const statusFilter = document.getElementById('statusFilter').value;
+            
+            // Get advanced filter values
+            const typeFilter = document.getElementById('typeFilter')?.value;
+            const productFilter = document.getElementById('productFilter')?.value;
+            const userFilter = document.getElementById('userFilter')?.value;
 
             // Build query parameters
             const queryParams = new URLSearchParams({
                 page: currentPage,
                 limit: limit
             });
+            
+            // Add basic filters
             if (startDate) queryParams.append('startDate', startDate);
             if (endDate) queryParams.append('endDate', endDate);
             if (warehouseFilter && warehouseFilter !== '') {
                 queryParams.append('warehouseId', warehouseFilter);
             }
-
+            if (statusFilter && statusFilter !== '') {
+                queryParams.append('type', statusFilter);
+            }
+            
+            // Add advanced filters
+            if (typeFilter && typeFilter !== '') {
+                queryParams.append('type', typeFilter);
+            }
+            if (productFilter && productFilter !== '') {
+                queryParams.append('product', productFilter);
+            }
+            if (userFilter && userFilter !== '') {
+                queryParams.append('user', userFilter);
+            }
 
             // Load transactions with pagination
             const transactionsResponse = await fetch(`${baseUrl}/inventory/transactions?${queryParams.toString()}`, {
@@ -509,7 +601,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error loading data:', error);
-            const colspan = (currentTab === 'Tồn kho thực tế' || currentTab === 'Cảnh báo tồn kho') ? 7 : 8;
+            const colspan = (currentTab === 'Cảnh báo tồn kho') ? 7 : 8;
             tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
             if (stockAlertsContainer) {
                 stockAlertsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Lỗi tải dữ liệu</p>';
@@ -538,8 +630,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('beforeunload', stopPolling);
 
     // Import/Export Modal Functionality
-    const importBtn = document.querySelector('.bg-green-600.text-white');
-    const exportBtn = document.querySelector('.bg-red-600.text-white');
+    const createReceiptBtn = document.getElementById('createReceiptBtn');
+    const createReceiptDropdown = document.getElementById('createReceiptDropdown');
+    const createImportReceiptBtn = document.getElementById('createImportReceiptBtn');
+    const createExportReceiptBtn = document.getElementById('createExportReceiptBtn');
+    const importBtn = document.getElementById('importBtn');
+    const exportBtn = document.getElementById('exportBtn');
     const importModal = document.getElementById('importModal');
     const exportModal = document.getElementById('exportModal');
     const closeImportModal = document.getElementById('closeImportModal');
@@ -549,10 +645,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     const importForm = document.getElementById('importForm');
     const exportForm = document.getElementById('exportForm');
 
+    // Toggle dropdown for create receipt button
+    if (createReceiptBtn && createReceiptDropdown) {
+        createReceiptBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            createReceiptDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (createReceiptDropdown && !createReceiptBtn.contains(e.target) && !createReceiptDropdown.contains(e.target)) {
+                createReceiptDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // Show import modal for create import receipt
+    if (createImportReceiptBtn && importModal) {
+        createImportReceiptBtn.addEventListener('click', () => {
+            createReceiptDropdown.classList.add('hidden');
+            importModal.classList.remove('hidden');
+            // Initialize Feather icons in the modal
+            feather.replace();
+        });
+    }
+
+    // Show export modal for create export receipt
+    if (createExportReceiptBtn && exportModal) {
+        createExportReceiptBtn.addEventListener('click', () => {
+            createReceiptDropdown.classList.add('hidden');
+            exportModal.classList.remove('hidden');
+            // Initialize Feather icons in the modal
+            feather.replace();
+        });
+    }
+
     // Show import modal
     if (importBtn && importModal) {
         importBtn.addEventListener('click', () => {
             importModal.classList.remove('hidden');
+            // Initialize Feather icons in the modal
+            feather.replace();
         });
     }
 
@@ -560,6 +693,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (exportBtn && exportModal) {
         exportBtn.addEventListener('click', () => {
             exportModal.classList.remove('hidden');
+            // Initialize Feather icons in the modal
+            feather.replace();
         });
     }
 
@@ -610,18 +745,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 
-                // Find product by name
-                const productsResponse = await fetch(`${baseUrl}/products?search=${encodeURIComponent(productName)}`, { headers });
-                if (!productsResponse.ok) {
-                    throw new Error('Không tìm thấy sản phẩm');
-                }
-
-                const productsData = await productsResponse.json();
-                if (!productsData.products || productsData.products.length === 0) {
+                // Load all products to find the matching one
+                const products = await loadProducts();
+                const product = products.find(p => p.name === productName);
+                
+                if (!product) {
                     throw new Error('Sản phẩm không tồn tại');
                 }
-
-                const product = productsData.products[0];
 
                 // Create inventory transaction
                 const transactionResponse = await fetch(`${baseUrl}/inventory/transactions`, {
@@ -646,6 +776,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Refresh data
                 loadTransactions();
+                // Refresh product list
+                populateProductSelects();
 
             } catch (error) {
                 console.error('Error importing stock:', error);
@@ -673,18 +805,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 
-                // Find product by name
-                const productsResponse = await fetch(`${baseUrl}/products?search=${encodeURIComponent(productName)}`, { headers });
-                if (!productsResponse.ok) {
-                    throw new Error('Không tìm thấy sản phẩm');
-                }
-
-                const productsData = await productsResponse.json();
-                if (!productsData.products || productsData.products.length === 0) {
+                // Load all products to find the matching one
+                const products = await loadProducts();
+                const product = products.find(p => p.name === productName);
+                
+                if (!product) {
                     throw new Error('Sản phẩm không tồn tại');
                 }
-
-                const product = productsData.products[0];
 
                 // Check if there's enough stock
                 if (product.quantity < parseInt(quantity)) {
@@ -714,6 +841,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Refresh data
                 loadTransactions();
+                // Refresh product list
+                populateProductSelects();
 
             } catch (error) {
                 console.error('Error exporting stock:', error);
@@ -722,8 +851,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Add event listeners for filter inputs and buttons
-    const filterInputs = document.querySelectorAll('input[type="date"], select');
+    // Add event listeners for basic filter inputs
+    const filterInputs = document.querySelectorAll('#startDate, #endDate, #warehouseFilter, #statusFilter');
     filterInputs.forEach(input => {
         input.addEventListener('change', () => {
             currentPage = 1; // Reset to first page when filters change
@@ -731,33 +860,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Add event listeners for action buttons
-    const actionButtons = document.querySelectorAll('.p-2.border.rounded-lg.hover\\:bg-gray-50');
-    actionButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const icon = button.querySelector('i');
-            if (icon) {
-                const iconName = icon.getAttribute('data-feather');
-                switch(iconName) {
-                    case 'filter':
-                        // Toggle advanced filters
-                        const filterSection = document.querySelector('.flex.flex-wrap.items-center.gap-4');
-                        if (filterSection) {
-                            filterSection.classList.toggle('hidden');
-                        }
-                        break;
-                    case 'download':
-                        // Export transactions to CSV
-                        exportTransactionsToCSV();
-                        break;
-                    case 'printer':
-                        // Print transactions table
-                        printTransactionsTable();
-                        break;
-                }
-            }
+    // Advanced filters toggle
+    const toggleFiltersBtn = document.getElementById('toggleFilters');
+    const advancedFilters = document.getElementById('advancedFilters');
+    if (toggleFiltersBtn && advancedFilters) {
+        toggleFiltersBtn.addEventListener('click', () => {
+            advancedFilters.classList.toggle('hidden');
         });
-    });
+    }
+
+    // Apply advanced filters
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            currentPage = 1; // Reset to first page when filters change
+            loadTransactions(); // Reload transactions with filters
+        });
+    }
+
+    // Export to CSV
+    const exportCSVBtn = document.getElementById('exportCSV');
+    if (exportCSVBtn) {
+        exportCSVBtn.addEventListener('click', exportTransactionsToCSV);
+    }
+
+    // Print table
+    const printTableBtn = document.getElementById('printTable');
+    if (printTableBtn) {
+        printTableBtn.addEventListener('click', printTransactionsTable);
+    }
 
     // Export transactions to CSV
     async function exportTransactionsToCSV() {
@@ -817,6 +948,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize warehouse filter and selects
     populateWarehouseFilter();
     populateWarehouseSelects();
+    populateProductSelects();
 
     loadTransactions();
 });

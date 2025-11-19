@@ -12,9 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="js/auth.js"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            z-index: 1000;
+        }
+    </style>
     <script>
         // Check authentication when page loads
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Feather icons
+            feather.replace();
+            
             Auth.redirectIfNotAuthenticated();
 
             // Logout modal functionality
@@ -132,11 +142,25 @@
                         <input type="text" placeholder="Tìm kiếm phiếu..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
                     </div>
+                    <div class="relative">
+                        <button id="createReceiptBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 hover:scale-105">
+                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm mới
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="createReceiptDropdown" class="dropdown-menu hidden bg-white shadow-lg rounded-md py-1 mt-1 w-48">
+                            <button id="createImportReceiptBtn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i data-feather="log-in" class="mr-2 h-4 w-4 inline"></i> Phiếu nhập kho
+                            </button>
+                            <button id="createExportReceiptBtn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i data-feather="log-out" class="mr-2 h-4 w-4 inline"></i> Phiếu xuất kho
+                            </button>
+                        </div>
+                    </div>
                     <div class="flex space-x-2">
-                        <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                        <button id="importBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center transition-all duration-200 hover:scale-105">
                             <i data-feather="log-in" class="mr-2 h-4 w-4"></i> Nhập kho
                         </button>
-                        <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
+                        <button id="exportBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center transition-all duration-200 hover:scale-105">
                             <i data-feather="log-out" class="mr-2 h-4 w-4"></i> Xuất kho
                         </button>
                     </div>
@@ -147,43 +171,62 @@
             </div>
         </header>
 
-        <!-- Tabs Navigation -->
-        <div class="bg-white border-b">
-            <div class="flex px-6">
-                 <button class="px-4 py-3 tab-active">Phiếu nhập kho</button>
-                 <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Phiếu xuất kho</button>
-                 <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Cảnh báo tồn kho</button>
-            </div>
+    <!-- Tabs Navigation -->
+    <div class="bg-white border-b">
+        <div class="flex px-6">
+             <button class="px-4 py-3 tab-button tab-active" data-tab="Phiếu nhập kho">Phiếu nhập kho</button>
+             <button class="px-4 py-3 tab-button text-gray-600 hover:text-blue-600" data-tab="Phiếu xuất kho">Phiếu xuất kho</button>
+             <button class="px-4 py-3 tab-button text-gray-600 hover:text-blue-600" data-tab="Cảnh báo tồn kho">Cảnh báo tồn kho</button>
         </div>
-
-        <!-- Filter and Actions -->
+    </div>        <!-- Filter and Actions -->
         <div class="bg-white border-b p-4">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex flex-wrap items-center gap-4">
-                    <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
-                    <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
+                    <input type="date" id="startDate" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
+                    <input type="date" id="endDate" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
                      <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option>Tất cả kho</option>
-                         <option>Kho chính</option>
-                         <option>Kho phụ</option>
+                         <option value="">Tất cả kho</option>
                      </select>
                      <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option>Tất cả trạng thái</option>
-                         <option>Đã duyệt</option>
-                         <option>Chờ duyệt</option>
-                         <option>Đã hủy</option>
+                         <option value="">Tất cả trạng thái</option>
+                         <option value="nhap">Nhập kho</option>
+                         <option value="xuat">Xuất kho</option>
                      </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                    <button id="toggleFilters" class="p-2 border rounded-lg hover:bg-gray-50 transition-colors" title="Bộ lọc nâng cao">
                         <i data-feather="filter"></i>
                     </button>
-                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                    <button id="exportCSV" class="p-2 border rounded-lg hover:bg-gray-50 transition-colors" title="Xuất Excel">
                         <i data-feather="download"></i>
                     </button>
-                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                    <button id="printTable" class="p-2 border rounded-lg hover:bg-gray-50 transition-colors" title="In">
                         <i data-feather="printer"></i>
                     </button>
+                </div>
+            </div>
+            <!-- Advanced Filters (Hidden by default) -->
+            <div id="advancedFilters" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Loại giao dịch</label>
+                        <select id="typeFilter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả loại</option>
+                            <option value="nhap">Nhập kho</option>
+                            <option value="xuat">Xuất kho</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sản phẩm</label>
+                        <input type="text" id="productFilter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tên sản phẩm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Người thực hiện</label>
+                        <input type="text" id="userFilter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tên người thực hiện">
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Áp dụng</button>
                 </div>
             </div>
         </div>
@@ -331,7 +374,7 @@
                 <form id="importForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
-                        <input type="text" id="importProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm">
+                        <input type="text" id="importProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm" list="importProductList">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng nhập</label>
@@ -344,8 +387,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
                         <select id="importWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="1">Kho chính</option>
-                            <option value="2">Kho phụ</option>
+                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
                     <div class="flex justify-end space-x-2">
@@ -370,7 +412,7 @@
                 <form id="exportForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
-                        <input type="text" id="exportProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm">
+                        <input type="text" id="exportProductName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên sản phẩm" list="exportProductList">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng xuất</label>
@@ -383,8 +425,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
                         <select id="exportWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="1">Kho chính</option>
-                            <option value="2">Kho phụ</option>
+                            <!-- Options will be populated dynamically -->
                         </select>
                     </div>
                     <div class="flex justify-end space-x-2">

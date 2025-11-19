@@ -170,6 +170,21 @@ const updateProduct = async (id, updates) => {
 
 const deleteProduct = async (id) => {
     try {
+        // First check if product exists
+        const product = await getProductById(id);
+        if (!product) {
+            throw new Error('Product not found');
+        }
+        
+        // Delete related inventory records first
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM inventory WHERE product_id = ?', [id], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        
+        // Then delete the product
         await new Promise((resolve, reject) => {
             db.run('DELETE FROM products WHERE id = ?', [id], (err) => {
                 if (err) reject(err);

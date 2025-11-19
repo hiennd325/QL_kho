@@ -254,7 +254,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const editBtn = e.target.closest('.edit-btn');
 
         if (deleteBtn) {
-            const productId = deleteBtn.getAttribute('data-id');
+            // Lấy ID từ thuộc tính data-id của nút hoặc từ phần tử cha
+            const productId = deleteBtn.dataset.id || deleteBtn.getAttribute('data-id');
+            if (!productId) {
+                console.error('Không tìm thấy ID sản phẩm để xóa');
+                return;
+            }
+            
             if (confirm('Xác nhận xóa sản phẩm này?')) {
                 try {
                     const baseUrl = `http://localhost:3000`;
@@ -265,25 +271,42 @@ document.addEventListener('DOMContentLoaded', async () => {
                         headers
                     });
                      if (response.ok) {
-                         loadProducts();
+                         // Reset về trang 1 khi xóa sản phẩm
+                         currentPage = 1;
+                         loadProducts(searchInput.value.trim(), currentPage);
                          loadBrandsForFilter(); // Refresh brands filter after deleting product
+                         loadSuppliersForFilter(); // Refresh suppliers filter after deleting product
                      } else {
-                         throw new Error('Xóa thất bại');
+                         const errorData = await response.json();
+                         if (response.status === 404) {
+                             alert('Sản phẩm không tồn tại');
+                             // Reload products to reflect current state
+                             loadProducts(searchInput.value.trim(), currentPage);
+                         } else {
+                             throw new Error(errorData.error || 'Xóa thất bại');
+                         }
                      }
                 } catch (error) {
-                    alert(error.message);
+                    console.error('Lỗi khi xóa sản phẩm:', error);
+                    alert('Lỗi khi xóa sản phẩm: ' + error.message);
                 }
             }
         }
 
         if (editBtn) {
-            const productId = editBtn.getAttribute('data-id');
-            const productName = editBtn.getAttribute('data-name');
-            const productDescription = editBtn.getAttribute('data-description');
-            const productPrice = editBtn.getAttribute('data-price');
-            const productBrand = editBtn.getAttribute('data-brand');
-            const supplierId = editBtn.getAttribute('data-supplier-id');
+            // Lấy tất cả các thuộc tính data từ nút hoặc từ phần tử cha
+            const productId = editBtn.dataset.id || editBtn.getAttribute('data-id');
+            const productName = editBtn.dataset.name || editBtn.getAttribute('data-name');
+            const productDescription = editBtn.dataset.description || editBtn.getAttribute('data-description') || '';
+            const productPrice = editBtn.dataset.price || editBtn.getAttribute('data-price');
+            const productBrand = editBtn.dataset.brand || editBtn.getAttribute('data-brand') || '';
+            const supplierId = editBtn.dataset.supplierId || editBtn.dataset['supplier-id'] || editBtn.getAttribute('data-supplier-id') || '';
 
+            if (!productId) {
+                console.error('Không tìm thấy ID sản phẩm để chỉnh sửa');
+                return;
+            }
+            
             showEditModal(productId, productName, productDescription, productPrice, productBrand, supplierId);
         }
     });
@@ -298,23 +321,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <h3 class="text-xl font-semibold mb-4">Chỉnh sửa sản phẩm</h3>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
-                    <input type="text" id="editProductName" class="w-full border rounded px-3 py-2" value="${name}">
+                    <input type="text" id="editProductName" class="w-full border rounded px-3 py-2" value="${name || ''}">
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-                    <textarea id="editProductDescription" class="w-full border rounded px-3 py-2" rows="3">${description}</textarea>
+                    <textarea id="editProductDescription" class="w-full border rounded px-3 py-2" rows="3">${description || ''}</textarea>
                 </div>
                  <div class="mb-4">
                      <label class="block text-sm font-medium text-gray-700 mb-1">Giá</label>
-                     <input type="number" id="editProductPrice" class="w-full border rounded px-3 py-2" value="${price}">
+                     <input type="number" id="editProductPrice" class="w-full border rounded px-3 py-2" value="${price || 0}">
                  </div>
                  <div class="mb-4">
                      <label class="block text-sm font-medium text-gray-700 mb-1">Nhãn hiệu</label>
-                     <input type="text" id="editProductBrand" class="w-full border rounded px-3 py-2" value="${brand}">
+                     <input type="text" id="editProductBrand" class="w-full border rounded px-3 py-2" value="${brand || ''}">
                  </div>
                  <div class="mb-4">
                      <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
-                     <select id="supplier-filter-modal" class="w-full border rounded px-3 py-2"></select>
+                     <select id="supplier-filter-modal" class="w-full border rounded px-3 py-2">
+                         <option value="">Chọn nhà cung cấp</option>
+                     </select>
                  </div>
                 <div class="flex justify-end space-x-2">
                     <button type="button" class="bg-gray-300 px-4 py-2 rounded" id="cancelEditBtn">Hủy</button>
@@ -324,20 +349,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         document.body.appendChild(modal);
 
-        const supplierFilterModal = document.getElementById('supplier-filter-modal');
-        const supplierFilter = document.getElementById('supplier-filter');
-        supplierFilterModal.innerHTML = supplierFilter.innerHTML;
-        supplierFilterModal.value = supplierId || 'all';
+        // Load suppliers for modal dropdown
+        loadSuppliersForEditModal(supplierId);
 
         document.getElementById('saveEditBtn').addEventListener('click', async () => {
-            const updatedName = document.getElementById('editProductName').value;
-            const updatedDescription = document.getElementById('editProductDescription').value;
+            const updatedName = document.getElementById('editProductName').value.trim();
+            const updatedDescription = document.getElementById('editProductDescription').value.trim();
             const updatedPrice = parseFloat(document.getElementById('editProductPrice').value);
-            const updatedBrand = document.getElementById('editProductBrand').value;
-            const updatedSupplierId = supplierFilterModal.value;
+            const updatedBrand = document.getElementById('editProductBrand').value.trim();
+            const updatedSupplierId = document.getElementById('supplier-filter-modal').value;
 
-            if (!updatedName || !updatedPrice) {
-                alert('Vui lòng điền đầy đủ thông tin');
+            // Validate inputs
+            if (!updatedName) {
+                alert('Vui lòng nhập tên sản phẩm');
+                return;
+            }
+            
+            if (isNaN(updatedPrice) || updatedPrice <= 0) {
+                alert('Vui lòng nhập giá hợp lệ');
                 return;
             }
 
@@ -353,22 +382,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                     },
                     body: JSON.stringify({
                         name: updatedName,
-                        description: updatedDescription,
+                        description: updatedDescription || null,
                         price: updatedPrice,
-                        brand: updatedBrand,
-                        supplierId: updatedSupplierId
+                        brand: updatedBrand || null,
+                        supplierId: updatedSupplierId || null
                     })
                 });
 
                  if (response.ok) {
-                     loadProducts();
+                     // Reset về trang 1 khi chỉnh sửa sản phẩm
+                     currentPage = 1;
+                     loadProducts(searchInput.value.trim(), currentPage);
                      loadBrandsForFilter(); // Refresh brands filter after editing product
+                     loadSuppliersForFilter(); // Refresh suppliers filter after editing product
                      document.body.removeChild(modal);
                  } else {
-                     throw new Error('Cập nhật sản phẩm thất bại');
+                     const errorData = await response.json();
+                     throw new Error(errorData.error || 'Cập nhật sản phẩm thất bại');
                  }
             } catch (error) {
-                alert(error.message);
+                console.error('Lỗi khi cập nhật sản phẩm:', error);
+                alert('Lỗi khi cập nhật sản phẩm: ' + error.message);
             }
         });
 
@@ -405,7 +439,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                  </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
-                    <select id="supplier-filter-modal" class="w-full border rounded px-3 py-2"></select>
+                    <select id="supplier-filter-modal-add" class="w-full border rounded px-3 py-2">
+                        <option value="">Chọn nhà cung cấp</option>
+                    </select>
                 </div>
                 <div class="flex justify-end space-x-2">
                     <button type="button" class="bg-gray-300 px-4 py-2 rounded" id="cancelBtn">Hủy</button>
@@ -415,20 +451,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         document.body.appendChild(modal);
 
-        const supplierFilterModal = document.getElementById('supplier-filter-modal');
-        const supplierFilter = document.getElementById('supplier-filter');
-        supplierFilterModal.innerHTML = supplierFilter.innerHTML;
+        // Load suppliers for add product modal
+        loadSuppliersForAddModal();
 
         document.getElementById('saveBtn').addEventListener('click', async () => {
-            const name = document.getElementById('productName').value;
-            const description = document.getElementById('productDescription').value;
+            const name = document.getElementById('productName').value.trim();
+            const description = document.getElementById('productDescription').value.trim();
             const price = parseFloat(document.getElementById('productPrice').value);
-            const brand = document.getElementById('productBrand').value;
+            const brand = document.getElementById('productBrand').value.trim();
             const quantity = parseInt(document.getElementById('productQuantity').value) || 0;
-            const supplierId = supplierFilterModal.value;
+            const supplierId = document.getElementById('supplier-filter-modal-add').value;
 
-            if (!name || !price) {
-                alert('Vui lòng điền đầy đủ thông tin');
+            // Validate inputs
+            if (!name) {
+                alert('Vui lòng nhập tên sản phẩm');
+                return;
+            }
+            
+            if (isNaN(price) || price <= 0) {
+                alert('Vui lòng nhập giá hợp lệ');
                 return;
             }
 
@@ -442,18 +483,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                         'Content-Type': 'application/json',
                         ...headers
                     },
-                    body: JSON.stringify({ name, description, price, brand, quantity, supplierId })
+                    body: JSON.stringify({ 
+                        name, 
+                        description: description || null, 
+                        price, 
+                        brand: brand || null, 
+                        quantity, 
+                        supplierId: supplierId || null 
+                    })
                 });
 
                  if (response.ok) {
-                     loadProducts();
+                     // Reset về trang 1 khi thêm sản phẩm mới
+                     currentPage = 1;
+                     loadProducts(searchInput.value.trim(), currentPage);
                      loadBrandsForFilter(); // Refresh brands filter after adding new product
+                     loadSuppliersForFilter(); // Refresh suppliers filter after adding new product
                      document.body.removeChild(modal);
                  } else {
-                     throw new Error('Thêm sản phẩm thất bại');
+                     const errorData = await response.json();
+                     throw new Error(errorData.error || 'Thêm sản phẩm thất bại');
                  }
             } catch (error) {
-                alert(error.message);
+                console.error('Lỗi khi thêm sản phẩm:', error);
+                alert('Lỗi khi thêm sản phẩm: ' + error.message);
             }
         });
 
@@ -598,6 +651,65 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Error loading suppliers:', error);
+        }
+    }
+
+    // Load suppliers for edit modal dropdown
+    async function loadSuppliersForEditModal(selectedSupplierId = '') {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/suppliers`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch suppliers');
+
+            const suppliers = await response.json();
+            const supplierFilterModal = document.getElementById('supplier-filter-modal');
+
+            if (supplierFilterModal) {
+                // Clear existing options except the default one
+                supplierFilterModal.innerHTML = '<option value="">Chọn nhà cung cấp</option>';
+                suppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.id;
+                    option.textContent = supplier.name;
+                    if (supplier.id == selectedSupplierId) {
+                        option.selected = true;
+                    }
+                    supplierFilterModal.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading suppliers for edit modal:', error);
+        }
+    }
+
+    // Load suppliers for add product modal dropdown
+    async function loadSuppliersForAddModal() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/suppliers`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch suppliers');
+
+            const suppliers = await response.json();
+            const supplierFilterModal = document.getElementById('supplier-filter-modal-add');
+
+            if (supplierFilterModal) {
+                // Clear existing options except the default one
+                supplierFilterModal.innerHTML = '<option value="">Chọn nhà cung cấp</option>';
+                suppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.id;
+                    option.textContent = supplier.name;
+                    supplierFilterModal.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading suppliers for add modal:', error);
         }
     }
 
