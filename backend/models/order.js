@@ -152,6 +152,38 @@ const getOrdersCount = async () => {
     }
 };
 
+const run = (sql, params = []) => {
+    return new Promise((resolve, reject) => {
+        db.run(sql, params, function(err) {
+            if (err) reject(err);
+            else resolve(this);
+        });
+    });
+};
+
+const updateOrder = async (orderId, supplierId, totalAmount, items) => {
+    try {
+        await run('BEGIN TRANSACTION');
+
+        const orderUpdateSql = 'UPDATE orders SET supplier_id = ?, total_amount = ? WHERE id = ?';
+        await run(orderUpdateSql, [supplierId, totalAmount, orderId]);
+
+        const deleteItemsSql = 'DELETE FROM order_items WHERE order_id = ?';
+        await run(deleteItemsSql, [orderId]);
+
+        const insertItemSql = 'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)';
+        for (const item of items) {
+            await run(insertItemSql, [orderId, item.product_id, item.quantity, item.price]);
+        }
+
+        await run('COMMIT');
+        return getOrderById(orderId);
+    } catch (err) {
+        await run('ROLLBACK');
+        throw err;
+    }
+};
+
 module.exports = {
     createOrder,
     getOrderById,
@@ -161,5 +193,6 @@ module.exports = {
     deleteOrder,
     getOrderItems,
     createOrderItem,
-    getOrdersCount
+    getOrdersCount,
+    updateOrder
 };

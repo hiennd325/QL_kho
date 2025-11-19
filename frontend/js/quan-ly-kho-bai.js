@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalTitle = document.getElementById('modalTitle');
 
     // Buttons
-    const addWarehouseBtn = document.querySelector('button.bg-blue-600');
+    const addWarehouseBtn = document.getElementById('addWarehouseBtn');
     const closeWarehouseModalBtn = document.getElementById('closeWarehouseModal');
     const cancelWarehouseBtn = document.getElementById('cancelWarehouseBtn');
     const closeWarehouseDetailModalBtn = document.getElementById('closeWarehouseDetailModal');
@@ -412,12 +412,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             case 'Danh sách kho':
                 loadWarehouses();
                 break;
-            case 'Sơ đồ kho':
-                loadWarehouseLayout();
-                break;
-            case 'Vị trí lưu trữ':
-                loadStorageLocations();
-                break;
             case 'Điều chuyển hàng':
                 // Hide warehouse grid and show transfer section
                 warehouseGrid.classList.add('hidden');
@@ -427,48 +421,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadTransferData();
                 break;
         }
-    }
-
-    async function loadWarehouseLayout() {
-        // Placeholder for warehouse layout visualization
-        warehouseGrid.innerHTML = `
-            <div class="col-span-3 text-center py-8">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <i data-feather="grid" class="h-16 w-16 text-gray-400 mx-auto mb-4"></i>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Sơ đồ kho</h3>
-                    <p class="text-gray-500">Tính năng sơ đồ kho đang được phát triển</p>
-                </div>
-            </div>
-        `;
-        feather.replace();
-    }
-
-    async function loadStorageLocations() {
-        // Placeholder for storage locations
-        warehouseGrid.innerHTML = `
-            <div class="col-span-3 text-center py-8">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <i data-feather="map-pin" class="h-16 w-16 text-gray-400 mx-auto mb-4"></i>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Vị trí lưu trữ</h3>
-                    <p class="text-gray-500">Tính năng quản lý vị trí lưu trữ đang được phát triển</p>
-                </div>
-            </div>
-        `;
-        feather.replace();
-    }
-
-    async function loadTransferRequests() {
-        // Placeholder for transfer requests
-        warehouseGrid.innerHTML = `
-            <div class="col-span-3 text-center py-8">
-                <div class="bg-white p-8 rounded-lg shadow-md">
-                    <i data-feather="truck" class="h-16 w-16 text-gray-400 mx-auto mb-4"></i>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Điều chuyển hàng</h3>
-                    <p class="text-gray-500">Tính năng điều chuyển hàng đang được phát triển</p>
-                </div>
-            </div>
-        `;
-        feather.replace();
     }
 
     async function loadTransferData() {

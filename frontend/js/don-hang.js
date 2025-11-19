@@ -4,10 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.getElementById('closeModal');
     const cancelOrder = document.getElementById('cancelOrder');
     const orderForm = document.getElementById('orderForm');
-    const customerName = document.getElementById('customerName');
-    const phone = document.getElementById('phone');
-    const email = document.getElementById('email');
-    const address = document.getElementById('address');
     const supplierSelect = document.getElementById('supplier');
     const productSelect = document.getElementById('product');
     const quantityInput = document.getElementById('quantity');
@@ -16,10 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formStatus = document.getElementById('formStatus');
     
     // Error elements
-    const customerNameError = document.getElementById('customerNameError');
-    const phoneError = document.getElementById('phoneError');
-    const emailError = document.getElementById('emailError');
-    const addressError = document.getElementById('addressError');
     const supplierError = document.getElementById('supplierError');
     const productError = document.getElementById('productError');
     const quantityError = document.getElementById('quantityError');
@@ -33,10 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (order) {
             orderIdInput.value = order.id;
             supplierSelect.value = order.supplier_id;
-            customerName.value = order.customer_name || '';
-            phone.value = order.phone || '';
-            email.value = order.email || '';
-            address.value = order.address || '';
 
             cartItemsContainer.innerHTML = '';
             order.items.forEach(item => {
@@ -182,10 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reset form fields
     function resetForm() {
-        customerName.value = '';
-        phone.value = '';
-        email.value = '';
-        address.value = '';
         supplierSelect.value = '';
         productSelect.value = '';
         quantityInput.value = '';
@@ -195,10 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hide all error messages
     function hideAllErrors() {
-        customerNameError.classList.add('hidden');
-        phoneError.classList.add('hidden');
-        emailError.classList.add('hidden');
-        addressError.classList.add('hidden');
         supplierError.classList.add('hidden');
         productError.classList.add('hidden');
         quantityError.classList.add('hidden');
@@ -219,66 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide form status
     function hideFormStatus() {
         formStatus.classList.add('hidden');
-    }
-
-    // Validate customer name (optional)
-    function validateCustomerName() {
-        const value = customerName.value.trim();
-        if (value && !value) { // Only validate if filled
-            customerNameError.textContent = 'Vui lòng nhập tên khách hàng';
-            customerNameError.classList.remove('hidden');
-            return false;
-        }
-        customerNameError.classList.add('hidden');
-        return true;
-    }
-
-    // Validate phone number
-    function validatePhone() {
-        const value = phone.value.trim();
-        const phoneRegex = /^0[3-9]\d{8}$/;
-        if (!value) {
-            phoneError.textContent = 'Vui lòng nhập số điện thoại';
-            phoneError.classList.remove('hidden');
-            return false;
-        }
-        if (!phoneRegex.test(value)) {
-            phoneError.textContent = 'Số điện thoại không hợp lệ (ví dụ: 0912345678)';
-            phoneError.classList.remove('hidden');
-            return false;
-        }
-        phoneError.classList.add('hidden');
-        return true;
-    }
-
-    // Validate email
-    function validateEmail() {
-        const value = email.value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!value) {
-            emailError.textContent = 'Vui lòng nhập email';
-            emailError.classList.remove('hidden');
-            return false;
-        }
-        if (!emailRegex.test(value)) {
-            emailError.textContent = 'Email không hợp lệ';
-            emailError.classList.remove('hidden');
-            return false;
-        }
-        emailError.classList.add('hidden');
-        return true;
-    }
-
-    // Validate address
-    function validateAddress() {
-        const value = address.value.trim();
-        if (!value) {
-            addressError.textContent = 'Vui lòng nhập địa chỉ';
-            addressError.classList.remove('hidden');
-            return false;
-        }
-        addressError.classList.add('hidden');
-        return true;
     }
 
     // Validate supplier

@@ -115,16 +115,31 @@ router.put('/:id/receive', async (req, res) => {
     }
 });
 
-// Update order status
+// Update order
 router.put('/:id', async (req, res) => {
     try {
-        const { status } = req.body;
-        if (!status) {
-            return res.status(400).json({ error: 'Status is required' });
+        const orderId = req.params.id;
+        const { supplierId, items } = req.body;
+
+        if (!supplierId || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Supplier and items are required.' });
         }
-        const updatedOrder = await orderModel.updateOrderStatus(req.params.id, status);
+
+        // Recalculate total amount to ensure data integrity
+        let totalAmount = 0;
+        for (const item of items) {
+            const product = await productModel.getProductById(item.product_id);
+            if (!product) {
+                return res.status(404).json({ error: `Product not found: ID ${item.product_id}` });
+            }
+            totalAmount += product.price * item.quantity;
+        }
+        
+        const updatedOrder = await orderModel.updateOrder(orderId, supplierId, totalAmount, items);
+
         res.json(updatedOrder);
     } catch (err) {
+        console.error("Failed to update order:", err);
         res.status(500).json({ error: 'Failed to update order' });
     }
 });
