@@ -9,10 +9,11 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
     }
 });
 
-const createTransaction = async (productId, warehouseId, quantity, type) => {
+const createTransaction = async (productId, warehouseId, quantity, type, supplier_id = null, customer_name = null, reference_id = null, notes = null) => {
     try {
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO inventory_transactions (product_id, warehouse_id, quantity, type) VALUES (?, ?, ?, ?)', [productId, warehouseId, quantity, type], function(err) {
+            db.run('INSERT INTO inventory_transactions (product_id, warehouse_id, quantity, type, supplier_id, customer_name, reference_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+            [productId, warehouseId, quantity, type, supplier_id, customer_name, reference_id, notes], function(err) {
                 if (err) {
                     reject(err);
                 } else {

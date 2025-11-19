@@ -73,9 +73,14 @@ CREATE TABLE IF NOT EXISTS inventory_transactions (
     warehouse_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('nhap', 'xuat')),
+    supplier_id INTEGER,
+    customer_name TEXT,
+    reference_id TEXT,
+    notes TEXT,
     transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
 
 CREATE TABLE IF NOT EXISTS transfers (

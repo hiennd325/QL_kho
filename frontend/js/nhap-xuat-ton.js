@@ -761,7 +761,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         product_id: product.id,
                         type: 'nhap',
                         quantity: parseInt(quantity),
-                        supplier: supplier,
+                        supplier_id: supplier,
                         warehouse_id: parseInt(warehouseId)
                     })
                 });
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         product_id: product.id,
                         type: 'xuat',
                         quantity: parseInt(quantity),
-                        customer: customer,
+                        customer_name: customer,
                         warehouse_id: parseInt(warehouseId)
                     })
                 });

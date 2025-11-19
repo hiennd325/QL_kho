@@ -58,37 +58,56 @@ router.get('/:productId', async (req, res) => {
     }
 });
 
-// Add stock to a product
-router.post('/add', async (req, res) => {
+
+// Add a new inventory transaction (import or export)
+router.post('/transactions', async (req, res) => {
     try {
-        const { productId, quantity, warehouseId = 1 } = req.body;
-        if (!productId || quantity === undefined) {
-            return res.status(400).json({ error: 'Product ID and quantity are required' });
+        const { product_id, warehouse_id, quantity, type, supplier_id, customer_name, reference_id, notes } = req.body;
+
+        // Basic validation
+        if (!product_id || !warehouse_id || quantity === undefined || !type) {
+            return res.status(400).json({ error: 'product_id, warehouse_id, quantity, and type are required' });
         }
-        const updated = await inventoryModel.addInventoryItem(productId, quantity, warehouseId);
+
+        const quantityNum = parseInt(quantity);
+        if (isNaN(quantityNum) || quantityNum <= 0) {
+            return res.status(400).json({ error: 'Invalid quantity' });
+        }
+
+        if (type === 'nhap') {
+            // Add inventory
+            await inventoryModel.addInventoryItem(product_id, quantityNum, warehouse_id);
+        } else if (type === 'xuat') {
+            // Check for sufficient stock
+            const currentInventory = await inventoryModel.getInventoryByProductId(product_id, warehouse_id);
+            if (!currentInventory || currentInventory.quantity < quantityNum) {
+                return res.status(400).json({ error: 'Insufficient stock' });
+            }
+            // Reduce inventory
+            await inventoryModel.updateInventoryQuantity(product_id, -quantityNum, warehouse_id);
+        } else {
+            return res.status(400).json({ error: 'Invalid transaction type' });
+        }
+
         // Create transaction record
-        await inventoryTransactionModel.createTransaction(productId, warehouseId, quantity, 'nhap');
-        res.json(updated);
+        const transaction = await inventoryTransactionModel.createTransaction(
+            product_id,
+            warehouse_id,
+            quantityNum,
+            type,
+            supplier_id,
+            customer_name,
+            reference_id,
+            notes
+        );
+
+        res.status(201).json({ message: 'Transaction successful', transaction });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to add inventory' });
+        console.error('Transaction error:', err);
+        res.status(500).json({ error: 'Failed to process transaction' });
     }
 });
 
-// Reduce stock (for sales)
-router.post('/minus', async (req, res) => {
-    try {
-        const { productId, quantity, warehouseId = 1 } = req.body;
-        if (!productId || quantity === undefined) {
-            return res.status(400).json({ error: 'Product ID and quantity are required' });
-        }
-        const updated = await inventoryModel.updateInventoryQuantity(productId, -quantity, warehouseId);
-        // Create transaction record
-        await inventoryTransactionModel.createTransaction(productId, warehouseId, quantity, 'xuat');
-        res.json(updated);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to update inventory' });
-    }
-});
 
 // POST create inventory audit
 router.post('/audits', async (req, res) => {
