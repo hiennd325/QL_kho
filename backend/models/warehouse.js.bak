@@ -106,17 +106,6 @@ const getWarehouseProducts = async (warehouseId) => {
 
 const deleteWarehouse = async (id) => {
     try {
-        const inventoryCount = await new Promise((resolve, reject) => {
-            db.get('SELECT COUNT(*) as count FROM inventory WHERE warehouse_id = ?', [id], (err, row) => {
-                if (err) reject(err);
-                else resolve(row.count);
-            });
-        });
-
-        if (inventoryCount > 0) {
-            throw new Error('Kho vẫn còn hàng, không thể xóa.');
-        }
-
         await new Promise((resolve, reject) => {
             db.run('DELETE FROM warehouses WHERE id = ?', [id], (err) => {
                 if (err) reject(err);

@@ -65,11 +65,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                     </div>
                     <div class="flex space-x-2">
-                        <button class="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700">
+                        <button class="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-700" data-action="view">
                             <i data-feather="eye" class="h-4 w-4 inline mr-1"></i> Xem
                         </button>
-                        <button class="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-200">
+                        <button class="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg text-sm hover:bg-gray-200" data-action="edit">
                             <i data-feather="edit" class="h-4 w-4 inline mr-1"></i> Sửa
+                        </button>
+                        <button class="flex-1 bg-red-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-red-600" data-action="delete">
+                            <i data-feather="trash-2" class="h-4 w-4 inline mr-1"></i> Xóa
                         </button>
                     </div>
                 </div>
@@ -586,25 +589,62 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Handle warehouse card actions
     warehouseGrid.addEventListener('click', (e) => {
-        const viewBtn = e.target.closest('button.bg-blue-600');
-        const editBtn = e.target.closest('button.bg-gray-100');
+        const button = e.target.closest('button');
+        if (!button) return;
 
-        if (viewBtn) {
+        const action = button.dataset.action;
+        const warehouseId = button.closest('.warehouse-card').dataset.id;
+
+        if (action === 'view') {
             e.preventDefault();
-            const warehouseId = viewBtn.closest('.warehouse-card').dataset.id;
             if (warehouseId) {
                 openWarehouseDetailModal(warehouseId);
             }
         }
 
-        if (editBtn) {
+        if (action === 'edit') {
             e.preventDefault();
-            const warehouseId = editBtn.closest('.warehouse-card').dataset.id;
             if (warehouseId) {
                 openWarehouseModal(warehouseId);
             }
         }
+
+        if (action === 'delete') {
+            e.preventDefault();
+            if (warehouseId) {
+                deleteWarehouse(warehouseId);
+            }
+        }
     });
+
+    async function deleteWarehouse(warehouseId) {
+        if (!confirm('Bạn có chắc chắn muốn xóa kho này không? Kho sẽ bị xóa vĩnh viễn và không thể khôi phục.')) {
+            return;
+        }
+
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/warehouses/${warehouseId}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || 'Failed to delete warehouse');
+            }
+
+            alert('Xóa kho thành công');
+            loadWarehouses();
+
+        } catch (error) {
+            console.error('Error deleting warehouse:', error);
+            alert('Lỗi khi xóa kho: ' + error.message);
+        }
+    }
 
     // Add event listeners for search and filter inputs
     const searchInput = document.querySelector('input[placeholder*="Tìm theo khu vực"]');
