@@ -11,8 +11,12 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
 
 const createWarehouse = async (name, location, capacity) => {
     try {
+        // Ensure location is not null to satisfy schema constraints. If the UI omits location,
+        // default to an empty string.
+        const safeLocation = location || '';
+        const safeCapacity = capacity !== undefined && capacity !== null ? capacity : 0;
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO warehouses (name, location, capacity) VALUES (?, ?, ?)', [name, location, capacity], function(err) {
+            db.run('INSERT INTO warehouses (name, location, capacity) VALUES (?, ?, ?)', [name, safeLocation, safeCapacity], function(err) {
                 if (err) {
                     reject(err);
                 } else {

@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     <div class="absolute bottom-4 left-4">
                         <h3 class="text-white text-xl font-semibold">${warehouse.name}</h3>
-                        <p class="text-blue-100">${warehouse.location}</p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -55,13 +54,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <p class="text-sm text-gray-500">Đang sử dụng</p>
                             <p class="font-semibold text-green-600">${warehouse.current_usage} SP</p>
                         </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Khu vực</p>
-                            <p class="font-semibold">1 khu</p>
-                        </div>
+
                         <div>
                             <p class="text-sm text-gray-500">Tỷ lệ</p>
-                            <p class="font-semibold">${Math.round((warehouse.current_usage / warehouse.capacity) * 100)}%</p>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${Math.round((warehouse.current_usage / warehouse.capacity) * 100)}%"></div>
+                            </div>
+                            <p class="font-semibold text-right mt-1">${Math.round((warehouse.current_usage / warehouse.capacity) * 100)}%</p>
                         </div>
                     </div>
                     <div class="flex space-x-2">
@@ -290,9 +289,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function resetWarehouseForm() {
         document.getElementById('warehouseName').value = '';
-        document.getElementById('warehouseLocation').value = '';
         document.getElementById('warehouseCapacity').value = '';
-        document.getElementById('warehouseType').value = '';
     }
 
     async function loadWarehouseData(warehouseId) {
@@ -306,9 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const warehouse = await response.json();
             document.getElementById('warehouseName').value = warehouse.name;
-            document.getElementById('warehouseLocation').value = warehouse.location;
             document.getElementById('warehouseCapacity').value = warehouse.capacity;
-            document.getElementById('warehouseType').value = warehouse.type || 'normal';
         } catch (error) {
             console.error('Error loading warehouse data:', error);
             alert('Lỗi tải dữ liệu kho');
@@ -335,10 +330,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Tên kho</label>
                                 <p class="text-gray-900">${warehouse.name}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Địa chỉ</label>
-                                <p class="text-gray-900">${warehouse.location}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Sức chứa</label>
@@ -555,9 +546,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const formData = {
                 name: document.getElementById('warehouseName').value,
-                location: document.getElementById('warehouseLocation').value,
-                capacity: parseInt(document.getElementById('warehouseCapacity').value),
-                type: document.getElementById('warehouseType').value
+                capacity: parseInt(document.getElementById('warehouseCapacity').value)
             };
 
             try {
@@ -688,9 +677,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cards = document.querySelectorAll('.warehouse-card');
         cards.forEach(card => {
             const warehouseName = card.querySelector('h3').textContent.toLowerCase();
-            const location = card.querySelector('p').textContent.toLowerCase();
 
-            if (warehouseName.includes(query) || location.includes(query)) {
+            if (warehouseName.includes(query)) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
@@ -703,11 +691,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const printWindow = window.open('', '_blank');
         const warehousesHTML = Array.from(document.querySelectorAll('.warehouse-card')).map(card => {
             const name = card.querySelector('h3').textContent;
-            const location = card.querySelector('p').textContent;
-            const capacity = card.querySelector('p.font-semibold').textContent;
+            const capacityEl = card.querySelector('p.font-semibold');
+            const capacity = capacityEl ? capacityEl.textContent : '';
             return `<div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
                 <h3>${name}</h3>
-                <p>Địa chỉ: ${location}</p>
                 <p>Sức chứa: ${capacity}</p>
             </div>`;
         }).join('');
