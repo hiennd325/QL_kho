@@ -109,8 +109,7 @@ app.use('/inventory', authenticate, inventoryRoutes); // Routes cho quản lý t
 const userRoutes = require('./routes/user');
 app.use('/users', authenticate, userRoutes); // Routes cho quản lý người dùng
 
-const orderRoutes = require('./routes/order');
-app.use('/orders', authenticate, orderRoutes); // Routes cho quản lý đơn hàng
+
 
 const reportRoutes = require('./routes/report');
 app.use('/reports', authenticate, reportRoutes); // Routes cho báo cáo
@@ -125,8 +124,7 @@ app.use('/transfers', authenticate, transferRoutes); // Routes cho điều chuy�
 const supplierRoutes = require('./routes/supplier');
 app.use('/suppliers', authenticate, supplierRoutes); // Routes cho quản lý nhà cung cấp
 
-const salesOrderRoutes = require('./routes/sales_order');
-app.use('/sales-orders', authenticate, salesOrderRoutes);
+
 
 const notificationRoutes = require('./routes/notifications');
 app.use('/notifications', authenticate, notificationRoutes); // Routes cho thông báo
