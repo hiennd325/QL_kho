@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="supplier-icon">${supplier.name.charAt(0).toUpperCase()}</div>
                     <div class="supplier-details">
                         <h3 class="font-semibold text-lg text-gray-900">${supplier.name}</h3>
+                        <p class="text-sm text-gray-600">Mã: ${supplier.code}</p>
                         <p class="text-sm text-gray-600">ID: ${supplier.id}</p>
                     </div>
                 </div>
@@ -100,155 +101,182 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const showEditModal = (id, name, address, phone, email) => {
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-        modal.innerHTML = `
-            <div class="supplier-modal w-full max-w-md">
-                <div class="supplier-modal-header">
-                    <i data-feather="edit" class="mx-auto mb-2 h-8 w-8"></i>
-                    <h3 class="text-xl font-bold">Chỉnh sửa nhà cung cấp</h3>
-                </div>
-                <div class="supplier-modal-body">
-                    <div class="supplier-form-group">
-                        <label>Tên nhà cung cấp</label>
-                        <input type="text" id="editSupplierName" value="${name}">
+        // First, get the supplier details to retrieve the code
+        fetch(`http://localhost:3000/suppliers/${id}`)
+            .then(response => response.json())
+            .then(supplier => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+                modal.innerHTML = `
+                    <div class="supplier-modal w-full max-w-md">
+                        <div class="supplier-modal-header">
+                            <i data-feather="edit" class="mx-auto mb-2 h-8 w-8"></i>
+                            <h3 class="text-xl font-bold">Chỉnh sửa nhà cung cấp</h3>
+                        </div>
+                        <div class="supplier-modal-body">
+                            <div class="supplier-form-group">
+                                <label>Mã nhà cung cấp</label>
+                                <input type="text" id="editSupplierCode" value="${supplier.code}" readonly>
+                            </div>
+                            <div class="supplier-form-group">
+                                <label>Tên nhà cung cấp</label>
+                                <input type="text" id="editSupplierName" value="${name}">
+                            </div>
+                            <div class="supplier-form-group">
+                                <label>Địa chỉ</label>
+                                <input type="text" id="editSupplierAddress" value="${address}">
+                            </div>
+                            <div class="supplier-form-group">
+                                <label>Số điện thoại</label>
+                                <input type="text" id="editSupplierPhone" value="${phone}">
+                            </div>
+                            <div class="supplier-form-group">
+                                <label>Email</label>
+                                <input type="email" id="editSupplierEmail" value="${email}">
+                            </div>
+                        </div>
+                        <div class="supplier-modal-footer">
+                            <button type="button" class="btn-cancel" id="cancelEditBtn">
+                                <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
+                            </button>
+                            <button type="button" class="btn-save" id="saveEditBtn">
+                                <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
+                            </button>
+                        </div>
                     </div>
-                    <div class="supplier-form-group">
-                        <label>Địa chỉ</label>
-                        <input type="text" id="editSupplierAddress" value="${address}">
-                    </div>
-                    <div class="supplier-form-group">
-                        <label>Số điện thoại</label>
-                        <input type="text" id="editSupplierPhone" value="${phone}">
-                    </div>
-                    <div class="supplier-form-group">
-                        <label>Email</label>
-                        <input type="email" id="editSupplierEmail" value="${email}">
-                    </div>
-                </div>
-                <div class="supplier-modal-footer">
-                    <button type="button" class="btn-cancel" id="cancelEditBtn">
-                        <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
-                    </button>
-                    <button type="button" class="btn-save" id="saveEditBtn">
-                        <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        feather.replace();
+                `;
+                document.body.appendChild(modal);
+                feather.replace();
 
-        document.getElementById('saveEditBtn').addEventListener('click', async () => {
-            const updatedName = document.getElementById('editSupplierName').value;
-            const updatedAddress = document.getElementById('editSupplierAddress').value;
-            const updatedPhone = document.getElementById('editSupplierPhone').value;
-            const updatedEmail = document.getElementById('editSupplierEmail').value;
+                document.getElementById('saveEditBtn').addEventListener('click', async () => {
+                    const updatedCode = document.getElementById('editSupplierCode').value;
+                    const updatedName = document.getElementById('editSupplierName').value;
+                    const updatedAddress = document.getElementById('editSupplierAddress').value;
+                    const updatedPhone = document.getElementById('editSupplierPhone').value;
+                    const updatedEmail = document.getElementById('editSupplierEmail').value;
 
-            try {
-                const baseUrl = `http://localhost:3000`;
-                const token = localStorage.getItem('token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const response = await fetch(`${baseUrl}/suppliers/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...headers
-                    },
-                    body: JSON.stringify({ name: updatedName, address: updatedAddress, phone: updatedPhone, email: updatedEmail })
+                    try {
+                        const baseUrl = `http://localhost:3000`;
+                        const token = localStorage.getItem('token');
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                        const response = await fetch(`${baseUrl}/suppliers/${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...headers
+                            },
+                            body: JSON.stringify({ code: updatedCode, name: updatedName, address: updatedAddress, phone: updatedPhone, email: updatedEmail })
+                        });
+                        
+                        if (response.ok) {
+                            loadSuppliers();
+                            document.body.removeChild(modal);
+                        } else {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Cập nhật thất bại');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi cập nhật nhà cung cấp:', error);
+                        alert('Lỗi khi cập nhật nhà cung cấp: ' + error.message);
+                    }
                 });
-                 if (response.ok) {
-                     loadSuppliers();
-                     document.body.removeChild(modal);
-                 } else {
-                     throw new Error('Cập nhật thất bại');
-                 }
-            } catch (error) {
-                console.error('Lỗi khi cập nhật nhà cung cấp:', error);
-                alert('Lỗi khi cập nhật nhà cung cấp.');
-            }
-        });
 
-        document.getElementById('cancelEditBtn').addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
+                document.getElementById('cancelEditBtn').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+            })
+            .catch(error => {
+                console.error('Lỗi khi lấy thông tin nhà cung cấp:', error);
+                alert('Lỗi khi lấy thông tin nhà cung cấp.');
+            });
     };
 
-    addSupplierButton.addEventListener('click', () => {
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-        modal.innerHTML = `
-            <div class="supplier-modal w-full max-w-md">
-                <div class="supplier-modal-header">
-                    <i data-feather="plus" class="mx-auto mb-2 h-8 w-8"></i>
-                    <h3 class="text-xl font-bold">Thêm nhà cung cấp mới</h3>
+        addSupplierButton.addEventListener('click', () => {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="supplier-modal w-full max-w-md">
+                    <div class="supplier-modal-header">
+                        <i data-feather="plus" class="mx-auto mb-2 h-8 w-8"></i>
+                        <h3 class="text-xl font-bold">Thêm nhà cung cấp mới</h3>
+                    </div>
+                    <div class="supplier-modal-body">
+                        <div class="supplier-form-group">
+                            <label>Mã nhà cung cấp</label>
+                            <input type="text" id="supplierCode" placeholder="Nhập mã nhà cung cấp">
+                        </div>
+                        <div class="supplier-form-group">
+                            <label>Tên nhà cung cấp</label>
+                            <input type="text" id="supplierName" placeholder="Nhập tên nhà cung cấp">
+                        </div>
+                        <div class="supplier-form-group">
+                            <label>Địa chỉ</label>
+                            <input type="text" id="supplierAddress" placeholder="Nhập địa chỉ">
+                        </div>
+                        <div class="supplier-form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" id="supplierPhone" placeholder="Nhập số điện thoại">
+                        </div>
+                        <div class="supplier-form-group">
+                            <label>Email</label>
+                            <input type="email" id="supplierEmail" placeholder="Nhập email">
+                        </div>
+                    </div>
+                    <div class="supplier-modal-footer">
+                        <button type="button" class="btn-cancel" id="cancelBtn">
+                            <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
+                        </button>
+                        <button type="button" class="btn-save" id="saveBtn">
+                            <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
+                        </button>
+                    </div>
                 </div>
-                <div class="supplier-modal-body">
-                    <div class="supplier-form-group">
-                        <label>Tên nhà cung cấp</label>
-                        <input type="text" id="supplierName" placeholder="Nhập tên nhà cung cấp">
-                    </div>
-                    <div class="supplier-form-group">
-                        <label>Địa chỉ</label>
-                        <input type="text" id="supplierAddress" placeholder="Nhập địa chỉ">
-                    </div>
-                    <div class="supplier-form-group">
-                        <label>Số điện thoại</label>
-                        <input type="text" id="supplierPhone" placeholder="Nhập số điện thoại">
-                    </div>
-                    <div class="supplier-form-group">
-                        <label>Email</label>
-                        <input type="email" id="supplierEmail" placeholder="Nhập email">
-                    </div>
-                </div>
-                <div class="supplier-modal-footer">
-                    <button type="button" class="btn-cancel" id="cancelBtn">
-                        <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
-                    </button>
-                    <button type="button" class="btn-save" id="saveBtn">
-                        <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        feather.replace();
+            `;
+            document.body.appendChild(modal);
+            feather.replace();
 
-        document.getElementById('saveBtn').addEventListener('click', async () => {
-            const name = document.getElementById('supplierName').value;
-            const address = document.getElementById('supplierAddress').value;
-            const phone = document.getElementById('supplierPhone').value;
-            const email = document.getElementById('supplierEmail').value;
-            try {
-                const baseUrl = `http://localhost:3000`;
-                const token = localStorage.getItem('token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const response = await fetch(`${baseUrl}/suppliers`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...headers
-                    },
-                    body: JSON.stringify({ name, address, phone, email })
-                });
-                 if (response.ok) {
-                     loadSuppliers();
-                     document.body.removeChild(modal);
-                 } else {
-                     throw new Error('Thêm mới thất bại');
-                 }
-            } catch (error) {
-                console.error('Lỗi khi thêm nhà cung cấp:', error);
-                alert('Lỗi khi thêm nhà cung cấp.');
-            }
-        });
+            document.getElementById('saveBtn').addEventListener('click', async () => {
+                const code = document.getElementById('supplierCode').value;
+                const name = document.getElementById('supplierName').value;
+                const address = document.getElementById('supplierAddress').value;
+                const phone = document.getElementById('supplierPhone').value;
+                const email = document.getElementById('supplierEmail').value;
+                
+                if (!code) {
+                    alert('Vui lòng nhập mã nhà cung cấp');
+                    return;
+                }
+                
+                try {
+                    const baseUrl = `http://localhost:3000`;
+                    const token = localStorage.getItem('token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                    const response = await fetch(`${baseUrl}/suppliers`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...headers
+                        },
+                        body: JSON.stringify({ code, name, address, phone, email })
+                    });
+                    
+                    if (response.ok) {
+                        loadSuppliers();
+                        document.body.removeChild(modal);
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Thêm mới thất bại');
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi thêm nhà cung cấp:', error);
+                    alert('Lỗi khi thêm nhà cung cấp: ' + error.message);
+                }
+            });
 
-        document.getElementById('cancelBtn').addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
-    });
-
-    searchInput.addEventListener('input', (e) => {
+            document.getElementById('cancelBtn').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        });    searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         loadSuppliers(searchTerm);
     });

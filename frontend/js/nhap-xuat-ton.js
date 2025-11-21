@@ -56,6 +56,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    // Load suppliers from API
+    const loadSuppliers = async () => {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${baseUrl}/suppliers`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch suppliers');
+            }
+            const suppliersData = await response.json();
+            return suppliersData || [];
+        } catch (error) {
+            console.error('Error loading suppliers:', error);
+            return [];
+        }
+    };
+
     // Populate warehouse filter select
     const populateWarehouseFilter = async () => {
         const warehouseFilter = document.getElementById('warehouseFilter');
@@ -94,51 +115,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Populate product selects in modals
     const populateProductSelects = async () => {
-        const importProductSelect = document.getElementById('importProductName');
-        const exportProductSelect = document.getElementById('exportProductName');
-
-        // Create datalist elements for autocomplete
-        let importDatalist = document.getElementById('importProductList');
-        let exportDatalist = document.getElementById('exportProductList');
-        
-        if (!importDatalist) {
-            importDatalist = document.createElement('datalist');
-            importDatalist.id = 'importProductList';
-            document.body.appendChild(importDatalist);
-        }
-        
-        if (!exportDatalist) {
-            exportDatalist = document.createElement('datalist');
-            exportDatalist.id = 'exportProductList';
-            document.body.appendChild(exportDatalist);
-        }
+        const importProductSelect = document.getElementById('importProductId');
+        const exportProductSelect = document.getElementById('exportProductId');
+        const importSupplierSelect = document.getElementById('importSupplier');
 
         const products = await loadProducts();
+        const suppliers = await loadSuppliers();
         
         // Clear existing options
-        importDatalist.innerHTML = '';
-        exportDatalist.innerHTML = '';
-
-        // Add products to datalists
-        products.forEach(product => {
-            const importOption = document.createElement('option');
-            importOption.value = product.name;
-            importOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
-            importDatalist.appendChild(importOption);
-
-            const exportOption = document.createElement('option');
-            exportOption.value = product.name;
-            exportOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
-            exportDatalist.appendChild(exportOption);
-        });
-
-        // Associate datalists with input fields
         if (importProductSelect) {
-            importProductSelect.setAttribute('list', 'importProductList');
+            importProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
         }
         
         if (exportProductSelect) {
-            exportProductSelect.setAttribute('list', 'exportProductList');
+            exportProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+        }
+
+        // Add products to select dropdowns
+        products.forEach(product => {
+            if (importProductSelect) {
+                const importOption = document.createElement('option');
+                importOption.value = product.id;
+                importOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
+                importProductSelect.appendChild(importOption);
+            }
+
+            if (exportProductSelect) {
+                const exportOption = document.createElement('option');
+                exportOption.value = product.id;
+                exportOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
+                exportProductSelect.appendChild(exportOption);
+            }
+        });
+
+        // Populate supplier dropdown
+        if (importSupplierSelect) {
+            importSupplierSelect.innerHTML = '<option value="">-- Chọn nhà cung cấp --</option>';
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.id;
+                option.textContent = supplier.name;
+                importSupplierSelect.appendChild(option);
+            });
         }
     };
 
@@ -730,12 +748,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (importForm) {
         importForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const productName = document.getElementById('importProductName').value;
+            const productId = document.getElementById('importProductId').value;
             const quantity = document.getElementById('importQuantity').value;
-            const supplier = document.getElementById('importSupplier').value;
+            const supplierId = document.getElementById('importSupplier').value;
             const warehouseId = document.getElementById('importWarehouse').value;
 
-            if (!productName || !quantity || !supplier) {
+            if (!productId || !quantity || !supplierId) {
                 alert('Vui lòng điền đầy đủ thông tin');
                 return;
             }
@@ -747,7 +765,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Load all products to find the matching one
                 const products = await loadProducts();
-                const product = products.find(p => p.name === productName);
+                const product = products.find(p => p.id == productId);
                 
                 if (!product) {
                     throw new Error('Sản phẩm không tồn tại');
@@ -758,10 +776,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        product_id: product.id,
+                        product_id: parseInt(productId),
                         type: 'nhap',
                         quantity: parseInt(quantity),
-                        supplier_id: supplier,
+                        supplier_id: parseInt(supplierId),
                         warehouse_id: parseInt(warehouseId)
                     })
                 });
@@ -790,12 +808,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (exportForm) {
         exportForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const productName = document.getElementById('exportProductName').value;
+            const productId = document.getElementById('exportProductId').value;
             const quantity = document.getElementById('exportQuantity').value;
             const customer = document.getElementById('exportCustomer').value;
             const warehouseId = document.getElementById('exportWarehouse').value;
 
-            if (!productName || !quantity || !customer) {
+            if (!productId || !quantity || !customer) {
                 alert('Vui lòng điền đầy đủ thông tin');
                 return;
             }
@@ -807,7 +825,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Load all products to find the matching one
                 const products = await loadProducts();
-                const product = products.find(p => p.name === productName);
+                const product = products.find(p => p.id == productId);
                 
                 if (!product) {
                     throw new Error('Sản phẩm không tồn tại');
@@ -823,7 +841,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        product_id: product.id,
+                        product_id: parseInt(productId),
                         type: 'xuat',
                         quantity: parseInt(quantity),
                         customer_name: customer,

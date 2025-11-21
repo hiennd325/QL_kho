@@ -39,10 +39,16 @@ router.get('/:id', async (req, res) => {
 // POST new supplier
 router.post('/', async (req, res) => {
     try {
-        const { name, phone, email, address } = req.body;
-        const supplier = await supplierModel.createSupplier(name, name, phone, email, address);
+        const { code, name, phone, email, address } = req.body;
+        if (!code) {
+            return res.status(400).json({ error: 'Mã nhà cung cấp là bắt buộc' });
+        }
+        const supplier = await supplierModel.createSupplier(code, name, name, phone, email, address);
         res.status(201).json(supplier);
     } catch (err) {
+        if (err.message === 'Mã nhà cung cấp đã tồn tại') {
+            return res.status(400).json({ error: err.message });
+        }
         res.status(500).json({ error: 'Failed to create supplier' });
     }
 });
@@ -57,6 +63,9 @@ router.put('/:id', async (req, res) => {
         const updatedSupplier = await supplierModel.updateSupplier(req.params.id, updates);
         res.json(updatedSupplier);
     } catch (err) {
+        if (err.message === 'Mã nhà cung cấp đã tồn tại') {
+            return res.status(400).json({ error: err.message });
+        }
         res.status(500).json({ error: 'Failed to update supplier' });
     }
 });

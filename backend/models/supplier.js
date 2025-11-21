@@ -9,10 +9,16 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
     }
 });
 
-const createSupplier = async (name, contactPerson, phone, email, address) => {
+const createSupplier = async (code, name, contactPerson, phone, email, address) => {
     try {
+        // Check if code already exists
+        const existingSupplier = await getSupplierByCode(code);
+        if (existingSupplier) {
+            throw new Error('Mã nhà cung cấp đã tồn tại');
+        }
+        
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO suppliers (name, contact_person, phone, email, address) VALUES (?, ?, ?, ?, ?)', [name, contactPerson, phone, email, address], function(err) {
+            db.run('INSERT INTO suppliers (code, name, contact_person, phone, email, address) VALUES (?, ?, ?, ?, ?, ?)', [code, name, contactPerson, phone, email, address], function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -58,11 +64,35 @@ const getSupplierById = async (id) => {
     }
 };
 
+const getSupplierByCode = async (code) => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM suppliers WHERE code = ?', [code], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
 const updateSupplier = async (id, updates) => {
     try {
-        const { name, contact_person, phone, email, address } = updates;
+        const { code, name, contact_person, phone, email, address } = updates;
         const setClause = [];
         const values = [];
+        
+        // Check if code is being updated and already exists for another supplier
+        if (code) {
+            const existingSupplier = await getSupplierByCode(code);
+            if (existingSupplier && existingSupplier.id != id) {
+                throw new Error('Mã nhà cung cấp đã tồn tại');
+            }
+            setClause.push('code = ?');
+            values.push(code);
+        }
+        
         if (name) {
             setClause.push('name = ?');
             values.push(name);
@@ -159,6 +189,7 @@ module.exports = {
     createSupplier,
     getSuppliers,
     getSupplierById,
+    getSupplierByCode,
     updateSupplier,
     deleteSupplier,
     getTopSuppliers,

@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS warehouses (
 
 CREATE TABLE IF NOT EXISTS suppliers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     contact_person TEXT,
     phone TEXT,

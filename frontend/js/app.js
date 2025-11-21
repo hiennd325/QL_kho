@@ -17,19 +17,7 @@ const App = {
             };
         },
 
-        // Show loading spinner
-        showLoading: (element) => {
-            if (element) {
-                element.innerHTML = '<div class="flex justify-center items-center py-8"><div class="spinner"></div></div>';
-            }
-        },
 
-        // Hide loading spinner
-        hideLoading: (element) => {
-            if (element && element.querySelector('.spinner')) {
-                element.innerHTML = '';
-            }
-        },
 
         // Show notification
         showNotification: (message, type = 'info', duration = 3000) => {
@@ -262,7 +250,7 @@ const App = {
                 const submitBtn = form.querySelector('button[type="submit"]');
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<div class="spinner mr-2"></div> Đang xử lý...';
+                    submitBtn.innerHTML = 'Đang xử lý...';
                 }
             });
         });

@@ -74,13 +74,13 @@ async function seedDatabase() {
 
         // 2. Suppliers
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO suppliers (name, contact_person, phone, email, address) VALUES (?, ?, ?, ?, ?)`, ['Supplier A', 'John Doe', '123-456-7890', 'john@example.com', '123 Main St'], function(err) {
+            db.run(`INSERT INTO suppliers (code, name, contact_person, phone, email, address) VALUES (?, ?, ?, ?, ?, ?)`, ['SUP001', 'Supplier A', 'John Doe', '123-456-7890', 'john@example.com', '123 Main St'], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
         });
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO suppliers (name, contact_person, phone, email, address) VALUES (?, ?, ?, ?, ?)`, ['Supplier B', 'Jane Smith', '098-765-4321', 'jane@example.com', '456 Oak Ave'], function(err) {
+            db.run(`INSERT INTO suppliers (code, name, contact_person, phone, email, address) VALUES (?, ?, ?, ?, ?, ?)`, ['SUP002', 'Supplier B', 'Jane Smith', '098-765-4321', 'jane@example.com', '456 Oak Ave'], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
