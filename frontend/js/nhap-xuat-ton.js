@@ -131,24 +131,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             exportProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
         }
 
-        // Add products to select dropdowns
+                // Add products to select dropdowns
         products.forEach(product => {
             if (importProductSelect) {
                 const importOption = document.createElement('option');
-                importOption.value = product.id;
+                importOption.value = product.custom_id;
                 importOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
                 importProductSelect.appendChild(importOption);
             }
 
             if (exportProductSelect) {
                 const exportOption = document.createElement('option');
-                exportOption.value = product.id;
+                exportOption.value = product.custom_id;
                 exportOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
                 exportProductSelect.appendChild(exportOption);
             }
-        });
-
-        // Populate supplier dropdown
+        });        // Populate supplier dropdown
         if (importSupplierSelect) {
             importSupplierSelect.innerHTML = '<option value="">-- Chọn nhà cung cấp --</option>';
             suppliers.forEach(supplier => {
@@ -765,7 +763,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Load all products to find the matching one
                 const products = await loadProducts();
-                const product = products.find(p => p.id == productId);
+                const product = products.find(p => p.custom_id == productId);
                 
                 if (!product) {
                     throw new Error('Sản phẩm không tồn tại');
@@ -776,7 +774,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        product_id: parseInt(productId),
+                        product_id: productId,
                         type: 'nhap',
                         quantity: parseInt(quantity),
                         supplier_id: parseInt(supplierId),
@@ -825,7 +823,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Load all products to find the matching one
                 const products = await loadProducts();
-                const product = products.find(p => p.id == productId);
+                const product = products.find(p => p.custom_id == productId);
                 
                 if (!product) {
                     throw new Error('Sản phẩm không tồn tại');
@@ -841,7 +839,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        product_id: parseInt(productId),
+                        product_id: productId,
                         type: 'xuat',
                         quantity: parseInt(quantity),
                         customer_name: customer,

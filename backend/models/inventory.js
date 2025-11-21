@@ -10,10 +10,10 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
     }
 });
 
-const getInventoryByProductId = async (productId, warehouseCustomId = 'WH001') => {
+const getInventoryByProductId = async (productId, warehouseId) => {
     try {
         return await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM inventory WHERE product_id = ? AND warehouse_id = ?', [productId, warehouseCustomId], (err, row) => {
+            db.get('SELECT * FROM inventory WHERE product_id = ? AND warehouse_id = ?', [productId, warehouseId], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -23,44 +23,44 @@ const getInventoryByProductId = async (productId, warehouseCustomId = 'WH001') =
     }
 };
 
-const updateInventoryQuantity = async (productId, quantityChange, warehouseCustomId = 'WH001') => {
+const updateInventoryQuantity = async (productId, quantityChange, warehouseId) => {
     try {
-        const current = await getInventoryByProductId(productId, warehouseCustomId);
+        const current = await getInventoryByProductId(productId, warehouseId);
         if (!current) {
             await new Promise((resolve, reject) => {
-                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseCustomId, quantityChange], (err) => {
+                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseId, quantityChange], (err) => {
                     if (err) reject(err);
                     else resolve();
                 });
             });
-            return { product_id: productId, warehouse_id: warehouseCustomId, quantity: quantityChange };
+            return { product_id: productId, warehouse_id: warehouseId, quantity: quantityChange };
         }
         const newQuantity = current.quantity + quantityChange;
         await new Promise((resolve, reject) => {
-            db.run('UPDATE inventory SET quantity = ? WHERE product_id = ? AND warehouse_id = ?', [newQuantity, productId, warehouseCustomId], (err) => {
+            db.run('UPDATE inventory SET quantity = ? WHERE product_id = ? AND warehouse_id = ?', [newQuantity, productId, warehouseId], (err) => {
                 if (err) reject(err);
                 else resolve();
             });
         });
-        return { product_id: productId, warehouse_id: warehouseCustomId, quantity: newQuantity };
+        return { product_id: productId, warehouse_id: warehouseId, quantity: newQuantity };
     } catch (err) {
         throw err;
     }
 };
 
-const addInventoryItem = async (productId, quantity, warehouseCustomId = 'WH001') => {
+const addInventoryItem = async (productId, quantity, warehouseId) => {
     try {
-        const current = await getInventoryByProductId(productId, warehouseCustomId);
+        const current = await getInventoryByProductId(productId, warehouseId);
         if (current) {
-            return updateInventoryQuantity(productId, quantity, warehouseCustomId);
+            return updateInventoryQuantity(productId, quantity, warehouseId);
         } else {
             await new Promise((resolve, reject) => {
-                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseCustomId, quantity], (err) => {
+                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseId, quantity], (err) => {
                     if (err) reject(err);
                     else resolve();
                 });
             });
-            return { product_id: productId, warehouse_id: warehouseCustomId, quantity };
+            return { product_id: productId, warehouse_id: warehouseId, quantity };
         }
     } catch (err) {
         throw err;

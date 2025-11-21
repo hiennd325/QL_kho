@@ -243,17 +243,7 @@ const App = {
         App.ui.initLogoutModal();
         App.ui.updateUserInfo();
 
-        // Add loading states to forms (excluding warehouse form)
-        const forms = document.querySelectorAll('form:not(#warehouseForm)');
-        forms.forEach(form => {
-            form.addEventListener('submit', () => {
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = 'Đang xử lý...';
-                }
-            });
-        });
+        // Removed loading states to forms as per user request
 
         // Global error handling
         window.addEventListener('unhandledrejection', (event) => {
