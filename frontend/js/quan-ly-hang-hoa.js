@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tableBody.innerHTML = '';
         if (products.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Không tìm thấy sản phẩm nào</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không tìm thấy sản phẩm nào</td></tr>`;
             return;
         }
 
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.brand || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.quantity || 0}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.supplier_name || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                      <div class="flex space-x-2">
@@ -224,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         } catch (error) {
             console.error('Error loading products:', error);
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
         }
     }
     
@@ -444,12 +443,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                      <label class="block text-sm font-medium text-gray-700 mb-1">Nhãn hiệu</label>
                      <input type="text" id="productBrand" class="w-full border rounded px-3 py-2" placeholder="Nhập nhãn hiệu sản phẩm">
                  </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
-                    <select id="supplier-filter-modal-add" class="w-full border rounded px-3 py-2">
-                        <option value="">Chọn nhà cung cấp</option>
-                    </select>
-                </div>
                 <div class="flex justify-end space-x-2">
                     <button type="button" class="bg-gray-300 px-4 py-2 rounded" id="cancelBtn">Hủy</button>
                     <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded" id="saveBtn">Lưu</button>
@@ -458,16 +451,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         document.body.appendChild(modal);
 
-        // Load suppliers for add product modal
-        loadSuppliersForAddModal();
-
 document.getElementById('saveBtn').addEventListener('click', async () => {
             const customId = document.getElementById('productCustomId').value.trim();
             const name = document.getElementById('productName').value.trim();
             const description = document.getElementById('productDescription').value.trim();
             const price = parseFloat(document.getElementById('productPrice').value);
             const brand = document.getElementById('productBrand').value.trim();
-            const supplierId = document.getElementById('supplier-filter-modal-add').value;
 
             // Validate inputs
             if (!name) {
@@ -495,8 +484,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
                         name, 
                         description: description || null, 
                         price, 
-                        brand: brand || null, 
-                        supplierId: supplierId || null 
+                        brand: brand || null
                     })
                 });
 
