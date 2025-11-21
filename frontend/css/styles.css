@@ -298,15 +298,27 @@ input:focus, select:focus, textarea:focus {
 /* Responsive design */
 @media (max-width: 768px) {
     .sidebar {
-        width: 100%;
-        height: auto;
-        min-height: 0;
-        position: relative;
-        animation: fadeIn 0.3s ease;
+        width: 280px;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 40;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: block !important;
     }
 
     .main-content {
         margin-left: 0;
+        width: 100%;
     }
 
     .grid {
@@ -349,6 +361,16 @@ input:focus, select:focus, textarea:focus {
     .flex.space-x-2 button {
         padding: 6px 12px;
         font-size: 12px;
+    }
+}
+
+@media (min-width: 769px) {
+    .sidebar {
+        transform: none !important;
+    }
+
+    .sidebar-toggle {
+        display: none !important;
     }
 }
 
@@ -401,6 +423,275 @@ input:focus, select:focus, textarea:focus {
 
     button {
         border: 2px solid currentColor;
+    }
+}
+
+/* Supplier management page specific styles */
+.supplier-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.supplier-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23ffffff" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+}
+
+.supplier-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.supplier-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.supplier-card:hover::before {
+    left: 100%;
+}
+
+.supplier-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+}
+
+.supplier-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.supplier-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 12px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.supplier-details p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.supplier-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.supplier-modal {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    border: 1px solid #e2e8f0;
+}
+
+.supplier-modal-header {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 20px;
+    border-radius: 16px 16px 0 0;
+    text-align: center;
+}
+
+.supplier-modal-body {
+    padding: 24px;
+}
+
+.supplier-form-group {
+    margin-bottom: 20px;
+}
+
+.supplier-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.supplier-form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.supplier-form-group input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: scale(1.02);
+}
+
+.supplier-modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+}
+
+.btn-cancel {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive improvements for supplier management */
+@media (max-width: 768px) {
+    .supplier-card {
+        padding: 16px;
+    }
+
+    .supplier-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .supplier-icon {
+        margin-right: 0;
+        margin-bottom: 12px;
+    }
+
+    .supplier-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .btn-edit, .btn-delete {
+        justify-content: center;
+        padding: 10px 16px;
+    }
+
+    .supplier-modal {
+        margin: 10px;
+        max-width: none;
+    }
+
+    .supplier-modal-header {
+        padding: 16px;
+    }
+
+    .supplier-modal-body {
+        padding: 20px;
+    }
+
+    .supplier-modal-footer {
+        padding: 16px 20px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-cancel, .btn-save {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .supplier-card {
+        padding: 12px;
+    }
+
+    .supplier-details p {
+        font-size: 13px;
+    }
+
+    .supplier-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
 }
 

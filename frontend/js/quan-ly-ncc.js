@@ -1,45 +1,50 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const tableBody = document.querySelector('tbody');
+    const suppliersGrid = document.getElementById('suppliers-grid');
+    const emptyState = document.getElementById('empty-state');
     const addSupplierButton = document.querySelector('.add-supplier-btn');
     const searchInput = document.getElementById('search-input');
 
     const renderSuppliers = (suppliers) => {
-        tableBody.innerHTML = '';
+        suppliersGrid.innerHTML = '';
         if (suppliers.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Không tìm thấy nhà cung cấp nào</td></tr>`;
+            emptyState.classList.remove('hidden');
             return;
         }
+        emptyState.classList.add('hidden');
 
-        suppliers.forEach(supplier => {
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50';
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.id}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${supplier.name}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.address || 'Chưa có địa chỉ'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${supplier.phone || 'Chưa có SĐT'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${supplier.email || 'Chưa có email'}</td>
-                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                     <div class="flex space-x-2">
-                         <button type="button" class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${supplier.id}" data-name="${supplier.name}" data-address="${supplier.address || ''}" data-phone="${supplier.phone || ''}" data-email="${supplier.email || ''}">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                             </svg>
-                         </button>
-                         <button type="button" class="text-red-600 hover:text-red-800 delete-btn" data-id="${supplier.id}">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
-                                 <polyline points="3 6 5 6 21 6"></polyline>
-                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                 <line x1="10" y1="11" x2="10" y2="17"></line>
-                                 <line x1="14" y1="11" x2="14" y2="17"></line>
-                             </svg>
-                         </button>
-                     </div>
-                 </td>
+        suppliers.forEach((supplier, index) => {
+            const card = document.createElement('div');
+            card.className = 'supplier-card p-6 animate-fade-in';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `
+                <div class="supplier-info">
+                    <div class="supplier-icon">${supplier.name.charAt(0).toUpperCase()}</div>
+                    <div class="supplier-details">
+                        <h3 class="font-semibold text-lg text-gray-900">${supplier.name}</h3>
+                        <p class="text-sm text-gray-600">ID: ${supplier.id}</p>
+                    </div>
+                </div>
+                <div class="supplier-details mt-4">
+                    <p><i data-feather="map-pin" class="inline h-4 w-4 mr-2"></i>${supplier.address || 'Chưa có địa chỉ'}</p>
+                    <p><i data-feather="phone" class="inline h-4 w-4 mr-2"></i>${supplier.phone || 'Chưa có SĐT'}</p>
+                    <p><i data-feather="mail" class="inline h-4 w-4 mr-2"></i>${supplier.email || 'Chưa có email'}</p>
+                </div>
+                <div class="supplier-actions">
+                    <button type="button" class="btn-edit edit-btn" data-id="${supplier.id}" data-name="${supplier.name}" data-address="${supplier.address || ''}" data-phone="${supplier.phone || ''}" data-email="${supplier.email || ''}">
+                        <i data-feather="edit-2" class="h-4 w-4"></i>
+                        Sửa
+                    </button>
+                    <button type="button" class="btn-delete delete-btn" data-id="${supplier.id}">
+                        <i data-feather="trash-2" class="h-4 w-4"></i>
+                        Xóa
+                    </button>
+                </div>
             `;
-            tableBody.appendChild(row);
+            suppliersGrid.appendChild(card);
         });
+
+        // Re-initialize Feather icons for the new cards
+        feather.replace();
     };
 
     async function loadSuppliers(searchTerm = '') {
@@ -96,33 +101,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const showEditModal = (id, name, address, phone, email) => {
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
         modal.innerHTML = `
-            <div class="bg-white p-6 rounded-lg w-full max-w-md">
-                <h3 class="text-xl font-semibold mb-4">Chỉnh sửa nhà cung cấp</h3>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên nhà cung cấp</label>
-                    <input type="text" id="editSupplierName" class="w-full border rounded px-3 py-2" value="${name}">
+            <div class="supplier-modal w-full max-w-md">
+                <div class="supplier-modal-header">
+                    <i data-feather="edit" class="mx-auto mb-2 h-8 w-8"></i>
+                    <h3 class="text-xl font-bold">Chỉnh sửa nhà cung cấp</h3>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
-                    <input type="text" id="editSupplierAddress" class="w-full border rounded px-3 py-2" value="${address}">
+                <div class="supplier-modal-body">
+                    <div class="supplier-form-group">
+                        <label>Tên nhà cung cấp</label>
+                        <input type="text" id="editSupplierName" value="${name}">
+                    </div>
+                    <div class="supplier-form-group">
+                        <label>Địa chỉ</label>
+                        <input type="text" id="editSupplierAddress" value="${address}">
+                    </div>
+                    <div class="supplier-form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" id="editSupplierPhone" value="${phone}">
+                    </div>
+                    <div class="supplier-form-group">
+                        <label>Email</label>
+                        <input type="email" id="editSupplierEmail" value="${email}">
+                    </div>
                 </div>
-                 <div class="mb-4">
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-                     <input type="text" id="editSupplierPhone" class="w-full border rounded px-3 py-2" value="${phone}">
-                 </div>
-                 <div class="mb-4">
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                     <input type="email" id="editSupplierEmail" class="w-full border rounded px-3 py-2" value="${email}">
-                 </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" id="cancelEditBtn">Hủy</button>
-                    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded" id="saveEditBtn">Lưu</button>
+                <div class="supplier-modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelEditBtn">
+                        <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn-save" id="saveEditBtn">
+                        <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
+                    </button>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
+        feather.replace();
 
         document.getElementById('saveEditBtn').addEventListener('click', async () => {
             const updatedName = document.getElementById('editSupplierName').value;
@@ -161,33 +176,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     addSupplierButton.addEventListener('click', () => {
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
         modal.innerHTML = `
-            <div class="bg-white p-6 rounded-lg w-full max-w-md">
-                <h3 class="text-xl font-semibold mb-4">Thêm nhà cung cấp mới</h3>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên nhà cung cấp</label>
-                    <input type="text" id="supplierName" class="w-full border rounded px-3 py-2">
+            <div class="supplier-modal w-full max-w-md">
+                <div class="supplier-modal-header">
+                    <i data-feather="plus" class="mx-auto mb-2 h-8 w-8"></i>
+                    <h3 class="text-xl font-bold">Thêm nhà cung cấp mới</h3>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
-                    <input type="text" id="supplierAddress" class="w-full border rounded px-3 py-2">
+                <div class="supplier-modal-body">
+                    <div class="supplier-form-group">
+                        <label>Tên nhà cung cấp</label>
+                        <input type="text" id="supplierName" placeholder="Nhập tên nhà cung cấp">
+                    </div>
+                    <div class="supplier-form-group">
+                        <label>Địa chỉ</label>
+                        <input type="text" id="supplierAddress" placeholder="Nhập địa chỉ">
+                    </div>
+                    <div class="supplier-form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" id="supplierPhone" placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="supplier-form-group">
+                        <label>Email</label>
+                        <input type="email" id="supplierEmail" placeholder="Nhập email">
+                    </div>
                 </div>
-                 <div class="mb-4">
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
-                     <input type="text" id="supplierPhone" class="w-full border rounded px-3 py-2">
-                 </div>
-                 <div class="mb-4">
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                     <input type="email" id="supplierEmail" class="w-full border rounded px-3 py-2">
-                 </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" id="cancelBtn">Hủy</button>
-                    <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded" id="saveBtn">Lưu</button>
+                <div class="supplier-modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelBtn">
+                        <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn-save" id="saveBtn">
+                        <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
+                    </button>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
+        feather.replace();
 
         document.getElementById('saveBtn').addEventListener('click', async () => {
             const name = document.getElementById('supplierName').value;
