@@ -5,7 +5,8 @@ const supplierModel = require('../models/supplier');
 // GET all suppliers
 router.get('/', async (req, res) => {
     try {
-        const suppliers = await supplierModel.getSuppliers();
+        const { search } = req.query;
+        const suppliers = await supplierModel.getSuppliers(search);
         res.json(suppliers);
     } catch (err) {
         res.status(500).json({ error: 'Failed to get suppliers' });
@@ -38,8 +39,8 @@ router.get('/:id', async (req, res) => {
 // POST new supplier
 router.post('/', async (req, res) => {
     try {
-        const { name, contact_person, phone, email, address } = req.body;
-        const supplier = await supplierModel.createSupplier(name, contact_person, phone, email, address);
+        const { name, phone, email, address } = req.body;
+        const supplier = await supplierModel.createSupplier(name, name, phone, email, address);
         res.status(201).json(supplier);
     } catch (err) {
         res.status(500).json({ error: 'Failed to create supplier' });
@@ -50,6 +51,9 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const updates = req.body;
+        if (updates.name) {
+            updates.contact_person = updates.name;
+        }
         const updatedSupplier = await supplierModel.updateSupplier(req.params.id, updates);
         res.json(updatedSupplier);
     } catch (err) {

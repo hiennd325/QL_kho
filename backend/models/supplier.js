@@ -26,10 +26,16 @@ const createSupplier = async (name, contactPerson, phone, email, address) => {
     }
 };
 
-const getSuppliers = async () => {
+const getSuppliers = async (searchTerm) => {
     try {
         return await new Promise((resolve, reject) => {
-            db.all('SELECT * FROM suppliers', (err, rows) => {
+            let sql = 'SELECT * FROM suppliers';
+            const params = [];
+            if (searchTerm) {
+                sql += ' WHERE name LIKE ?';
+                params.push(`%${searchTerm}%`);
+            }
+            db.all(sql, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
