@@ -9,18 +9,30 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
     }
 });
 
-const createWarehouse = async (name, location, capacity) => {
+const createWarehouse = async (name, location, capacity, custom_id = null) => {
     try {
         // Ensure location is not null to satisfy schema constraints. If the UI omits location,
         // default to an empty string.
         const safeLocation = location || '';
         const safeCapacity = capacity !== undefined && capacity !== null ? capacity : 0;
+        
+        // Validate that custom_id is provided
+        if (!custom_id) {
+            throw new Error('custom_id is required');
+        }
+        
+        // Check if warehouse with this custom_id already exists
+        const existingWarehouse = await getWarehouseById(custom_id);
+        if (existingWarehouse) {
+            throw new Error('Mã kho đã tồn tại');
+        }
+        
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO warehouses (name, location, capacity) VALUES (?, ?, ?)', [name, safeLocation, safeCapacity], function(err) {
+            db.run('INSERT INTO warehouses (custom_id, name, location, capacity) VALUES (?, ?, ?, ?)', [custom_id, name, safeLocation, safeCapacity], function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve({ id: this.lastID });
+                    resolve({ custom_id: custom_id });
                 }
             });
         });
@@ -43,10 +55,10 @@ const getWarehouses = async () => {
     }
 };
 
-const getWarehouseById = async (id) => {
+const getWarehouseById = async (custom_id) => {
     try {
         return await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM warehouses WHERE id = ?', [id], (err, row) => {
+            db.get('SELECT * FROM warehouses WHERE custom_id = ?', [custom_id], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -56,7 +68,7 @@ const getWarehouseById = async (id) => {
     }
 };
 
-const updateWarehouse = async (id, updates) => {
+const updateWarehouse = async (custom_id, updates) => {
     try {
         const { name, location, capacity } = updates;
         const setClause = [];
@@ -76,20 +88,20 @@ const updateWarehouse = async (id, updates) => {
         if (setClause.length === 0) {
             throw new Error('No updates provided');
         }
-        values.push(id);
+        values.push(custom_id);
         await new Promise((resolve, reject) => {
-            db.run(`UPDATE warehouses SET ${setClause.join(', ')} WHERE id = ?`, values, (err) => {
+            db.run(`UPDATE warehouses SET ${setClause.join(', ')} WHERE custom_id = ?`, values, (err) => {
                 if (err) reject(err);
                 else resolve();
             });
         });
-        return getWarehouseById(id);
+        return getWarehouseById(custom_id);
     } catch (err) {
         throw err;
     }
 };
 
-const getWarehouseProducts = async (warehouseId) => {
+const getWarehouseProducts = async (warehouseCustomId) => {
     try {
         const query = `SELECT p.id, p.name, p.price, i.quantity
                        FROM inventory i
@@ -98,7 +110,7 @@ const getWarehouseProducts = async (warehouseId) => {
                        ORDER BY p.name`;
 
         return await new Promise((resolve, reject) => {
-            db.all(query, [warehouseId], (err, rows) => {
+            db.all(query, [warehouseCustomId], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
@@ -108,10 +120,10 @@ const getWarehouseProducts = async (warehouseId) => {
     }
 };
 
-const deleteWarehouse = async (id) => {
+const deleteWarehouse = async (custom_id) => {
     try {
         const inventoryCount = await new Promise((resolve, reject) => {
-            db.get('SELECT COUNT(*) as count FROM inventory WHERE warehouse_id = ?', [id], (err, row) => {
+            db.get('SELECT COUNT(*) as count FROM inventory WHERE warehouse_id = ?', [custom_id], (err, row) => {
                 if (err) reject(err);
                 else resolve(row.count);
             });
@@ -122,7 +134,7 @@ const deleteWarehouse = async (id) => {
         }
 
         await new Promise((resolve, reject) => {
-            db.run('DELETE FROM warehouses WHERE id = ?', [id], (err) => {
+            db.run('DELETE FROM warehouses WHERE custom_id = ?', [custom_id], (err) => {
                 if (err) reject(err);
                 else resolve();
             });

@@ -90,18 +90,21 @@ router.post('/transactions', async (req, res) => {
         }
 
         // Create transaction record
+        // Tạo mã giao dịch nếu không được cung cấp
+        const transactionId = reference_id || `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        
         const transaction = await inventoryTransactionModel.createTransaction(
+            transactionId,
             product_id,
             warehouse_id,
             quantityNum,
             type,
             supplier_id,
             customer_name,
-            reference_id,
             notes
         );
 
-        res.status(201).json({ message: 'Transaction successful', transaction });
+        res.status(201).json({ message: 'Transaction successful', transaction: { reference_id: transaction.reference_id } });
     } catch (err) {
         console.error('Transaction error:', err);
         res.status(500).json({ error: 'Failed to process transaction' });

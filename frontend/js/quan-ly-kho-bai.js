@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         warehouses.forEach(warehouse => {
             const card = document.createElement('div');
             card.className = 'warehouse-card bg-white rounded-lg shadow-md overflow-hidden';
-            card.dataset.id = warehouse.id;
+            card.dataset.id = warehouse.custom_id;
             card.innerHTML = `
                 <div class="h-32 bg-gradient-to-r from-blue-500 to-blue-600 relative">
                     <div class="absolute top-4 right-4">
@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     <div class="absolute bottom-4 left-4">
                         <h3 class="text-white text-xl font-semibold">${warehouse.name}</h3>
+                        <p class="text-white text-sm mt-1">Mã: ${warehouse.custom_id}</p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -288,34 +289,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function resetWarehouseForm() {
+        document.getElementById('warehouseCustomId').value = '';
         document.getElementById('warehouseName').value = '';
         document.getElementById('warehouseCapacity').value = '';
+        // Re-enable custom_id field
+        document.getElementById('warehouseCustomId').disabled = false;
     }
 
-    async function loadWarehouseData(warehouseId) {
+        async function loadWarehouseData(warehouseCustomId) {
+            try {
+                const baseUrl = `http://localhost:3000`;
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const response = await fetch(`${baseUrl}/warehouses/${warehouseCustomId}`, { headers });
+
+                if (!response.ok) throw new Error('Failed to fetch warehouse data');
+
+                const warehouse = await response.json();
+                document.getElementById('warehouseCustomId').value = warehouse.custom_id || '';
+                document.getElementById('warehouseName').value = warehouse.name;
+                document.getElementById('warehouseCapacity').value = warehouse.capacity;
+                
+                // Disable custom_id field when editing
+                document.getElementById('warehouseCustomId').disabled = true;
+            } catch (error) {
+                console.error('Error loading warehouse data:', error);
+                alert('Lỗi tải dữ liệu kho');
+            }
+        }    async function loadWarehouseDetail(warehouseCustomId) {
         try {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/warehouses/${warehouseId}`, { headers });
-
-            if (!response.ok) throw new Error('Failed to fetch warehouse data');
-
-            const warehouse = await response.json();
-            document.getElementById('warehouseName').value = warehouse.name;
-            document.getElementById('warehouseCapacity').value = warehouse.capacity;
-        } catch (error) {
-            console.error('Error loading warehouse data:', error);
-            alert('Lỗi tải dữ liệu kho');
-        }
-    }
-
-    async function loadWarehouseDetail(warehouseId) {
-        try {
-            const baseUrl = `http://localhost:3000`;
-            const token = localStorage.getItem('token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/warehouses/${warehouseId}`, { headers });
+            const response = await fetch(`${baseUrl}/warehouses/${warehouseCustomId}`, { headers });
 
             if (!response.ok) throw new Error('Failed to fetch warehouse detail');
 
@@ -327,6 +333,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div>
                         <h4 class="text-lg font-semibold mb-4">Thông tin kho</h4>
                         <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Mã kho</label>
+                                <p class="text-gray-900">${warehouse.custom_id || 'Chưa có'}</p>
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Tên kho</label>
                                 <p class="text-gray-900">${warehouse.name}</p>
@@ -351,19 +361,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
 
             // Load products in this warehouse
-            loadWarehouseProducts(warehouseId);
+            loadWarehouseProducts(warehouseCustomId);
         } catch (error) {
             console.error('Error loading warehouse detail:', error);
             alert('Lỗi tải chi tiết kho');
         }
     }
 
-    async function loadWarehouseProducts(warehouseId) {
+    async function loadWarehouseProducts(warehouseCustomId) {
         try {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const response = await fetch(`${baseUrl}/warehouses/${warehouseId}/products`, { headers });
+            const response = await fetch(`${baseUrl}/warehouses/${warehouseCustomId}/products`, { headers });
 
             if (!response.ok) throw new Error('Failed to fetch warehouse products');
 
@@ -544,8 +554,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         warehouseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const customId = document.getElementById('warehouseCustomId').value;
+            if (!customId) {
+                alert('Vui lòng nhập mã kho');
+                return;
+            }
+
             const formData = {
+                custom_id: customId,
                 name: document.getElementById('warehouseName').value,
+                location: '', // Giữ nguyên giá trị mặc định
                 capacity: parseInt(document.getElementById('warehouseCapacity').value)
             };
 
@@ -563,7 +581,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify(formData)
                 });
 
-                if (!response.ok) throw new Error('Failed to save warehouse');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save warehouse');
+                }
 
                 closeWarehouseModal();
                 loadWarehouses();
@@ -571,7 +592,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             } catch (error) {
                 console.error('Error saving warehouse:', error);
-                alert('Lỗi lưu kho: ' + error.message);
+                if (error.message === 'Mã kho đã tồn tại') {
+                    alert('Lỗi: Mã kho đã tồn tại. Vui lòng chọn mã khác.');
+                } else {
+                    alert('Lỗi lưu kho: ' + error.message);
+                }
             }
         });
     }
@@ -582,31 +607,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!button) return;
 
         const action = button.dataset.action;
-        const warehouseId = button.closest('.warehouse-card').dataset.id;
+        const warehouseCard = button.closest('.warehouse-card');
+        const warehouseCustomId = warehouseCard ? warehouseCard.dataset.id : null;
 
         if (action === 'view') {
             e.preventDefault();
-            if (warehouseId) {
-                openWarehouseDetailModal(warehouseId);
+            if (warehouseCustomId) {
+                openWarehouseDetailModal(warehouseCustomId);
             }
         }
 
         if (action === 'edit') {
             e.preventDefault();
-            if (warehouseId) {
-                openWarehouseModal(warehouseId);
+            if (warehouseCustomId) {
+                openWarehouseModal(warehouseCustomId);
             }
         }
 
         if (action === 'delete') {
             e.preventDefault();
-            if (warehouseId) {
-                deleteWarehouse(warehouseId);
+            if (warehouseCustomId) {
+                deleteWarehouse(warehouseCustomId);
             }
         }
     });
 
-    async function deleteWarehouse(warehouseId) {
+    async function deleteWarehouse(warehouseCustomId) {
         if (!confirm('Bạn có chắc chắn muốn xóa kho này không? Kho sẽ bị xóa vĩnh viễn và không thể khôi phục.')) {
             return;
         }
@@ -616,7 +642,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-            const response = await fetch(`${baseUrl}/warehouses/${warehouseId}`, {
+            const response = await fetch(`${baseUrl}/warehouses/${warehouseCustomId}`, {
                 method: 'DELETE',
                 headers
             });

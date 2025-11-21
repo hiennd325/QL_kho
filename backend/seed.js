@@ -102,13 +102,13 @@ async function seedDatabase() {
 
         // 4. Warehouses
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO warehouses (name, location, capacity, current_usage) VALUES (?, ?, ?, ?)`, ['Main Warehouse', 'City Center', 1000, 150], function(err) {
+            db.run(`INSERT INTO warehouses (custom_id, name, location, capacity, current_usage) VALUES (?, ?, ?, ?, ?)`, ['WH001', 'Main Warehouse', 'City Center', 1000, 150], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
         });
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO warehouses (name, location, capacity, current_usage) VALUES (?, ?, ?, ?)`, ['Secondary Warehouse', 'Industrial Park', 500, 50], function(err) {
+            db.run(`INSERT INTO warehouses (custom_id, name, location, capacity, current_usage) VALUES (?, ?, ?, ?, ?)`, ['WH002', 'Secondary Warehouse', 'Industrial Park', 500, 50], function(err) {
                 if (err) reject(err);
                 else resolve();
             });

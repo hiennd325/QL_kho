@@ -255,8 +255,8 @@ const App = {
         App.ui.initLogoutModal();
         App.ui.updateUserInfo();
 
-        // Add loading states to forms
-        const forms = document.querySelectorAll('form');
+        // Add loading states to forms (excluding warehouse form)
+        const forms = document.querySelectorAll('form:not(#warehouseForm)');
         forms.forEach(form => {
             form.addEventListener('submit', () => {
                 const submitBtn = form.querySelector('button[type="submit"]');

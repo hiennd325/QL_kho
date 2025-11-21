@@ -22,10 +22,10 @@ router.get('/count', async (req, res) => {
     }
 });
 
-// GET a single warehouse by ID
-router.get('/:id', async (req, res) => {
+// GET a single warehouse by custom_id
+router.get('/:custom_id', async (req, res) => {
     try {
-        const warehouse = await warehouseModel.getWarehouseById(req.params.id);
+        const warehouse = await warehouseModel.getWarehouseById(req.params.custom_id);
         if (!warehouse) {
             return res.status(404).json({ error: 'Warehouse not found' });
         }
@@ -38,19 +38,23 @@ router.get('/:id', async (req, res) => {
 // POST new warehouse
 router.post('/', async (req, res) => {
     try {
-        const { name, location, capacity } = req.body;
-        const warehouse = await warehouseModel.createWarehouse(name, location, capacity);
+        const { custom_id, name, location, capacity } = req.body;
+        const warehouse = await warehouseModel.createWarehouse(name, location, capacity, custom_id);
         res.status(201).json(warehouse);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create warehouse' });
+        if (err.message === 'Mã kho đã tồn tại') {
+            res.status(400).json({ error: err.message });
+        } else {
+            res.status(500).json({ error: 'Failed to create warehouse' });
+        }
     }
 });
 
 // PUT update warehouse
-router.put('/:id', async (req, res) => {
+router.put('/:custom_id', async (req, res) => {
     try {
         const updates = req.body;
-        const updatedWarehouse = await warehouseModel.updateWarehouse(req.params.id, updates);
+        const updatedWarehouse = await warehouseModel.updateWarehouse(req.params.custom_id, updates);
         res.json(updatedWarehouse);
     } catch (err) {
         res.status(500).json({ error: 'Failed to update warehouse' });
@@ -58,9 +62,9 @@ router.put('/:id', async (req, res) => {
 });
 
 // GET products in a warehouse
-router.get('/:id/products', async (req, res) => {
+router.get('/:custom_id/products', async (req, res) => {
     try {
-        const products = await warehouseModel.getWarehouseProducts(req.params.id);
+        const products = await warehouseModel.getWarehouseProducts(req.params.custom_id);
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: 'Failed to get warehouse products' });
@@ -68,9 +72,9 @@ router.get('/:id/products', async (req, res) => {
 });
 
 // DELETE warehouse
-router.delete('/:id', async (req, res) => {
+router.delete('/:custom_id', async (req, res) => {
     try {
-        const result = await warehouseModel.deleteWarehouse(req.params.id);
+        const result = await warehouseModel.deleteWarehouse(req.params.custom_id);
         res.json(result);
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete warehouse' });

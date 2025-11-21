@@ -9,15 +9,21 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
     }
 });
 
-const createTransaction = async (productId, warehouseId, quantity, type, supplier_id = null, customer_name = null, reference_id = null, notes = null) => {
+const createTransaction = async (reference_id, productId, warehouseId, quantity, type, supplier_id = null, customer_name = null, notes = null) => {
     try {
+        // Kiểm tra nếu reference_id đã tồn tại
+        const existingTransaction = await getTransactionByReferenceId(reference_id);
+        if (existingTransaction) {
+            throw new Error('Mã giao dịch đã tồn tại');
+        }
+        
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO inventory_transactions (product_id, warehouse_id, quantity, type, supplier_id, customer_name, reference_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-            [productId, warehouseId, quantity, type, supplier_id, customer_name, reference_id, notes], function(err) {
+            db.run('INSERT INTO inventory_transactions (reference_id, product_id, warehouse_id, quantity, type, supplier_id, customer_name, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+            [reference_id, productId, warehouseId, quantity, type, supplier_id, customer_name, notes], function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve({ id: this.lastID });
+                    resolve({ reference_id: reference_id });
                 }
             });
         });
@@ -29,7 +35,7 @@ const createTransaction = async (productId, warehouseId, quantity, type, supplie
 
 const getTransactions = async (productId = null, warehouseId = null) => {
     try {
-        let query = `SELECT it.id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date, p.name as product_name, w.name as warehouse_name
+        let query = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date, p.name as product_name, w.name as warehouse_name
         FROM inventory_transactions it
         JOIN products p ON it.product_id = p.id
         JOIN warehouses w ON it.warehouse_id = w.id`;
@@ -59,10 +65,23 @@ const getTransactions = async (productId = null, warehouseId = null) => {
     }
 };
 
-const getTransactionById = async (id) => {
+const getTransactionByReferenceId = async (reference_id) => {
     try {
         return await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM inventory_transactions WHERE id = ?', [id], (err, row) => {
+            db.get('SELECT * FROM inventory_transactions WHERE reference_id = ?', [reference_id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    } catch (err) {
+        throw err;
+    }
+};
+
+const getTransactionById = async (reference_id) => {
+    try {
+        return await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM inventory_transactions WHERE reference_id = ?', [reference_id], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -123,7 +142,7 @@ const getTransactionsPaginated = async (page = 1, limit = 10, type = null, wareh
 
         // Get transactions with pagination
         const transactions = await new Promise((resolve, reject) => {
-            let sql = `SELECT it.id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date,
+            let sql = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date,
                               p.name as product_name, w.name as warehouse_name
                        FROM inventory_transactions it
                        JOIN products p ON it.product_id = p.id
@@ -155,5 +174,6 @@ module.exports = {
     createTransaction,
     getTransactions,
     getTransactionById,
+    getTransactionByReferenceId,
     getTransactionsPaginated
 };

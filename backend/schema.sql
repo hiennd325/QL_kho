@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 CREATE TABLE IF NOT EXISTS warehouses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    custom_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     location TEXT NOT NULL,
     capacity INTEGER NOT NULL,
@@ -40,10 +40,10 @@ CREATE TABLE IF NOT EXISTS suppliers (
 CREATE TABLE IF NOT EXISTS inventory (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
-    warehouse_id INTEGER NOT NULL,
+    warehouse_id TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(custom_id)
 );
 
 CREATE TABLE IF NOT EXISTS orders (
@@ -86,8 +86,8 @@ CREATE TABLE IF NOT EXISTS inventory_transactions (
 CREATE TABLE IF NOT EXISTS transfers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT UNIQUE NOT NULL,
-    from_warehouse_id INTEGER NOT NULL,
-    to_warehouse_id INTEGER NOT NULL,
+    from_warehouse_id TEXT NOT NULL,
+    to_warehouse_id TEXT NOT NULL,
     product_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
@@ -95,8 +95,8 @@ CREATE TABLE IF NOT EXISTS transfers (
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (from_warehouse_id) REFERENCES warehouses(id),
-    FOREIGN KEY (to_warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (from_warehouse_id) REFERENCES warehouses(custom_id),
+    FOREIGN KEY (to_warehouse_id) REFERENCES warehouses(custom_id),
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -128,12 +128,12 @@ CREATE TABLE IF NOT EXISTS audits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT UNIQUE NOT NULL,
     date DATETIME NOT NULL,
-    warehouse_id INTEGER NOT NULL,
+    warehouse_id TEXT NOT NULL,
     created_by_user_id INTEGER NOT NULL,
     discrepancy REAL NOT NULL,
     status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'cancelled')),
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(custom_id),
     FOREIGN KEY (created_by_user_id) REFERENCES users(id)
 );

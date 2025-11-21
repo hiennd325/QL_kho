@@ -38,8 +38,8 @@ const getTransfers = async (limit = 10) => {
                               fw.name as from_warehouse_name, tw.name as to_warehouse_name,
                               p.name as product_name, u.username as user_name
                        FROM transfers t
-                       JOIN warehouses fw ON t.from_warehouse_id = fw.id
-                       JOIN warehouses tw ON t.to_warehouse_id = tw.id
+                       JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
+                       JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
                        JOIN products p ON t.product_id = p.id
                        JOIN users u ON t.user_id = u.id
                        ORDER BY t.created_at DESC
@@ -61,8 +61,8 @@ const getTransferById = async (id) => {
         const query = `SELECT t.*, fw.name as from_warehouse_name, tw.name as to_warehouse_name,
                               p.name as product_name, u.username as user_name
                        FROM transfers t
-                       JOIN warehouses fw ON t.from_warehouse_id = fw.id
-                       JOIN warehouses tw ON t.to_warehouse_id = tw.id
+                       JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
+                       JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
                        JOIN products p ON t.product_id = p.id
                        JOIN users u ON t.user_id = u.id
                        WHERE t.id = ?`;
@@ -110,12 +110,12 @@ const updateTransferStatus = async (id, status) => {
 };
 
 // Helper function to update inventory for a transfer
-const updateInventoryForTransfer = async (productId, warehouseId, quantityChange) => {
+const updateInventoryForTransfer = async (productId, warehouseCustomId, quantityChange) => {
     try {
         // Check if inventory record exists
         const inventoryRecord = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM inventory WHERE product_id = ? AND warehouse_id = ?', 
-                [productId, warehouseId], (err, row) => {
+                [productId, warehouseCustomId], (err, row) => {
                     if (err) reject(err);
                     else resolve(row);
                 });
@@ -130,7 +130,7 @@ const updateInventoryForTransfer = async (productId, warehouseId, quantityChange
             
             await new Promise((resolve, reject) => {
                 db.run('UPDATE inventory SET quantity = ? WHERE product_id = ? AND warehouse_id = ?', 
-                    [newQuantity, productId, warehouseId], (err) => {
+                    [newQuantity, productId, warehouseCustomId], (err) => {
                         if (err) reject(err);
                         else resolve();
                     });
@@ -143,7 +143,7 @@ const updateInventoryForTransfer = async (productId, warehouseId, quantityChange
             
             await new Promise((resolve, reject) => {
                 db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', 
-                    [productId, warehouseId, quantityChange], (err) => {
+                    [productId, warehouseCustomId, quantityChange], (err) => {
                         if (err) reject(err);
                         else resolve();
                     });
@@ -153,7 +153,7 @@ const updateInventoryForTransfer = async (productId, warehouseId, quantityChange
         // Add transaction record
         await new Promise((resolve, reject) => {
             db.run('INSERT INTO inventory_transactions (product_id, warehouse_id, quantity, type) VALUES (?, ?, ?, ?)',
-                [productId, warehouseId, Math.abs(quantityChange), quantityChange > 0 ? 'nhap' : 'xuat'],
+                [productId, warehouseCustomId, Math.abs(quantityChange), quantityChange > 0 ? 'nhap' : 'xuat'],
                 (err) => {
                     if (err) reject(err);
                     else resolve();
