@@ -38,6 +38,7 @@ class Auth {
             const payload = JSON.parse(atob(token.split('.')[1]));
             return {
                 id: payload.id,
+                username: payload.username,
                 role: payload.role
             };
         } catch (e) {

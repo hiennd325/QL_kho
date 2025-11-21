@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const renderUsers = (users) => {
         tableBody.innerHTML = '';
         if (users.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Không có người dùng nào</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4">Không có người dùng nào</td></tr>`;
             return;
         }
 
@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.username}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.username}@example.com</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.role}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hoạt động</span>

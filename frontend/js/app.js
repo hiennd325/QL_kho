@@ -148,6 +148,63 @@ const App = {
                     }
                 }, App.config.debounceDelay));
             });
+        },
+
+        initLogoutModal: () => {
+            const logoutModal = document.getElementById('logoutModal');
+            if (!logoutModal) return;
+
+            const cancelLogout = document.getElementById('cancelLogout');
+            const confirmLogout = document.getElementById('confirmLogout');
+            const logoutButtons = document.querySelectorAll('#logoutButton, #logoutBtn');
+
+            function showLogoutModal() {
+                logoutModal.classList.remove('hidden');
+            }
+
+            function hideLogoutModal() {
+                logoutModal.classList.add('hidden');
+            }
+
+            logoutButtons.forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showLogoutModal();
+                    });
+                }
+            });
+
+            if (cancelLogout) {
+                cancelLogout.addEventListener('click', hideLogoutModal);
+            }
+
+            if (confirmLogout) {
+                confirmLogout.addEventListener('click', () => {
+                    hideLogoutModal();
+                    Auth.logout();
+                });
+            }
+
+            logoutModal.addEventListener('click', (e) => {
+                if (e.target === logoutModal) {
+                    hideLogoutModal();
+                }
+            });
+        },
+
+        updateUserInfo: () => {
+            const user = Auth.getUserInfo();
+            if (user) {
+                const userNameEl = document.getElementById('user-name');
+                const userRoleEl = document.getElementById('user-role');
+                if (userNameEl) {
+                    userNameEl.textContent = user.username || 'N/A';
+                }
+                if (userRoleEl) {
+                    userRoleEl.textContent = user.role || 'N/A';
+                }
+            }
         }
     },
 
@@ -188,6 +245,8 @@ const App = {
         // Initialize UI enhancements
         App.ui.initResponsiveSidebar();
         App.ui.initGlobalSearch();
+        App.ui.initLogoutModal();
+        App.ui.updateUserInfo();
 
         // Add loading states to forms
         const forms = document.querySelectorAll('form');

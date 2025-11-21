@@ -6,68 +6,11 @@
     <title>Kiểm Kê & Báo Cáo - SMART STOCK</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" defer></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="js/auth.js" defer></script>
     <link rel="stylesheet" href="css/styles.css">
-    <script>
-        // Check authentication when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            Auth.redirectIfNotAuthenticated();
-
-            // Logout modal functionality
-            const logoutModal = document.getElementById('logoutModal');
-            const cancelLogout = document.getElementById('cancelLogout');
-            const confirmLogout = document.getElementById('confirmLogout');
-
-            function showLogoutModal() {
-                logoutModal.classList.remove('hidden');
-            }
-
-            function hideLogoutModal() {
-                logoutModal.classList.add('hidden');
-            }
-
-            // Add logout button event listeners
-            const logoutButton = document.getElementById('logoutButton');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            // Modal button event listeners
-            if (cancelLogout) {
-                cancelLogout.addEventListener('click', hideLogoutModal);
-            }
-
-            if (confirmLogout) {
-                confirmLogout.addEventListener('click', () => {
-                    hideLogoutModal();
-                    Auth.logout();
-                });
-            }
-
-            // Close modal when clicking outside
-            logoutModal.addEventListener('click', (e) => {
-                if (e.target === logoutModal) {
-                    hideLogoutModal();
-                }
-            });
-        });
-    </script>
 </head>
 <body class="bg-gray-100 min-h-screen flex">
     <!-- Sidebar Navigation -->
@@ -106,8 +49,8 @@
             <div class="flex items-center">
                 <img src="http://static.photos/people/200x200/1" class="h-10 w-10 rounded-full" alt="User">
                 <div class="ml-3">
-                    <p class="text-sm font-medium">Nguyễn Văn A</p>
-                    <p class="text-xs text-blue-300">Quản lý kho</p>
+                    <p id="user-name" class="text-sm font-medium">Nguyễn Văn A</p>
+                    <p id="user-role" class="text-xs text-blue-300">Quản lý kho</p>
                 </div>
             </div>
 
