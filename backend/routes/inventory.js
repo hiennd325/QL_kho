@@ -137,71 +137,56 @@ router.post('/audits', async (req, res) => {
     }
 });
 
-// Export transactions to CSV
-router.get('/transactions/export', async (req, res) => {
+// GET a single inventory audit by ID
+router.get('/audits/:id', async (req, res) => {
     try {
-        const { type, warehouseId, startDate, endDate } = req.query;
-
-        // Build WHERE clause dynamically
-        let whereClause = '';
-        const whereParams = [];
-
-        if (type || warehouseId || startDate || endDate) {
-            const conditions = [];
-
-            if (type) {
-                conditions.push('it.type = ?');
-                whereParams.push(type);
-            }
-
-            if (warehouseId) {
-                conditions.push('it.warehouse_id = ?');
-                whereParams.push(warehouseId);
-            }
-
-            if (startDate) {
-                conditions.push('DATE(it.transaction_date) >= ?');
-                whereParams.push(startDate);
-            }
-
-            if (endDate) {
-                conditions.push('DATE(it.transaction_date) <= ?');
-                whereParams.push(endDate);
-            }
-
-            whereClause = ' WHERE ' + conditions.join(' AND ');
-        }
-
-        const transactions = await new Promise((resolve, reject) => {
-            let sql = `SELECT it.id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date,
-                               p.name as product_name, w.name as warehouse_name
-                        FROM inventory_transactions it
-                        JOIN products p ON it.product_id = p.id
-                        JOIN warehouses w ON it.warehouse_id = w.id`;
-            if (whereClause) {
-                sql += whereClause;
-            }
-            sql += ' ORDER BY it.transaction_date DESC';
-
-            db.all(sql, whereParams, (err, rows) => {
+        const { id } = req.params;
+        const audit = await new Promise((resolve, reject) => {
+            const query = `
+                SELECT a.id, a.code, a.date, a.discrepancy, a.status, a.notes,
+                       w.name as warehouse_name, u.username as created_by_username
+                FROM audits a
+                JOIN warehouses w ON a.warehouse_id = w.id
+                JOIN users u ON a.created_by_user_id = u.id
+                WHERE a.id = ?
+            `;
+            db.get(query, [id], (err, row) => {
                 if (err) reject(err);
-                else resolve(rows);
+                else resolve(row);
             });
         });
 
-        // Convert to CSV
-        let csv = 'ID,Ngày giao dịch,Sản phẩm,Số lượng,Giá trị,Kho,Loại\n';
-        transactions.forEach(t => {
-            const formattedDate = new Date(t.transaction_date).toLocaleDateString('vi-VN');
-            const typeLabel = t.type === 'nhap' ? 'Nhập kho' : 'Xuất kho';
-            csv += `${t.id},"${formattedDate}","${t.product_name}",${t.quantity},0,"${t.warehouse_name}","${typeLabel}"\n`;
+        if (!audit) {
+            return res.status(404).json({ error: 'Audit not found' });
+        }
+
+        res.json(audit);
+    } catch (err) {
+        console.error('Error getting inventory audit:', err);
+        res.status(500).json({ error: 'Failed to get inventory audit' });
+    }
+});
+
+// DELETE inventory audit
+router.delete('/audits/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await new Promise((resolve, reject) => {
+            db.run('DELETE FROM audits WHERE id = ?', [id], function(err) {
+                if (err) reject(err);
+                // this.changes returns the number of rows affected.
+                else resolve(this.changes);
+            });
         });
 
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename="transactions.csv"');
-        res.send(csv);
+        if (result === 0) {
+            return res.status(404).json({ error: 'Audit not found' });
+        }
+
+        res.json({ message: 'Audit deleted successfully' });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to export transactions' });
+        console.error('Error deleting inventory audit:', err);
+        res.status(500).json({ error: 'Failed to delete inventory audit' });
     }
 });
 

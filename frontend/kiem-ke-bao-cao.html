@@ -127,7 +127,7 @@
                         <input type="text" placeholder="Tìm kiếm phiếu..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
                     </div>
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                    <button id="createInventoryCountBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
                         <i data-feather="plus" class="mr-2 h-4 w-4"></i> Tạo phiếu kiểm kê
                     </button>
                     <button id="logoutBtn" class="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600" title="Đăng xuất">
@@ -220,19 +220,8 @@
                         <div class="text-sm text-gray-700">
                             Hiển thị <span class="font-medium">1</span> đến <span class="font-medium">2</span> của <span class="font-medium">15</span> kết quả
                         </div>
-                        <div class="flex space-x-2">
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                Trước
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                                1
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                2
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                Sau
-                            </button>
+                        <div id="pagination-container" class="flex space-x-2">
+                            <!-- Pagination will be dynamically generated here -->
                         </div>
                     </div>
                 </div>
@@ -326,6 +315,42 @@
         </div>
     </div>
 
+    <!-- View Audit Modal -->
+    <div id="viewAuditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Chi tiết phiếu kiểm kê</h3>
+                <button id="closeViewAuditModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4" id="viewAuditModalBody">
+                <!-- Audit details will be rendered here -->
+            </div>
+            <div class="bg-gray-50 px-6 py-3 flex justify-end">
+                 <button type="button" id="closeViewAuditModalBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Product Modal -->
+    <div id="viewProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Chi tiết sản phẩm</h3>
+                <button id="closeViewProductModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4" id="viewProductModalBody">
+                <!-- Product details will be rendered here -->
+            </div>
+            <div class="bg-gray-50 px-6 py-3 flex justify-end">
+                 <button type="button" id="closeViewProductModalBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="bg-white rounded-lg shadow-xl w-96 max-w-[90vw] mx-4">
@@ -348,5 +373,6 @@
     </div>
 
     <script src="js/app.js"></script>
+    <script src="js/kiem-ke-bao-cao.js" defer></script>
 </body>
 </html>

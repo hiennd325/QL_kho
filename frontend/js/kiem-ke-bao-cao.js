@@ -11,11 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Modal elements
     const inventoryCountModal = document.getElementById('inventoryCountModal');
     const inventoryCountForm = document.getElementById('inventoryCountForm');
-    const closeInventoryCountModal = document.getElementById('closeInventoryCountModal');
+        const closeInventoryCountModalEl = document.getElementById('closeInventoryCountModal');
     const cancelInventoryCountBtn = document.getElementById('cancelInventoryCountBtn');
 
     // Button
-    const createInventoryCountBtn = document.querySelector('.bg-blue-600.text-white.px-4.py-2.rounded-lg.hover\\:bg-blue-700.flex.items-center');
+    const createInventoryCountBtn = document.getElementById('createInventoryCountBtn');
 
     const setActiveTab = (tabName) => {
         currentTab = tabName;
@@ -42,7 +42,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    async function loadAudits() {
+    let currentPage = 1;
+
+    async function loadAudits(page = 1) {
+        currentPage = page;
         try {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
@@ -55,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const statusFilter = document.getElementById('statusFilter').value;
 
             // Build query parameters
-            const queryParams = new URLSearchParams();
+            const queryParams = new URLSearchParams({ page, limit: 10 });
             if (startDate) queryParams.append('startDate', startDate);
             if (endDate) queryParams.append('endDate', endDate);
             if (warehouseFilter && warehouseFilter !== 'Tất cả kho') {
@@ -72,18 +75,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const response = await fetch(`${baseUrl}/reports/audits?${queryParams.toString()}`, { headers });
             if (!response.ok) throw new Error('Failed to fetch audits');
-            const audits = await response.json();
+            const { audits, totalPages } = await response.json();
 
             const tableBody = document.querySelector('#kiem-ke-tab tbody');
             tableBody.innerHTML = '';
             audits.forEach(audit => {
                 const row = document.createElement('tr');
                 row.className = 'table-row hover:bg-gray-50';
+                row.setAttribute('data-id', audit.id);
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${audit.code}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(audit.date).toLocaleDateString('vi-VN')}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${audit.warehouse}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${audit.createdBy}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${audit.warehouse_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${audit.created_by_username}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-${audit.discrepancy >= 0 ? 'green' : 'red'}-600">
                         ${audit.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(audit.discrepancy))} ₫
                     </td>
@@ -94,18 +98,60 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button class="text-blue-600 hover:text-blue-800"><i data-feather="eye" class="h-4 w-4"></i></button>
-                            <button class="text-green-600 hover:text-green-800"><i data-feather="download" class="h-4 w-4"></i></button>
-                            <button class="text-red-600 hover:text-red-800"><i data-feather="trash-2" class="h-4 w-4"></i></button>
+                            <button class="text-blue-600 hover:text-blue-800 view-audit" title="Xem chi tiết"><i data-feather="eye" class="h-4 w-4"></i></button>
+                            <button class="text-green-600 hover:text-green-800 download-audit" title="Tải xuống PDF"><i data-feather="download" class="h-4 w-4"></i></button>
+                            <button class="text-red-600 hover:text-red-800 delete-audit" title="Xóa phiếu"><i data-feather="trash-2" class="h-4 w-4"></i></button>
                         </div>
                     </td>
                 `;
                 tableBody.appendChild(row);
             });
             feather.replace();
+            renderPagination(totalPages, currentPage);
         } catch (error) {
             console.error('Error loading audits:', error);
         }
+    }
+
+    function renderPagination(totalPages, currentPage) {
+        const paginationContainer = document.getElementById('pagination-container');
+        if (!paginationContainer) return;
+        paginationContainer.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        const prevButton = document.createElement('button');
+        prevButton.innerHTML = 'Trước';
+        prevButton.className = 'px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50';
+        if (currentPage === 1) {
+            prevButton.disabled = true;
+            prevButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        prevButton.addEventListener('click', () => loadAudits(currentPage - 1));
+        paginationContainer.appendChild(prevButton);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.innerHTML = i;
+            pageButton.className = 'px-3 py-1 border rounded-md text-sm font-medium';
+            if (i === currentPage) {
+                pageButton.classList.add('text-white', 'bg-blue-600', 'hover:bg-blue-700');
+            } else {
+                pageButton.classList.add('text-gray-700', 'bg-white', 'hover:bg-gray-50');
+            }
+            pageButton.addEventListener('click', () => loadAudits(i));
+            paginationContainer.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.innerHTML = 'Sau';
+        nextButton.className = 'px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50';
+        if (currentPage === totalPages) {
+            nextButton.disabled = true;
+            nextButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        nextButton.addEventListener('click', () => loadAudits(currentPage + 1));
+        paginationContainer.appendChild(nextButton);
     }
 
     async function loadInventoryReport() {
@@ -129,20 +175,77 @@ document.addEventListener('DOMContentLoaded', async () => {
             tableBody.innerHTML = '';
             inventory.forEach(item => {
                 const row = document.createElement('tr');
-                row.className = 'table-row hover:bg-gray-50';
+                row.className = 'table-row hover:bg-gray-100 cursor-pointer view-product';
+                row.setAttribute('data-product-id', item.product_id);
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.product_id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.quantity}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Intl.NumberFormat('vi-VN').format(item.price)} ₫</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(item.quantity * item.price)} ₫</td>
                 `;
                 tableBody.appendChild(row);
             });
         } catch (error) {
             console.error('Error loading inventory report:', error);
         }
+    }
+
+    // View Product Modal
+    const viewProductModal = document.getElementById('viewProductModal');
+    const closeViewProductModal = document.getElementById('closeViewProductModal');
+    const closeViewProductModalBtn = document.getElementById('closeViewProductModalBtn');
+    const inventoryReportTableBody = document.querySelector('#bao-cao-ton-kho-tab tbody');
+
+    async function openViewProductModal(productId) {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/products/${productId}`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch product details');
+            
+            const product = await response.json();
+
+            const modalBody = document.getElementById('viewProductModalBody');
+            modalBody.innerHTML = `
+                <p><strong>Tên sản phẩm:</strong> ${product.name}</p>
+                <p><strong>Mã SP:</strong> ${product.id}</p>
+                <p><strong>Mô tả:</strong> ${product.description || ''}</p>
+                <p><strong>Giá:</strong> ${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</p>
+                <p><strong>Danh mục:</strong> ${product.category || ''}</p>
+                <p><strong>Thương hiệu:</strong> ${product.brand || ''}</p>
+                <p><strong>Nhà cung cấp:</strong> ${product.supplier_name || ''}</p>
+                <p><strong>Tồn kho:</strong> ${product.quantity || 0}</p>
+            `;
+
+            viewProductModal.classList.remove('hidden');
+
+        } catch (error) {
+            console.error('Error loading product details:', error);
+            alert('Lỗi tải chi tiết sản phẩm: ' + error.message);
+        }
+    }
+
+    if (viewProductModal) {
+        inventoryReportTableBody.addEventListener('click', (e) => {
+            const row = e.target.closest('.view-product');
+            if (row) {
+                const productId = row.getAttribute('data-product-id');
+                openViewProductModal(productId);
+            }
+        });
+
+        const closeModal = () => viewProductModal.classList.add('hidden');
+        closeViewProductModal.addEventListener('click', closeModal);
+        closeViewProductModalBtn.addEventListener('click', closeModal);
+        viewProductModal.addEventListener('click', (e) => {
+            if (e.target === viewProductModal) {
+                closeModal();
+            }
+        });
     }
 
     async function loadImportExportChart() {
@@ -272,6 +375,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             closeInventoryCountModal();
+
+            // Reset filters to ensure the new audit is visible
+            const startDateInput = document.querySelector('input[type="date"]:first-of-type');
+            if (startDateInput) startDateInput.value = '';
+            const endDateInput = document.querySelector('input[type="date"]:nth-of-type(2)');
+            if (endDateInput) endDateInput.value = '';
+            const warehouseFilter = document.getElementById('warehouseFilter');
+            if (warehouseFilter) warehouseFilter.value = 'Tất cả kho';
+            const statusFilter = document.getElementById('statusFilter');
+            if (statusFilter) statusFilter.value = 'Tất cả trạng thái';
+
             loadAudits();
             alert('Tạo phiếu kiểm kê thành công');
 
@@ -286,8 +400,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         createInventoryCountBtn.addEventListener('click', openInventoryCountModal);
     }
 
-    if (closeInventoryCountModal) {
-        closeInventoryCountModal.addEventListener('click', closeInventoryCountModal);
+        if (closeInventoryCountModalEl) {
+        closeInventoryCountModalEl.addEventListener('click', closeInventoryCountModal);
     }
 
     if (cancelInventoryCountBtn) {
@@ -298,6 +412,124 @@ document.addEventListener('DOMContentLoaded', async () => {
         inventoryCountModal.addEventListener('click', (e) => {
             if (e.target === inventoryCountModal) {
                 closeInventoryCountModal();
+            }
+        });
+    }
+
+    const tableBody = document.querySelector('#kiem-ke-tab tbody');
+    if (tableBody) {
+        tableBody.addEventListener('click', async (e) => {
+            const deleteButton = e.target.closest('.delete-audit');
+            if (deleteButton) {
+                const row = deleteButton.closest('tr');
+                const auditId = row.getAttribute('data-id');
+                if (confirm('Bạn có chắc chắn muốn xóa phiếu kiểm kê này?')) {
+                    try {
+                        const baseUrl = `http://localhost:3000`;
+                        const token = localStorage.getItem('token');
+                        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+                        const response = await fetch(`${baseUrl}/inventory/audits/${auditId}`, {
+                            method: 'DELETE',
+                            headers
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Failed to delete inventory count');
+                        }
+
+                        row.remove();
+                        alert('Xóa phiếu kiểm kê thành công');
+                    } catch (error) {
+                        console.error('Error deleting inventory count:', error);
+                        alert('Lỗi xóa phiếu kiểm kê: ' + error.message);
+                    }
+                }
+            }
+        });
+    }
+
+    // View Audit Modal
+    const viewAuditModal = document.getElementById('viewAuditModal');
+    const closeViewAuditModal = document.getElementById('closeViewAuditModal');
+    const closeViewAuditModalBtn = document.getElementById('closeViewAuditModalBtn');
+
+    async function openViewAuditModal(auditId) {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const response = await fetch(`${baseUrl}/inventory/audits/${auditId}`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch audit details');
+            
+            const audit = await response.json();
+
+            const modalBody = document.getElementById('viewAuditModalBody');
+            modalBody.innerHTML = `
+                <p><strong>Mã phiếu:</strong> ${audit.code}</p>
+                <p><strong>Ngày kiểm:</strong> ${new Date(audit.date).toLocaleDateString('vi-VN')}</p>
+                <p><strong>Kho:</strong> ${audit.warehouse_name}</p>
+                <p><strong>Người tạo:</strong> ${audit.created_by_username}</p>
+                <p><strong>Trạng thái:</strong> ${audit.status}</p>
+                <p><strong>Chênh lệch:</strong> ${audit.discrepancy}</p>
+                <p><strong>Ghi chú:</strong> ${audit.notes || ''}</p>
+            `;
+
+            viewAuditModal.classList.remove('hidden');
+
+        } catch (error) {
+            console.error('Error loading audit details:', error);
+            alert('Lỗi tải chi tiết phiếu kiểm kê: ' + error.message);
+        }
+    }
+
+    if (viewAuditModal) {
+        tableBody.addEventListener('click', async (e) => {
+            const viewButton = e.target.closest('.view-audit');
+            const downloadButton = e.target.closest('.download-audit');
+
+            if (viewButton) {
+                const row = viewButton.closest('tr');
+                const auditId = row.getAttribute('data-id');
+                openViewAuditModal(auditId);
+            }
+
+            if (downloadButton) {
+                const row = downloadButton.closest('tr');
+                const auditId = row.getAttribute('data-id');
+                try {
+                    const baseUrl = `http://localhost:3000`;
+                    const token = localStorage.getItem('token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+                    const response = await fetch(`${baseUrl}/reports/audits/${auditId}/export`, { headers });
+                    if (!response.ok) throw new Error('Failed to download audit report');
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `phieu-kiem-ke-${auditId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                } catch (error) {
+                    console.error('Error downloading audit report:', error);
+                    alert('Lỗi tải báo cáo kiểm kê: ' + error.message);
+                }
+            }
+        });
+
+        const closeModal = () => viewAuditModal.classList.add('hidden');
+        closeViewAuditModal.addEventListener('click', closeModal);
+        closeViewAuditModalBtn.addEventListener('click', closeModal);
+        viewAuditModal.addEventListener('click', (e) => {
+            if (e.target === viewAuditModal) {
+                closeModal();
             }
         });
     }

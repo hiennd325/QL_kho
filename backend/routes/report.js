@@ -14,10 +14,10 @@ router.get('/inventory', async (req, res) => {
     try {
         const inventory = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT products.id as product_id, products.name, products.description, SUM(inventory.quantity) as quantity
+                SELECT products.id as product_id, products.name, products.description, SUM(inventory.quantity) as quantity, products.price
                 FROM inventory
                 JOIN products ON inventory.product_id = products.id
-                GROUP BY products.id, products.name, products.description
+                GROUP BY products.id, products.name, products.description, products.price
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
@@ -100,7 +100,7 @@ router.get('/quick-stats', async (req, res) => {
 
 router.get('/audits', async (req, res) => {
     try {
-        const { startDate, endDate, warehouse, status } = req.query;
+        const { startDate, endDate, warehouse, status, page = 1, limit = 10 } = req.query;
         let query = `
             SELECT
                 a.id, a.code, a.date, a.discrepancy, a.status, a.notes,
@@ -109,28 +109,34 @@ router.get('/audits', async (req, res) => {
             FROM audits a
             JOIN warehouses w ON a.warehouse_id = w.id
             JOIN users u ON a.created_by_user_id = u.id
-            WHERE 1=1
         `;
+        let countQuery = `SELECT COUNT(*) as count FROM audits a JOIN warehouses w ON a.warehouse_id = w.id JOIN users u ON a.created_by_user_id = u.id`;
+
+        let whereClause = ' WHERE 1=1 ';
         const params = [];
 
         if (startDate) {
-            query += ' AND date(a.date) >= date(?)';
+            whereClause += ' AND date(a.date) >= date(?)';
             params.push(startDate);
         }
         if (endDate) {
-            query += ' AND date(a.date) <= date(?)';
+            whereClause += ' AND date(a.date) <= date(?)';
             params.push(endDate);
         }
         if (warehouse && warehouse !== 'Tất cả kho') {
-            query += ' AND w.name = ?';
+            whereClause += ' AND w.name = ?';
             params.push(warehouse);
         }
         if (status && status !== 'Tất cả trạng thái') {
-            query += ' AND a.status = ?';
+            whereClause += ' AND a.status = ?';
             params.push(status);
         }
 
-        query += ' ORDER BY a.date DESC';
+        countQuery += whereClause;
+        query += whereClause;
+
+        query += ' ORDER BY a.date DESC LIMIT ? OFFSET ?';
+        params.push(limit, (page - 1) * limit);
 
         const audits = await new Promise((resolve, reject) => {
             db.all(query, params, (err, rows) => {
@@ -138,8 +144,22 @@ router.get('/audits', async (req, res) => {
                 else resolve(rows);
             });
         });
-        res.json(audits);
+
+        const total = await new Promise((resolve, reject) => {
+            // Remove limit and offset from params for count
+            const countParams = params.slice(0, -2);
+            db.get(countQuery, countParams, (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count);
+            });
+        });
+
+        res.json({
+            audits,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
+        console.error('Failed to get audits', err)
         res.status(500).json({ error: 'Failed to get audits' });
     }
 });
@@ -236,5 +256,175 @@ router.get('/generate', async (req, res) => {
         res.status(500).json({ error: 'Failed to generate report' });
     }
 });
+
+// Export single audit to CSV
+router.get('/audits/:id/export', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const audit = await new Promise((resolve, reject) => {
+            const query = `
+                SELECT a.id, a.code, a.date, a.discrepancy, a.status, w.name as warehouse_name, u.username as created_by_username, a.notes
+                FROM audits a
+                JOIN warehouses w ON a.warehouse_id = w.id
+                JOIN users u ON a.created_by_user_id = u.id
+                WHERE a.id = ?
+            `;
+            db.get(query, [id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!audit) {
+            return res.status(404).json({ error: 'Audit not found' });
+        }
+
+        let csv = 'Mã phiếu,Ngày kiểm,Kho,Người tạo,Chênh lệch,Trạng thái,Ghi chú\n';
+        const formattedDate = new Date(audit.date).toLocaleDateString('vi-VN');
+        csv += `"${audit.code}","${formattedDate}","${audit.warehouse_name}","${audit.created_by_username}",${audit.discrepancy},"${audit.status}","${audit.notes || ''}"\n`;
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="audit_${audit.code}.csv"`);
+        res.send(csv);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to export audit' });
+    }
+});
+
+// Export audits to CSV
+router.get('/audits/export', async (req, res) => {
+    try {
+        const { startDate, endDate, warehouse, status } = req.query;
+        let query = `
+            SELECT a.id, a.code, a.date, a.discrepancy, a.status, w.name as warehouse_name, u.username as created_by_username
+            FROM audits a
+            JOIN warehouses w ON a.warehouse_id = w.id
+            JOIN users u ON a.created_by_user_id = u.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (startDate) {
+            query += ' AND date(a.date) >= date(?)';
+            params.push(startDate);
+        }
+        if (endDate) {
+            query += ' AND date(a.date) <= date(?)';
+            params.push(endDate);
+        }
+        if (warehouse && warehouse !== 'Tất cả kho') {
+            query += ' AND w.name = ?';
+            params.push(warehouse);
+        }
+        if (status && status !== 'Tất cả trạng thái') {
+            query += ' AND a.status = ?';
+            params.push(status);
+        }
+
+        query += ' ORDER BY a.date DESC';
+
+        const audits = await new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        let csv = 'ID,Mã phiếu,Ngày kiểm,Kho,Người tạo,Chênh lệch,Trạng thái\n';
+        audits.forEach(a => {
+            const formattedDate = new Date(a.date).toLocaleDateString('vi-VN');
+            csv += `${a.id},"${a.code}","${formattedDate}","${a.warehouse_name}","${a.created_by_username}",${a.discrepancy},"${a.status}"\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="audits.csv"');
+        res.send(csv);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to export audits' });
+    }
+});
+
+// Export inventory report to CSV
+router.get('/inventory/export', async (req, res) => {
+    try {
+        const inventory = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT p.id as product_id, p.name, p.description, SUM(i.quantity) as quantity, p.price, (p.price * SUM(i.quantity)) as total_value
+                FROM inventory i
+                JOIN products p ON i.product_id = p.id
+                GROUP BY p.id, p.name, p.description, p.price
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        let csv = 'Mã SP,Tên sản phẩm,Số lượng,Đơn giá,Thành tiền\n';
+        inventory.forEach(item => {
+            csv += `"${item.product_id}","${item.name}",${item.quantity},${item.price},${item.total_value}\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="inventory_report.csv"');
+        res.send(csv);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to export inventory report' });
+    }
+});
+
+// Export transactions to CSV
+router.get('/transactions/export', async (req, res) => {
+    try {
+        const { type, warehouseId, startDate, endDate } = req.query;
+        let whereClause = ' WHERE 1=1 ';
+        const whereParams = [];
+
+        if (type) {
+            whereClause += ' AND it.type = ? ';
+            whereParams.push(type);
+        }
+        if (warehouseId) {
+            whereClause += ' AND it.warehouse_id = ? ';
+            whereParams.push(warehouseId);
+        }
+        if (startDate) {
+            whereClause += ' AND DATE(it.transaction_date) >= ? ';
+            whereParams.push(startDate);
+        }
+        if (endDate) {
+            whereClause += ' AND DATE(it.transaction_date) <= ? ';
+            whereParams.push(endDate);
+        }
+
+        const transactions = await new Promise((resolve, reject) => {
+            const sql = `
+                SELECT it.id, it.transaction_date, p.name as product_name, it.quantity, w.name as warehouse_name, it.type
+                FROM inventory_transactions it
+                JOIN products p ON it.product_id = p.id
+                JOIN warehouses w ON it.warehouse_id = w.id
+                ${whereClause}
+                ORDER BY it.transaction_date DESC
+            `;
+            db.all(sql, whereParams, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        let csv = 'ID,Ngày giao dịch,Sản phẩm,Số lượng,Kho,Loại\n';
+        transactions.forEach(t => {
+            const formattedDate = new Date(t.transaction_date).toLocaleDateString('vi-VN');
+            const typeLabel = t.type === 'nhap' ? 'Nhập kho' : 'Xuất kho';
+            csv += `${t.id},"${formattedDate}","${t.product_name}",${t.quantity},"${t.warehouse_name}","${typeLabel}"\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="transactions.csv"');
+        res.send(csv);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to export transactions' });
+    }
+});
+
 
 module.exports = router;
