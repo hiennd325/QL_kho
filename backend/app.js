@@ -124,6 +124,9 @@ app.use('/transfers', authenticate, transferRoutes); // Routes cho điều chuy�
 const supplierRoutes = require('./routes/supplier');
 app.use('/suppliers', authenticate, supplierRoutes); // Routes cho quản lý nhà cung cấp
 
+const ordersRoutes = require('./routes/orders');
+app.use('/orders', authenticate, ordersRoutes); // Routes cho đơn hàng (count endpoint)
+
 
 
 const notificationRoutes = require('./routes/notifications');

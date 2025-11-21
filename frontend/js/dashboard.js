@@ -594,28 +594,27 @@ async function fetchDashboardData() {
         // Use absolute URL with port 3000 for backend API
         const baseUrl = `http://localhost:3000`;
         
-        const [alertsRes, statsRes, activitiesRes, productsRes, warehousesRes, usersRes, suppliersRes, ordersRes] = await Promise.all([
+        const [alertsRes, statsRes, activitiesRes, productsRes, warehousesRes, usersRes, suppliersRes] = await Promise.all([
             fetch(`${baseUrl}/dashboard/alerts`, { headers }),
             fetch(`${baseUrl}/dashboard/stats`, { headers }),
             fetch(`${baseUrl}/dashboard/recent-activities`, { headers }),
             fetch(`${baseUrl}/products/count`, { headers }),
             fetch(`${baseUrl}/warehouses/count`, { headers }),
             fetch(`${baseUrl}/users/count`, { headers }),
-            fetch(`${baseUrl}/suppliers/count`, { headers }),
-            fetch(`${baseUrl}/orders/count`, { headers })
+            fetch(`${baseUrl}/suppliers/count`, { headers })
         ]);
 
         // Check for unauthorized responses (401)
         if (alertsRes.status === 401 || statsRes.status === 401 || activitiesRes.status === 401 ||
             productsRes.status === 401 || warehousesRes.status === 401 || usersRes.status === 401 ||
-            suppliersRes.status === 401 || ordersRes.status === 401) {
+            suppliersRes.status === 401) {
             window.location.href = '/login.html';
             return;
         }
 
         if (!alertsRes.ok || !statsRes.ok || !activitiesRes.ok ||
             !productsRes.ok || !warehousesRes.ok || !usersRes.ok ||
-            !suppliersRes.ok || !ordersRes.ok) {
+            !suppliersRes.ok) {
             throw new Error('Failed to fetch dashboard data');
         }
 
@@ -626,7 +625,6 @@ async function fetchDashboardData() {
         const warehousesCount = await warehousesRes.json();
         const usersCount = await usersRes.json();
         const suppliersCount = await suppliersRes.json();
-        const ordersCount = await ordersRes.json();
         return {
             alerts: alertsData,
             stats: statsData,
@@ -635,8 +633,7 @@ async function fetchDashboardData() {
                 products: productsCount.count || 0,
                 warehouses: warehousesCount.count || 0,
                 users: usersCount.count || 0,
-                suppliers: suppliersCount.count || 0,
-                orders: ordersCount.count || 0
+                suppliers: suppliersCount.count || 0
             }
         };
     } catch (error) {
@@ -661,7 +658,19 @@ function updateStats(stats) {
     statsContainer.children[0].querySelector('.text-2xl').textContent = stats.totalProducts.toLocaleString('vi-VN');
     statsContainer.children[1].querySelector('.text-2xl').textContent = stats.monthlyImports.toLocaleString('vi-VN');
     statsContainer.children[2].querySelector('.text-2xl').textContent = stats.monthlyExports.toLocaleString('vi-VN');
-    statsContainer.children[3].querySelector('.text-2xl').textContent = `${(stats.totalValue / 1000000000).toFixed(1)}B VNĐ`;
+    
+    // Format total value with proper currency notation
+    let totalValueText;
+    if (stats.totalValue >= 1000000000) {
+        totalValueText = `${(stats.totalValue / 1000000000).toFixed(1)}B VNĐ`;
+    } else if (stats.totalValue >= 1000000) {
+        totalValueText = `${(stats.totalValue / 1000000).toFixed(1)}M VNĐ`;
+    } else if (stats.totalValue >= 1000) {
+        totalValueText = `${(stats.totalValue / 1000).toFixed(1)}K VNĐ`;
+    } else {
+        totalValueText = `${stats.totalValue.toLocaleString('vi-VN')} VNĐ`;
+    }
+    statsContainer.children[3].querySelector('.text-2xl').textContent = totalValueText;
 }
 
 function updateFunctionOverview(counts) {
@@ -708,17 +717,6 @@ function updateFunctionOverview(counts) {
     const suppliersNewEl = document.getElementById('suppliers-new');
     if (suppliersNewEl) {
         suppliersNewEl.textContent = '0 NCC mới';
-    }
-
-    // Update orders count and pending orders
-    const ordersCountEl = document.getElementById('orders-count');
-    if (ordersCountEl) {
-        ordersCountEl.textContent = counts.orders.toLocaleString('vi-VN');
-    }
-    
-    const ordersPendingEl = document.getElementById('orders-pending');
-    if (ordersPendingEl) {
-        ordersPendingEl.textContent = '0 đơn chờ xử lý';
     }
 
     // Update reports count and monthly reports

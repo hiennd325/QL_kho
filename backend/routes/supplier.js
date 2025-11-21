@@ -12,6 +12,16 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Count endpoint must come before '/:id' to avoid matching as an ID
+router.get('/count', async (req, res) => {
+    try {
+        const count = await supplierModel.getSuppliersCount();
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get suppliers count' });
+    }
+});
+
 // GET a single supplier by ID
 router.get('/:id', async (req, res) => {
     try {

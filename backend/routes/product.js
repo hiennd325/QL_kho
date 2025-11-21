@@ -22,6 +22,15 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: 'Failed to get products' });
     }
 });
+// Count route MUST be defined before '/:id' so 'count' isn't treated as an id
+router.get('/count', async (req, res) => {
+    try {
+        const count = await productModel.getProductsCount();
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get products count' });
+    }
+});
 
 // This route needs authentication in production
 router.get('/brands', async (req, res) => {
@@ -126,15 +135,6 @@ router.get('/count', async (req, res) => {
         res.status(500).json({ error: 'Failed to get products count' });
     }
 });
-
-// This route needs authentication in production
-router.get('/brands', async (req, res) => {
-    try {
-        const brands = await productModel.getUniqueBrands();
-        res.json(brands);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to get brands' });
-    }
-});
+// Note: '/brands' already defined above before '/:id'
 
 module.exports = router;

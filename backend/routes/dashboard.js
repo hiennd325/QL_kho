@@ -68,9 +68,10 @@ router.get('/stats', async (req, res) => {
         // Total value: sum of (price * quantity) for all products in inventory
         const totalValue = await new Promise((resolve, reject) => {
             db.get(`
-                SELECT SUM(products.price * inventory.quantity) as total
+                SELECT COALESCE(SUM(products.price * COALESCE(inventory.quantity, 0)), 0) as total
                 FROM products
-                JOIN inventory ON products.id = inventory.product_id
+                LEFT JOIN inventory ON products.id = inventory.product_id
+                WHERE products.price IS NOT NULL AND products.price > 0
             `, (err, row) => {
                 if (err) reject(err);
                 else resolve(row.total || 0);

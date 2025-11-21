@@ -18,6 +18,17 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Provide a simple count endpoint before '/:id' so '/count' doesn't match ':id'
+router.get('/count', async (req, res) => {
+    try {
+        const count = await userModel.getUsersCount();
+        res.json({ count });
+    } catch (err) {
+        console.error('Error getting users count:', err);
+        res.status(500).json({ error: 'Failed to get users count' });
+    }
+});
+
 /**
  * Lấy thông tin người dùng theo ID
  * GET /users/:id

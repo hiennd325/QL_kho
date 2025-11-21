@@ -12,6 +12,16 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Expose count before '/:id' so '/count' isn't treated as an id
+router.get('/count', async (req, res) => {
+    try {
+        const count = await warehouseModel.getWarehousesCount();
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to get warehouses count' });
+    }
+});
+
 // GET a single warehouse by ID
 router.get('/:id', async (req, res) => {
     try {
