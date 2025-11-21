@@ -56,8 +56,8 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const { name, description, price, category, brand, supplierId } = req.body;
-        const product = await productModel.createProduct(name, description, price, category, brand, supplierId);
+        const { name, description, price, category, brand, supplierId, customId } = req.body;
+        const product = await productModel.createProduct(name, description, price, category, brand, supplierId, customId);
         res.status(201).json(product);
     } catch (err) {
         res.status(500).json({ error: 'Failed to create product' });
@@ -66,8 +66,8 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const { name, description, price, category, brand, supplierId } = req.body;
-        const updates = { name, description, price, category, brand, supplierId };
+        const { name, description, price, category, brand, supplierId, customId } = req.body;
+        const updates = { name, description, price, category, brand, supplierId, customId };
         const updatedProduct = await productModel.updateProduct(req.params.id, updates);
         res.json(updatedProduct);
     } catch (err) {

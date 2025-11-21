@@ -10,10 +10,17 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
     }
 });
 
-const createProduct = async (name, description, price, category, brand, supplierId) => {
+const createProduct = async (name, description, price, category, brand, supplierId, customId) => {
     try {
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO products (name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?)', [name, description, price, category, brand, supplierId], function(err) {
+            const query = customId 
+                ? 'INSERT INTO products (name, description, price, category, brand, supplier_id, custom_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                : 'INSERT INTO products (name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?)';
+            const params = customId 
+                ? [name, description, price, category, brand, supplierId, customId]
+                : [name, description, price, category, brand, supplierId];
+                
+            db.run(query, params, function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -40,8 +47,8 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
             const conditions = [];
             
             if (search) {
-                conditions.push('name LIKE ?');
-                whereParams.push(`%${search}%`);
+                conditions.push('(name LIKE ? OR custom_id LIKE ?)');
+                whereParams.push(`%${search}%`, `%${search}%`);
             }
             
             if (category) {
@@ -79,14 +86,14 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
         
         // Get products with pagination
         const products = await new Promise((resolve, reject) => {
-            let sql = `SELECT p.id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name as supplier_name, COALESCE(SUM(i.quantity), 0) as quantity
+            let sql = `SELECT p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name as supplier_name, COALESCE(SUM(i.quantity), 0) as quantity
                        FROM products p
                        LEFT JOIN suppliers s ON p.supplier_id = s.id
                        LEFT JOIN inventory i ON p.id = i.product_id`;
             if (whereClause) {
                 sql += whereClause;
             }
-            sql += ' GROUP BY p.id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
+            sql += ' GROUP BY p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
             const params = [...whereParams, limit, offset];
 
             db.all(sql, params, (err, rows) => {
@@ -109,11 +116,11 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
 const getProductById = async (id) => {
     try {
         return await new Promise((resolve, reject) => {
-            db.get(`SELECT p.id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, COALESCE(SUM(i.quantity), 0) as quantity
+            db.get(`SELECT p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, COALESCE(SUM(i.quantity), 0) as quantity
                     FROM products p
                     LEFT JOIN inventory i ON p.id = i.product_id
                     WHERE p.id = ?
-                    GROUP BY p.id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at`, [id], (err, row) => {
+                    GROUP BY p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at`, [id], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -125,7 +132,7 @@ const getProductById = async (id) => {
 
 const updateProduct = async (id, updates) => {
     try {
-        const { name, description, price, category, brand, supplierId } = updates;
+        const { name, description, price, category, brand, supplierId, customId } = updates;
         const setClause = [];
         const values = [];
         if (name !== undefined) {
@@ -151,6 +158,10 @@ const updateProduct = async (id, updates) => {
         if (supplierId !== undefined) {
             setClause.push('supplier_id = ?');
             values.push(supplierId);
+        }
+        if (customId !== undefined) {
+            setClause.push('custom_id = ?');
+            values.push(customId);
         }
         if (setClause.length === 0) {
             throw new Error('No updates provided');

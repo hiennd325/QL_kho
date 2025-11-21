@@ -65,9 +65,9 @@ router.post('/login', async (req, res) => {
 
         // Tạo JWT token
         const token = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' } // Token hết hạn sau 24 giờ
+            { expiresIn: '24h' }
         );
 
         res.json({ token });

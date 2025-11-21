@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Create row HTML directly for better performance
             row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.custom_id || product.id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.name}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.description || 'Chưa có mô tả'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</td>
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                      <div class="flex space-x-2">
-                         <button type="button" class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${product.id}" data-name="${product.name}" data-description="${product.description || ''}" data-price="${product.price}" data-brand="${product.brand || ''}" data-supplier-id="${product.supplier_id || ''}">
+                         <button type="button" class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${product.id}" data-custom-id="${product.custom_id || ''}" data-name="${product.name}" data-description="${product.description || ''}" data-price="${product.price}" data-brand="${product.brand || ''}" data-supplier-id="${product.supplier_id || ''}">
                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -296,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (editBtn) {
             // Lấy tất cả các thuộc tính data từ nút hoặc từ phần tử cha
             const productId = editBtn.dataset.id || editBtn.getAttribute('data-id');
+            const productCustomId = editBtn.dataset.customId || editBtn.getAttribute('data-custom-id') || '';
             const productName = editBtn.dataset.name || editBtn.getAttribute('data-name');
             const productDescription = editBtn.dataset.description || editBtn.getAttribute('data-description') || '';
             const productPrice = editBtn.dataset.price || editBtn.getAttribute('data-price');
@@ -307,18 +308,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            showEditModal(productId, productName, productDescription, productPrice, productBrand, supplierId);
+            showEditModal(productId, productCustomId, productName, productDescription, productPrice, productBrand, supplierId);
         }
     });
     
 
 
-    const showEditModal = (id, name, description, price, brand, supplierId) => {
+    const showEditModal = (id, customId, name, description, price, brand, supplierId) => {
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
         modal.innerHTML = `
             <div class="bg-white p-6 rounded-lg w-full max-w-md">
                 <h3 class="text-xl font-semibold mb-4">Chỉnh sửa sản phẩm</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
+                    <input type="text" id="editProductCustomId" class="w-full border rounded px-3 py-2" value="${customId || ''}" placeholder="VD: SP001">
+                </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
                     <input type="text" id="editProductName" class="w-full border rounded px-3 py-2" value="${name || ''}">
@@ -353,6 +358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadSuppliersForEditModal(supplierId);
 
         document.getElementById('saveEditBtn').addEventListener('click', async () => {
+            const updatedCustomId = document.getElementById('editProductCustomId').value.trim();
             const updatedName = document.getElementById('editProductName').value.trim();
             const updatedDescription = document.getElementById('editProductDescription').value.trim();
             const updatedPrice = parseFloat(document.getElementById('editProductPrice').value);
@@ -381,6 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ...headers
                     },
                     body: JSON.stringify({
+                        customId: updatedCustomId || null,
                         name: updatedName,
                         description: updatedDescription || null,
                         price: updatedPrice,
@@ -418,6 +425,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="bg-white p-6 rounded-lg w-full max-w-md">
                 <h3 class="text-xl font-semibold mb-4">Thêm sản phẩm mới</h3>
                 <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
+                    <input type="text" id="productCustomId" class="w-full border rounded px-3 py-2" placeholder="VD: SP001">
+                </div>
+                <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
                     <input type="text" id="productName" class="w-full border rounded px-3 py-2">
                 </div>
@@ -450,7 +461,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Load suppliers for add product modal
         loadSuppliersForAddModal();
 
-        document.getElementById('saveBtn').addEventListener('click', async () => {
+document.getElementById('saveBtn').addEventListener('click', async () => {
+            const customId = document.getElementById('productCustomId').value.trim();
             const name = document.getElementById('productName').value.trim();
             const description = document.getElementById('productDescription').value.trim();
             const price = parseFloat(document.getElementById('productPrice').value);
@@ -476,9 +488,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...headers
+        ...headers
                     },
                     body: JSON.stringify({ 
+                        customId: customId || null,
                         name, 
                         description: description || null, 
                         price, 
@@ -502,9 +515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error('Lỗi khi thêm sản phẩm:', error);
                 alert('Lỗi khi thêm sản phẩm: ' + error.message);
             }
-        });
-
-        document.getElementById('cancelBtn').addEventListener('click', () => {
+        });        document.getElementById('cancelBtn').addEventListener('click', () => {
             document.body.removeChild(modal);
         });
     });

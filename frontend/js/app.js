@@ -195,6 +195,7 @@ const App = {
 
         updateUserInfo: () => {
             const user = Auth.getUserInfo();
+            console.log('User info:', user); // Thêm log để debug
             if (user) {
                 const userNameEl = document.getElementById('user-name');
                 const userRoleEl = document.getElementById('user-role');
@@ -202,7 +203,13 @@ const App = {
                     userNameEl.textContent = user.username || 'N/A';
                 }
                 if (userRoleEl) {
-                    userRoleEl.textContent = user.role || 'N/A';
+                    // Dịch vai trò sang tiếng Việt
+                    const roleText = {
+                        'admin': 'Quản trị viên',
+                        'manager': 'Quản lý',
+                        'staff': 'Nhân viên'
+                    };
+                    userRoleEl.textContent = roleText[user.role] || user.role || 'N/A';
                 }
             }
         }
