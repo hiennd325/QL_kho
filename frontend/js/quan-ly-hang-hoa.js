@@ -433,10 +433,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                      <label class="block text-sm font-medium text-gray-700 mb-1">Nhãn hiệu</label>
                      <input type="text" id="productBrand" class="w-full border rounded px-3 py-2" placeholder="Nhập nhãn hiệu sản phẩm">
                  </div>
-                 <div class="mb-4">
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng</label>
-                     <input type="number" id="productQuantity" class="w-full border rounded px-3 py-2" min="0">
-                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
                     <select id="supplier-filter-modal-add" class="w-full border rounded px-3 py-2">
@@ -459,7 +455,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const description = document.getElementById('productDescription').value.trim();
             const price = parseFloat(document.getElementById('productPrice').value);
             const brand = document.getElementById('productBrand').value.trim();
-            const quantity = parseInt(document.getElementById('productQuantity').value) || 0;
             const supplierId = document.getElementById('supplier-filter-modal-add').value;
 
             // Validate inputs
@@ -488,7 +483,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         description: description || null, 
                         price, 
                         brand: brand || null, 
-                        quantity, 
                         supplierId: supplierId || null 
                     })
                 });

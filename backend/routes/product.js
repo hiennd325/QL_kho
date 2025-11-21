@@ -47,13 +47,8 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const { name, description, price, category, brand, supplierId, quantity } = req.body;
+        const { name, description, price, category, brand, supplierId } = req.body;
         const product = await productModel.createProduct(name, description, price, category, brand, supplierId);
-        // Add initial inventory if quantity provided
-        if (quantity && quantity > 0) {
-            const inventoryModel = require('../models/inventory');
-            await inventoryModel.addInventoryItem(product.id, quantity, 1); // warehouse_id = 1
-        }
         res.status(201).json(product);
     } catch (err) {
         res.status(500).json({ error: 'Failed to create product' });
