@@ -202,25 +202,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 typeClass = 'bg-gray-100 text-gray-800';
             }
             
+            // Tính giá trị giao dịch
+            const value = t.value || (t.price && t.quantity ? t.price * t.quantity : 0);
+            const formattedValue = value ? new Intl.NumberFormat('vi-VN').format(value) + ' ₫' : '0 ₫';
+            
             row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">P${t.type.charAt(0).toUpperCase()}${t.id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${t.reference_id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedDate}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${productName}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.quantity}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">0 ₫</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedValue}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${warehouseName}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="status-badge ${typeClass}">${typeLabel}</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                        <button class="text-blue-600 hover:text-blue-800">
-                            <i data-feather="eye" class="h-4 w-4"></i>
-                        </button>
-                        <button class="text-red-600 hover:text-red-800">
-                            <i data-feather="trash-2" class="h-4 w-4"></i>
-                        </button>
-                    </div>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -234,7 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const renderAlerts = (alerts) => {
         tableBody.innerHTML = '';
         if (alerts.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không có cảnh báo tồn kho</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Không có cảnh báo tồn kho</td></tr>`;
             return;
         }
 
@@ -252,13 +246,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${warehouseName}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="status-badge bg-red-100 text-red-800">Sắp hết hàng</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                        <button class="text-blue-600 hover:text-blue-800">
-                            <i data-feather="eye" class="h-4 w-4"></i>
-                        </button>
-                    </div>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -461,9 +448,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Trạng thái
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Thao tác
-                    </th>
                 </tr>
             `;
         } else {
@@ -490,9 +474,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Trạng thái
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Thao tác
                     </th>
                 </tr>
             `;
@@ -617,7 +598,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error loading data:', error);
-            const colspan = (currentTab === 'Cảnh báo tồn kho') ? 7 : 8;
+            const colspan = (currentTab === 'Cảnh báo tồn kho') ? 6 : 7;
             tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
             if (stockAlertsContainer) {
                 stockAlertsContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Lỗi tải dữ liệu</p>';

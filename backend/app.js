@@ -34,7 +34,7 @@ function authenticate(req, res, next) {
 // Tạo instance của Express app
 const app = express();
 // Đặt port từ biến môi trường hoặc mặc định 3000
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Cấu hình CORS để cho phép frontend truy cập
 app.use(cors({
@@ -141,6 +141,7 @@ app.use((err, req, res, next) => {
 // Khởi động server
 const server = app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
+    console.log('Server started successfully');
 });
 
 // Import hàm dọn dẹp backup

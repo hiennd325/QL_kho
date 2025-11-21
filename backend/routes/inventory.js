@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Temporarily remove authenticate for testing
 router.get('/transactions', async (req, res) => {
     try {
         const { page = 1, limit = 10, type, warehouseId, startDate, endDate } = req.query;

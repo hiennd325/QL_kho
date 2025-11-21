@@ -35,7 +35,7 @@ const createTransaction = async (reference_id, productId, warehouseId, quantity,
 
 const getTransactions = async (productId = null, warehouseId = null) => {
     try {
-        let query = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date, p.name as product_name, w.name as warehouse_name
+        let query = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date, p.name as product_name, w.name as warehouse_name, p.price
         FROM inventory_transactions it
         JOIN products p ON it.product_id = p.id
         JOIN warehouses w ON it.warehouse_id = w.id`;
@@ -57,7 +57,14 @@ const getTransactions = async (productId = null, warehouseId = null) => {
         return await new Promise((resolve, reject) => {
             db.all(query, params, (err, rows) => {
                 if (err) reject(err);
-                else resolve(rows);
+                else {
+                    // Tính toán giá trị cho từng giao dịch
+                    const transactionsWithValues = rows.map(transaction => ({
+                        ...transaction,
+                        value: transaction.price ? transaction.price * transaction.quantity : 0
+                    }));
+                    resolve(transactionsWithValues);
+                }
             });
         });
     } catch (err) {
@@ -142,21 +149,26 @@ const getTransactionsPaginated = async (page = 1, limit = 10, type = null, wareh
 
         // Get transactions with pagination
         const transactions = await new Promise((resolve, reject) => {
-            let sql = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date,
-                              p.name as product_name, w.name as warehouse_name
-                       FROM inventory_transactions it
-                       JOIN products p ON it.product_id = p.id
-                       JOIN warehouses w ON it.warehouse_id = w.id`;
+            let sql = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date, p.name as product_name, w.name as warehouse_name, p.price FROM inventory_transactions it JOIN products p ON it.product_id = p.custom_id JOIN warehouses w ON it.warehouse_id = w.custom_id`;
             if (whereClause) {
                 sql += whereClause;
             }
             sql += ' ORDER BY it.transaction_date DESC LIMIT ? OFFSET ?';
             const params = [...whereParams, limit, offset];
 
-            db.all(sql, params, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
+             db.all(sql, params, (err, rows) => {
+                 if (err) {
+                     console.error('DB Error:', err);
+                     reject(err);
+                  } else {
+                      // Tính toán giá trị cho từng giao dịch
+                      const transactionsWithValues = rows.map(transaction => ({
+                          ...transaction,
+                          value: transaction.price ? parseFloat(transaction.price) * transaction.quantity : 0
+                      }));
+                      resolve(transactionsWithValues);
+                  }
+             });
         });
 
         return {
