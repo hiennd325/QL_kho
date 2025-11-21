@@ -40,7 +40,7 @@ const getTransfers = async (limit = 10) => {
                        FROM transfers t
                        JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
                        JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
-                       JOIN products p ON t.product_id = p.id
+                       JOIN products p ON t.product_id = p.custom_id
                        JOIN users u ON t.user_id = u.id
                        ORDER BY t.created_at DESC
                        LIMIT ?`;
@@ -63,7 +63,7 @@ const getTransferById = async (id) => {
                        FROM transfers t
                        JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
                        JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
-                       JOIN products p ON t.product_id = p.id
+                       JOIN products p ON t.product_id = p.custom_id
                        JOIN users u ON t.user_id = u.id
                        WHERE t.id = ?`;
 

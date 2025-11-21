@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    custom_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
     price REAL NOT NULL,
@@ -39,10 +39,10 @@ CREATE TABLE IF NOT EXISTS suppliers (
 
 CREATE TABLE IF NOT EXISTS inventory (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
+    product_id TEXT NOT NULL,
     warehouse_id TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
-    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (product_id) REFERENCES products(custom_id),
     FOREIGN KEY (warehouse_id) REFERENCES warehouses(custom_id)
 );
 
@@ -60,17 +60,17 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE TABLE IF NOT EXISTS order_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
+    product_id TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     price REAL NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(custom_id)
 );
 
 CREATE TABLE IF NOT EXISTS inventory_transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER NOT NULL,
-    warehouse_id INTEGER NOT NULL,
+    product_id TEXT NOT NULL,
+    warehouse_id TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     type TEXT NOT NULL CHECK (type IN ('nhap', 'xuat')),
     supplier_id INTEGER,
@@ -78,8 +78,8 @@ CREATE TABLE IF NOT EXISTS inventory_transactions (
     reference_id TEXT,
     notes TEXT,
     transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (product_id) REFERENCES products(custom_id),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(custom_id),
     FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
 
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS transfers (
     code TEXT UNIQUE NOT NULL,
     from_warehouse_id TEXT NOT NULL,
     to_warehouse_id TEXT NOT NULL,
-    product_id INTEGER NOT NULL,
+    product_id TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
     user_id INTEGER NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS transfers (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (from_warehouse_id) REFERENCES warehouses(custom_id),
     FOREIGN KEY (to_warehouse_id) REFERENCES warehouses(custom_id),
-    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (product_id) REFERENCES products(custom_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -117,11 +117,11 @@ CREATE TABLE IF NOT EXISTS sales_orders (
 CREATE TABLE IF NOT EXISTS sales_order_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sales_order_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
+    product_id TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     price REAL NOT NULL,
     FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(custom_id)
 );
 
 CREATE TABLE IF NOT EXISTS audits (

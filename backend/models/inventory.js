@@ -73,7 +73,7 @@ const getAllInventory = async () => {
             db.all(`
                 SELECT inventory.id, inventory.product_id, products.name, products.description, inventory.quantity
                 FROM inventory
-                JOIN products ON inventory.product_id = products.id
+                JOIN products ON inventory.product_id = products.custom_id
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);

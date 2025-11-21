@@ -408,7 +408,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                  }
             } catch (error) {
                 console.error('Lỗi khi cập nhật sản phẩm:', error);
-                alert('Lỗi khi cập nhật sản phẩm: ' + error.message);
+                if (error.message.includes('đã tồn tại')) {
+                    alert('Mã sản phẩm đã tồn tại. Vui lòng chọn mã khác.');
+                } else {
+                    alert('Lỗi khi cập nhật sản phẩm: ' + error.message);
+                }
             }
         });
 
@@ -501,7 +505,11 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
                  }
             } catch (error) {
                 console.error('Lỗi khi thêm sản phẩm:', error);
-                alert('Lỗi khi thêm sản phẩm: ' + error.message);
+                if (error.message.includes('đã tồn tại')) {
+                    alert('Mã sản phẩm đã tồn tại. Vui lòng chọn mã khác.');
+                } else {
+                    alert('Lỗi khi thêm sản phẩm: ' + error.message);
+                }
             }
         });        document.getElementById('cancelBtn').addEventListener('click', () => {
             document.body.removeChild(modal);

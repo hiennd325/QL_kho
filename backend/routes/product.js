@@ -60,7 +60,11 @@ router.post('/', async (req, res) => {
         const product = await productModel.createProduct(name, description, price, category, brand, supplierId, customId);
         res.status(201).json(product);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create product' });
+        // Trả về thông báo lỗi cụ thể từ model
+        if (err.message === 'Mã sản phẩm đã tồn tại') {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(500).json({ error: 'Failed to create product: ' + err.message });
     }
 });
 
@@ -71,7 +75,11 @@ router.put('/:id', async (req, res) => {
         const updatedProduct = await productModel.updateProduct(req.params.id, updates);
         res.json(updatedProduct);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to update product' });
+        // Trả về thông báo lỗi cụ thể từ model
+        if (err.message === 'Mã sản phẩm đã tồn tại') {
+            return res.status(400).json({ error: err.message });
+        }
+        res.status(500).json({ error: 'Failed to update product: ' + err.message });
     }
 });
 

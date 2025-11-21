@@ -12,19 +12,37 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
 
 const createProduct = async (name, description, price, category, brand, supplierId, customId) => {
     try {
+        // Kiểm tra mã sản phẩm đã tồn tại chưa
+        // Xử lý cả trường hợp customId là chuỗi rỗng hoặc chỉ chứa khoảng trắng
+        const trimmedCustomId = customId ? customId.toString().trim() : '';
+        
+        if (trimmedCustomId) {
+            const existingProduct = await new Promise((resolve, reject) => {
+                db.get('SELECT custom_id FROM products WHERE custom_id = ?', [trimmedCustomId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+            
+            if (existingProduct) {
+                throw new Error('Mã sản phẩm đã tồn tại');
+            }
+        }
+        
         const result = await new Promise((resolve, reject) => {
-            const query = customId 
-                ? 'INSERT INTO products (name, description, price, category, brand, supplier_id, custom_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+            // Sử dụng trimmedCustomId thay vì customId gốc
+            const query = trimmedCustomId 
+                ? 'INSERT INTO products (custom_id, name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
                 : 'INSERT INTO products (name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?)';
-            const params = customId 
-                ? [name, description, price, category, brand, supplierId, customId]
+            const params = trimmedCustomId 
+                ? [trimmedCustomId, name, description, price, category, brand, supplierId]
                 : [name, description, price, category, brand, supplierId];
                 
             db.run(query, params, function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve({ id: this.lastID });
+                    resolve({ id: trimmedCustomId || this.lastID });
                 }
             });
         });
@@ -86,14 +104,14 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
         
         // Get products with pagination
         const products = await new Promise((resolve, reject) => {
-            let sql = `SELECT p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name as supplier_name, COALESCE(SUM(i.quantity), 0) as quantity
+            let sql = `SELECT p.custom_id as id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name as supplier_name, COALESCE(SUM(i.quantity), 0) as quantity
                        FROM products p
                        LEFT JOIN suppliers s ON p.supplier_id = s.id
-                       LEFT JOIN inventory i ON p.id = i.product_id`;
+                       LEFT JOIN inventory i ON p.custom_id = i.product_id`;
             if (whereClause) {
                 sql += whereClause;
             }
-            sql += ' GROUP BY p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
+            sql += ' GROUP BY p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, s.name ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
             const params = [...whereParams, limit, offset];
 
             db.all(sql, params, (err, rows) => {
@@ -116,11 +134,11 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
 const getProductById = async (id) => {
     try {
         return await new Promise((resolve, reject) => {
-            db.get(`SELECT p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, COALESCE(SUM(i.quantity), 0) as quantity
+            db.get(`SELECT p.custom_id as id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at, COALESCE(SUM(i.quantity), 0) as quantity
                     FROM products p
-                    LEFT JOIN inventory i ON p.id = i.product_id
-                    WHERE p.id = ?
-                    GROUP BY p.id, p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at`, [id], (err, row) => {
+                    LEFT JOIN inventory i ON p.custom_id = i.product_id
+                    WHERE p.custom_id = ?
+                    GROUP BY p.custom_id, p.name, p.description, p.price, p.category, p.brand, p.supplier_id, p.created_at`, [id], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -133,6 +151,31 @@ const getProductById = async (id) => {
 const updateProduct = async (id, updates) => {
     try {
         const { name, description, price, category, brand, supplierId, customId } = updates;
+        
+        // Xử lý customId để loại bỏ khoảng trắng thừa
+        let processedCustomId = customId;
+        if (customId !== undefined) {
+            processedCustomId = customId === null ? null : customId.toString().trim();
+            // Nếu sau khi trim mà rỗng thì đặt thành null
+            if (processedCustomId === '') {
+                processedCustomId = null;
+            }
+        }
+        
+        // Kiểm tra mã sản phẩm đã tồn tại chưa (nếu đang cập nhật mã)
+        if (processedCustomId && processedCustomId !== id) {
+            const existingProduct = await new Promise((resolve, reject) => {
+                db.get('SELECT custom_id FROM products WHERE custom_id = ?', [processedCustomId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+            
+            if (existingProduct) {
+                throw new Error('Mã sản phẩm đã tồn tại');
+            }
+        }
+        
         const setClause = [];
         const values = [];
         if (name !== undefined) {
@@ -159,21 +202,21 @@ const updateProduct = async (id, updates) => {
             setClause.push('supplier_id = ?');
             values.push(supplierId);
         }
-        if (customId !== undefined) {
+        if (processedCustomId !== undefined && processedCustomId !== id) {
             setClause.push('custom_id = ?');
-            values.push(customId);
+            values.push(processedCustomId);
         }
         if (setClause.length === 0) {
             throw new Error('No updates provided');
         }
         values.push(id);
         await new Promise((resolve, reject) => {
-            db.run(`UPDATE products SET ${setClause.join(', ')} WHERE id = ?`, values, (err) => {
+            db.run(`UPDATE products SET ${setClause.join(', ')} WHERE custom_id = ?`, values, (err) => {
                 if (err) reject(err);
                 else resolve();
             });
         });
-        return await getProductById(id);
+        return await getProductById(processedCustomId || id);
     } catch (err) {
         throw err;
     }
@@ -197,7 +240,7 @@ const deleteProduct = async (id) => {
         
         // Then delete the product
         await new Promise((resolve, reject) => {
-            db.run('DELETE FROM products WHERE id = ?', [id], (err) => {
+            db.run('DELETE FROM products WHERE custom_id = ?', [id], (err) => {
                 if (err) reject(err);
                 else resolve();
             });

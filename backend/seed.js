@@ -88,13 +88,13 @@ async function seedDatabase() {
 
         // 3. Products
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO products (name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?)`, ['Product X', 'Description for Product X', 100.00, 'Electronics', 'Brand A', 1], function(err) {
+            db.run(`INSERT INTO products (custom_id, name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?)`, ['SP001', 'Product X', 'Description for Product X', 100.00, 'Electronics', 'Brand A', 1], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
         });
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO products (name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?)`, ['Product Y', 'Description for Product Y', 50.00, 'Clothing', 'Brand B', 2], function(err) {
+            db.run(`INSERT INTO products (custom_id, name, description, price, category, brand, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?)`, ['SP002', 'Product Y', 'Description for Product Y', 50.00, 'Clothing', 'Brand B', 2], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
@@ -116,19 +116,19 @@ async function seedDatabase() {
 
         // 5. Inventory (linking products to warehouses)
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)`, [1, 1, 100], function(err) {
+            db.run(`INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)`, ['SP001', 'WH001', 100], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
         });
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)`, [2, 1, 50], function(err) {
+            db.run(`INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)`, ['SP002', 'WH001', 50], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
         });
         await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)`, [1, 2, 50], function(err) {
+            db.run(`INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)`, ['SP001', 'WH002', 50], function(err) {
                 if (err) reject(err);
                 else resolve();
             });
