@@ -112,7 +112,7 @@
     <div id="user-modal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50 z-40" onclick="closeModal('user-modal')"></div>
         
-        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-lg shadow-xl z-50 overflow-hidden relative">
+        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-hidden relative">
             
             <div class="modal-content py-4 text-left px-6">
                 <!--Title-->
@@ -129,25 +129,25 @@
                          <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
                              Tên đăng nhập
                          </label>
-                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="nguyenvana">
+                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="username" type="text" placeholder="nguyenvana">
                      </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
                             Email
                         </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" placeholder="email@example.com">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="email" type="email" placeholder="email@example.com">
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
                             Mật khẩu <span class="text-red-500">*</span>
                         </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="******************" required>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="password" type="password" placeholder="******************" required>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
                             Vai trò
                         </label>
-                        <select id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <select id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
                             <option value="admin">Quản trị viên</option>
                             <option value="staff">Nhân viên kho</option>
                             <option value="viewer">Người xem</option>
@@ -157,7 +157,7 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
                             Trạng thái
                         </label>
-                        <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
                             <option>Hoạt động</option>
                             <option>Tạm khóa</option>
                         </select>
@@ -167,7 +167,7 @@
                 <!--Footer-->
                 <div class="flex justify-end pt-2">
                     <button onclick="closeModal('user-modal')" class="px-4 bg-transparent p-3 rounded-lg text-indigo-500 hover:bg-gray-100 hover:text-indigo-400 mr-2">Hủy</button>
-                    <button id="saveUserBtn" type="button" class="px-4 bg-indigo-500 p-3 rounded-lg text-white hover:bg-indigo-400">Lưu</button>
+                    <button id="saveUserBtn" type="button" class="px-4 bg-indigo-500 p-3 rounded-lg text-white hover:bg-indigo-400 transition-colors duration-200">Lưu</button>
                 </div>
             </div>
         </div>

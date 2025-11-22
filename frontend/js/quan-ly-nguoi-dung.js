@@ -1,19 +1,29 @@
 // Global functions for modal management
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
+    if (!modal) {
+        console.error(`Modal element with ID "${modalId}" not found.`);
+        return;
+    }
+    modal.style.display = 'flex'; // Explicitly set display to flex
+    modal.style.opacity = '1'; // Explicitly set opacity
+    modal.style.pointerEvents = 'auto'; // Explicitly enable interaction
+    
+    // Remove the original hiding classes as well, for thoroughness
     modal.classList.remove('opacity-0');
     modal.classList.remove('pointer-events-none');
+
     document.body.classList.add('modal-active');
-    // Re-render feather icons
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
+    // Removed feather.replace() for debugging
 }
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    modal.classList.add('opacity-0');
-    modal.classList.add('pointer-events-none');
+    if (!modal) return;
+    modal.style.display = 'none'; // Hide it
+    modal.style.opacity = '0'; // Explicitly set opacity to 0
+    modal.style.pointerEvents = 'none'; // Explicitly disable interaction
+
     document.body.classList.remove('modal-active');
 }
 
