@@ -122,10 +122,10 @@ router.get('/audits', async (req, res) => {
                 w.name as warehouse_name,
                 u.username as created_by_username
             FROM audits a
-            JOIN warehouses w ON a.warehouse_id = w.id
+            JOIN warehouses w ON a.warehouse_id = w.custom_id
             JOIN users u ON a.created_by_user_id = u.id
         `;
-        let countQuery = `SELECT COUNT(*) as count FROM audits a JOIN warehouses w ON a.warehouse_id = w.id JOIN users u ON a.created_by_user_id = u.id`;
+        let countQuery = `SELECT COUNT(*) as count FROM audits a JOIN warehouses w ON a.warehouse_id = w.custom_id JOIN users u ON a.created_by_user_id = u.id`;
 
         let whereClause = ' WHERE 1=1 ';
         const params = [];
@@ -280,7 +280,7 @@ router.get('/audits/:id/export', async (req, res) => {
             const query = `
                 SELECT a.id, a.code, a.date, a.discrepancy, a.status, w.name as warehouse_name, u.username as created_by_username, a.notes
                 FROM audits a
-                JOIN warehouses w ON a.warehouse_id = w.id
+                JOIN warehouses w ON a.warehouse_id = w.custom_id
                 JOIN users u ON a.created_by_user_id = u.id
                 WHERE a.id = ?
             `;
@@ -349,7 +349,7 @@ router.get('/audits/export', async (req, res) => {
         let query = `
             SELECT a.id, a.code, a.date, a.discrepancy, a.status, w.name as warehouse_name, u.username as created_by_username
             FROM audits a
-            JOIN warehouses w ON a.warehouse_id = w.id
+            JOIN warehouses w ON a.warehouse_id = w.custom_id
             JOIN users u ON a.created_by_user_id = u.id
             WHERE 1=1
         `;
@@ -451,8 +451,8 @@ router.get('/transactions/export', async (req, res) => {
             const sql = `
                 SELECT it.id, it.transaction_date, p.name as product_name, it.quantity, w.name as warehouse_name, it.type
                 FROM inventory_transactions it
-                JOIN products p ON it.product_id = p.id
-                JOIN warehouses w ON it.warehouse_id = w.id
+                JOIN products p ON it.product_id = p.custom_id
+                JOIN warehouses w ON it.warehouse_id = w.custom_id
                 ${whereClause}
                 ORDER BY it.transaction_date DESC
             `;

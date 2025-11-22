@@ -147,7 +147,7 @@ async function seedDatabase() {
 
         // Check products
         const products = await new Promise((resolve, reject) => {
-            db.all("SELECT id, name, brand FROM products", [], (err, rows) => {
+            db.all("SELECT custom_id, name, brand FROM products", [], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
