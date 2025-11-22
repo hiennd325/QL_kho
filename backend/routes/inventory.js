@@ -68,9 +68,13 @@ router.get('/transactions', async (req, res) => {
 // Get inventory for a specific product
 router.get('/:productId', async (req, res) => {
     try {
-        const inventory = await inventoryModel.getInventoryByProductId(req.params.productId);
+        const { warehouse } = req.query;
+        if (!warehouse) {
+            return res.status(400).json({ error: 'Warehouse parameter is required' });
+        }
+        const inventory = await inventoryModel.getInventoryByProductId(req.params.productId, warehouse);
         if (!inventory) {
-            return res.status(404).json({ error: 'Inventory not found' });
+            return res.json({ quantity: 0 }); // Return 0 if no inventory found
         }
         res.json(inventory);
     } catch (err) {

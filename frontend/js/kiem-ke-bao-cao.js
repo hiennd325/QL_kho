@@ -421,10 +421,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            
+
             const response = await fetch(`${baseUrl}/products`, { headers });
             if (!response.ok) throw new Error('Failed to fetch products');
-            const products = await response.json();
+            const data = await response.json();
+
+            if (data.error) {
+                console.error('Error loading products:', data.error);
+                return;
+            }
+
+            const products = data.products || [];
 
             const select = document.getElementById('selectProduct');
             select.innerHTML = '<option value="">Chọn sản phẩm</option>';
@@ -634,11 +641,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Product selection change handler
     const selectProduct = document.getElementById('selectProduct');
     if (selectProduct) {
-        selectProduct.addEventListener('change', () => {
+        selectProduct.addEventListener('change', async () => {
             const productId = selectProduct.value;
-            const systemQuantity = allInventory[productId]?.quantity || 0;
-            document.getElementById('systemQuantityInput').value = systemQuantity;
-            document.getElementById('actualQuantityInput').value = '';
+            if (!productId) {
+                document.getElementById('systemQuantityInput').value = '';
+                document.getElementById('actualQuantityInput').value = '';
+                return;
+            }
+
+            try {
+                const baseUrl = `http://localhost:3000`;
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const warehouseId = document.getElementById('inventoryWarehouse').value;
+
+                const response = await fetch(`${baseUrl}/inventory/${productId}?warehouse=${warehouseId}`, { headers });
+                if (!response.ok) throw new Error('Failed to fetch inventory');
+                const inventory = await response.json();
+
+                const systemQuantity = inventory ? inventory.quantity : 0;
+                document.getElementById('systemQuantityInput').value = systemQuantity;
+                document.getElementById('actualQuantityInput').value = '';
+            } catch (error) {
+                console.error('Error loading system quantity:', error);
+                document.getElementById('systemQuantityInput').value = '0';
+                document.getElementById('actualQuantityInput').value = '';
+            }
         });
     }
 
