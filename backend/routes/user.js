@@ -8,7 +8,7 @@ const userModel = require('../models/user');
  * GET /users?search=...&role=...&status=...
  * Query params:
  * - search: Tìm kiếm theo username hoặc email
- * - role: Lọc theo vai trò (admin, staff, viewer)
+ * - role: Lọc theo vai trò (admin, staff)
  * - status: Lọc theo trạng thái (active, inactive)
  */
 router.get('/', async (req, res) => {
@@ -95,10 +95,17 @@ router.post('/', async (req, res) => {
  * Cập nhật thông tin người dùng
  * PUT /users/:id
  * Body: { username?, password?, role?, email?, status? }
+ * Chỉ admin mới có thể khóa tài khoản (set status = 'inactive')
  */
 router.put('/:id', async (req, res) => {
     try {
         const { username, password, role, email, status } = req.body;
+
+        // Kiểm tra nếu đang cố gắng khóa tài khoản (set status = 'inactive'), chỉ admin mới được phép
+        if (status === 'inactive' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied. Only admin can lock user accounts.' });
+        }
+
         const updatedUser = await userModel.updateUser(req.params.id, {
             username,
             password,

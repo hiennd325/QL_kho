@@ -83,8 +83,7 @@ class UserManager {
     initializeRoleDescriptions() {
         this.roleDescriptions = {
             'admin': '✓ Toàn bộ quyền hạn\n✓ Quản lý người dùng\n✓ Xem báo cáo\n✓ Cấu hình hệ thống',
-            'staff': '✓ Quản lý tồn kho\n✓ Nhập xuất hàng\n✓ Xem báo cáo cơ bản\n✗ Quản lý người dùng',
-            'viewer': '✓ Xem thông tin\n✓ Xem báo cáo\n✗ Chỉnh sửa dữ liệu\n✗ Quản lý người dùng'
+            'staff': '✓ Quản lý tồn kho\n✓ Nhập xuất hàng\n✓ Xem báo cáo cơ bản\n✗ Quản lý người dùng'
         };
     }
 
@@ -381,8 +380,7 @@ class UserManager {
     getRoleName(role) {
         const roleMap = {
             'admin': 'Quản trị viên',
-            'staff': 'Nhân viên kho',
-            'viewer': 'Người xem'
+            'staff': 'Nhân viên kho'
         };
         return roleMap[role] || role;
     }

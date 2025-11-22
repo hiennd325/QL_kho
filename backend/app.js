@@ -31,6 +31,17 @@ function authenticate(req, res, next) {
   }
 }
 
+/**
+ * Middleware để kiểm tra quyền admin
+ * Chỉ cho phép user có role 'admin' tiếp tục
+ */
+function authorizeAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied. Admin role required.' });
+  }
+  next();
+}
+
 // Tạo instance của Express app
 const app = express();
 // Đặt port từ biến môi trường hoặc mặc định 3000
