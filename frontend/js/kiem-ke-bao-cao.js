@@ -649,14 +649,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
+            const warehouseId = document.getElementById('inventoryWarehouse').value;
+            if (!warehouseId) {
+                document.getElementById('systemQuantityInput').value = '0';
+                document.getElementById('actualQuantityInput').value = '';
+                return;
+            }
+
             try {
                 const baseUrl = `http://localhost:3000`;
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const warehouseId = document.getElementById('inventoryWarehouse').value;
 
                 const response = await fetch(`${baseUrl}/inventory/${productId}?warehouse=${warehouseId}`, { headers });
-                if (!response.ok) throw new Error('Failed to fetch inventory');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch inventory');
+                }
                 const inventory = await response.json();
 
                 const systemQuantity = inventory ? inventory.quantity : 0;
