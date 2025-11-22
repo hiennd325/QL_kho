@@ -1,3 +1,33 @@
+// Global modal functions
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+        console.error(`Modal element with ID "${modalId}" not found.`);
+        return;
+    }
+    modal.style.display = 'flex';
+    modal.classList.remove('opacity-0');
+    modal.classList.remove('pointer-events-none');
+    modal.classList.add('modal-open');
+
+    document.body.classList.add('modal-active');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    modal.classList.add('pointer-events-none');
+    modal.classList.remove('modal-open');
+
+    // Hide after transition
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+
+    document.body.classList.remove('modal-active');
+}
+
 // User Management System - Advanced Version
 class UserManager {
     constructor() {
