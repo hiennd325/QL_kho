@@ -57,6 +57,11 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
+        // Kiểm tra trạng thái tài khoản
+        if (user.status !== 'active') {
+            return res.status(403).json({ error: 'Tài khoản đã bị tạm khóa' });
+        }
+
         // So sánh mật khẩu
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
