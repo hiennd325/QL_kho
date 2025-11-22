@@ -17,16 +17,18 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
  * @param {string} username - Tên đăng nhập
  * @param {string} password - Mật khẩu (sẽ được hash)
  * @param {string} role - Vai trò (mặc định 'staff')
+ * @param {string} email - Email
+ * @param {string} status - Trạng thái (mặc định 'active')
  * @returns {Object} - Đối tượng chứa id của user mới
  */
-const createUser = async (username, password, role = 'staff') => {
+const createUser = async (username, password, role = 'staff', email = null, status = 'active') => {
     try {
         // Hash mật khẩu với salt rounds = 10
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Thực thi INSERT query
         const result = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, hashedPassword, role], function(err) {
+            db.run('INSERT INTO users (username, password, role, email, status) VALUES (?, ?, ?, ?, ?)', [username, hashedPassword, role, email, status], function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -96,12 +98,12 @@ const getUserById = async (id) => {
 /**
  * Cập nhật thông tin người dùng
  * @param {number} id - ID của user cần cập nhật
- * @param {Object} updates - Đối tượng chứa các trường cần cập nhật {username?, password?, role?}
+ * @param {Object} updates - Đối tượng chứa các trường cần cập nhật {username?, password?, role?, email?, status?}
  * @returns {Object} - Thông tin user sau khi cập nhật
  */
 const updateUser = async (id, updates) => {
     try {
-        const { username, password, role } = updates;
+        const { username, password, role, email, status } = updates;
         let setClause = []; // Mảng chứa các trường cần update
         let values = []; // Mảng chứa giá trị tương ứng
 
@@ -118,6 +120,14 @@ const updateUser = async (id, updates) => {
         if (role) {
             setClause.push('role = ?');
             values.push(role);
+        }
+        if (email !== undefined) {
+            setClause.push('email = ?');
+            values.push(email);
+        }
+        if (status) {
+            setClause.push('status = ?');
+            values.push(status);
         }
         values.push(id); // Thêm id vào cuối mảng values
 

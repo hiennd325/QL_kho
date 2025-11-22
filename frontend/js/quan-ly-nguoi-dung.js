@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const passwordInput = document.getElementById('password');
     const roleSelect = document.getElementById('role');
     const statusSelect = document.getElementById('status');
-    const modalCloseBtn = document.querySelector('.modal-close');
+    const saveUserBtn = document.querySelector('button.modal-close');
 
     let currentUserId = null;
 
@@ -177,8 +177,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', handleUserFormSubmit);
+    if (saveUserBtn) {
+        saveUserBtn.addEventListener('click', handleUserFormSubmit);
     }
 
     if (userForm) {

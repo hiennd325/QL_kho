@@ -49,13 +49,13 @@ router.get('/:id', async (req, res) => {
 /**
  * Tạo người dùng mới
  * POST /users
- * Body: { username, password, role? }
+ * Body: { username, password, role?, email?, status? }
  * Chỉ admin mới có quyền tạo
  */
 router.post('/', async (req, res) => {
     try {
-        const { username, password, role } = req.body;
-        const newUser = await userModel.createUser(username, password, role);
+        const { username, password, role, email, status } = req.body;
+        const newUser = await userModel.createUser(username, password, role, email, status);
         res.status(201).json(newUser);
     } catch (err) {
         console.error('Error creating user:', err);
@@ -66,15 +66,17 @@ router.post('/', async (req, res) => {
 /**
  * Cập nhật thông tin người dùng
  * PUT /users/:id
- * Body: { username?, password?, role? }
+ * Body: { username?, password?, role?, email?, status? }
  */
 router.put('/:id', async (req, res) => {
     try {
-        const { username, password, role } = req.body;
+        const { username, password, role, email, status } = req.body;
         const updatedUser = await userModel.updateUser(req.params.id, {
             username,
             password,
-            role
+            role,
+            email,
+            status
         });
         res.json(updatedUser);
     } catch (err) {
