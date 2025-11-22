@@ -37,8 +37,8 @@ const getTransactions = async (productId = null, warehouseId = null) => {
     try {
         let query = `SELECT it.reference_id, it.product_id, it.warehouse_id, it.quantity, it.type, it.transaction_date, p.name as product_name, w.name as warehouse_name, p.price
         FROM inventory_transactions it
-        JOIN products p ON it.product_id = p.id
-        JOIN warehouses w ON it.warehouse_id = w.id`;
+        JOIN products p ON it.product_id = p.custom_id
+        JOIN warehouses w ON it.warehouse_id = w.custom_id`;
         
         let params = [];
         if (productId || warehouseId) {

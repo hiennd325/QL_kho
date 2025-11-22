@@ -70,7 +70,7 @@ router.get('/stats', async (req, res) => {
             db.get(`
                 SELECT COALESCE(SUM(products.price * COALESCE(inventory.quantity, 0)), 0) as total
                 FROM products
-                LEFT JOIN inventory ON products.id = inventory.product_id
+                LEFT JOIN inventory ON products.custom_id = inventory.product_id
                 WHERE products.price IS NOT NULL AND products.price > 0
             `, (err, row) => {
                 if (err) reject(err);
@@ -117,7 +117,7 @@ router.get('/recent-activities', async (req, res) => {
                     END as color,
                     transaction_date as time
                 FROM inventory_transactions it
-                JOIN products p ON it.product_id = p.id
+                JOIN products p ON it.product_id = p.custom_id
                 ORDER BY transaction_date DESC
                 LIMIT 5
             `, (err, rows) => {

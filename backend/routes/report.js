@@ -14,10 +14,10 @@ router.get('/inventory', async (req, res) => {
     try {
         const inventory = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT products.id as product_id, products.name, products.description, SUM(inventory.quantity) as quantity, products.price
+                SELECT products.custom_id as product_id, products.name, products.description, SUM(inventory.quantity) as quantity, products.price
                 FROM inventory
-                JOIN products ON inventory.product_id = products.id
-                GROUP BY products.id, products.name, products.description, products.price
+                JOIN products ON inventory.product_id = products.custom_id
+                GROUP BY products.custom_id, products.name, products.description, products.price
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
@@ -55,10 +55,10 @@ router.get('/alerts', async (req, res) => {
     try {
         const { warehouse } = req.query;
         let query = `
-            SELECT p.id, p.name, i.quantity, p.price, (p.price * i.quantity) as value, w.name as warehouse_name
+            SELECT p.custom_id as id, p.name, i.quantity, p.price, (p.price * i.quantity) as value, w.name as warehouse_name
             FROM inventory i
-            JOIN products p ON i.product_id = p.id
-            JOIN warehouses w ON i.warehouse_id = w.id
+            JOIN products p ON i.product_id = p.custom_id
+            JOIN warehouses w ON i.warehouse_id = w.custom_id
             WHERE i.quantity <= 10
         `;
         const params = [];
@@ -86,10 +86,25 @@ router.get('/quick-stats', async (req, res) => {
                     (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'nhap' AND transaction_date >= DATE('now', '-1 month')) as total_import,
                     (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'xuat' AND transaction_date >= DATE('now', '-1 month')) as total_export,
                     (SELECT SUM(quantity) FROM inventory) as total_inventory,
-                    (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.id) as total_value
+                    (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.custom_id) as total_value
             `, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows[0]);
+                if (err) {
+                    reject(err);
+                } else {
+                    // Đảm bảo rằng giá trị total_value luôn là số, ngay cả khi là null
+                    const result = rows && rows.length > 0 ? {
+                        total_import: rows[0].total_import || 0,
+                        total_export: rows[0].total_export || 0,
+                        total_inventory: rows[0].total_inventory || 0,
+                        total_value: rows[0].total_value || 0
+                    } : {
+                        total_import: 0,
+                        total_export: 0,
+                        total_inventory: 0,
+                        total_value: 0
+                    };
+                    resolve(result);
+                }
             });
         });
         res.json(stats);
@@ -202,7 +217,7 @@ router.get('/generate', async (req, res) => {
                 query = `
                     SELECT p.name, i.quantity, p.price, (p.price * i.quantity) as total_value
                     FROM inventory i
-                    JOIN products p ON i.product_id = p.id
+                    JOIN products p ON i.product_id = p.custom_id
                 `;
                 title = 'Báo cáo tồn kho';
                 break;
@@ -210,9 +225,9 @@ router.get('/generate', async (req, res) => {
                 query = `
                     SELECT p.name, SUM(it.quantity) as total_quantity, COUNT(it.id) as transaction_count
                     FROM inventory_transactions it
-                    JOIN products p ON it.product_id = p.id
+                    JOIN products p ON it.product_id = p.custom_id
                     WHERE it.type = 'nhap' AND ${dateFilter}
-                    GROUP BY p.id
+                    GROUP BY p.custom_id
                 `;
                 title = 'Báo cáo nhập kho';
                 break;
@@ -220,18 +235,18 @@ router.get('/generate', async (req, res) => {
                 query = `
                     SELECT p.name, SUM(it.quantity) as total_quantity, COUNT(it.id) as transaction_count
                     FROM inventory_transactions it
-                    JOIN products p ON it.product_id = p.id
+                    JOIN products p ON it.product_id = p.custom_id
                     WHERE it.type = 'xuat' AND ${dateFilter}
-                    GROUP BY p.id
+                    GROUP BY p.custom_id
                 `;
                 title = 'Báo cáo xuất kho';
                 break;
             case 'financial':
                 query = `
                     SELECT
-                        (SELECT SUM(p.price * it.quantity) FROM inventory_transactions it JOIN products p ON it.product_id = p.id WHERE it.type = 'nhap' AND ${dateFilter}) as total_import_value,
-                        (SELECT SUM(p.price * it.quantity) FROM inventory_transactions it JOIN products p ON it.product_id = p.id WHERE it.type = 'xuat' AND ${dateFilter}) as total_export_value,
-                        (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.id) as current_inventory_value
+                        (SELECT SUM(p.price * it.quantity) FROM inventory_transactions it JOIN products p ON it.product_id = p.custom_id WHERE it.type = 'nhap' AND ${dateFilter}) as total_import_value,
+                        (SELECT SUM(p.price * it.quantity) FROM inventory_transactions it JOIN products p ON it.product_id = p.custom_id WHERE it.type = 'xuat' AND ${dateFilter}) as total_export_value,
+                        (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.custom_id) as current_inventory_value
                 `;
                 title = 'Báo cáo tài chính';
                 break;
@@ -349,10 +364,10 @@ router.get('/inventory/export', async (req, res) => {
     try {
         const inventory = await new Promise((resolve, reject) => {
             db.all(`
-                SELECT p.id as product_id, p.name, p.description, SUM(i.quantity) as quantity, p.price, (p.price * SUM(i.quantity)) as total_value
+                SELECT p.custom_id as product_id, p.name, p.description, SUM(i.quantity) as quantity, p.price, (p.price * SUM(i.quantity)) as total_value
                 FROM inventory i
-                JOIN products p ON i.product_id = p.id
-                GROUP BY p.id, p.name, p.description, p.price
+                JOIN products p ON i.product_id = p.custom_id
+                GROUP BY p.custom_id, p.name, p.description, p.price
             `, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);

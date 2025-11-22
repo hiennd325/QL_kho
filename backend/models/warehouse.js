@@ -103,9 +103,9 @@ const updateWarehouse = async (custom_id, updates) => {
 
 const getWarehouseProducts = async (warehouseCustomId) => {
     try {
-        const query = `SELECT p.id, p.name, p.price, i.quantity
+        const query = `SELECT p.custom_id as id, p.name, p.price, i.quantity
                        FROM inventory i
-                       JOIN products p ON i.product_id = p.id
+                       JOIN products p ON i.product_id = p.custom_id
                        WHERE i.warehouse_id = ?
                        ORDER BY p.name`;
 
