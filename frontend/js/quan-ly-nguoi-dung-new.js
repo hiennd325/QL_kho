@@ -10,6 +10,12 @@ function openModal(modalId) {
     modal.classList.remove('pointer-events-none');
     modal.classList.add('modal-open');
 
+    // Show modal content
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.classList.add('scale-100');
+    }
+
     document.body.classList.add('modal-active');
 }
 
@@ -19,6 +25,12 @@ function closeModal(modalId) {
     modal.classList.add('opacity-0');
     modal.classList.add('pointer-events-none');
     modal.classList.remove('modal-open');
+
+    // Hide modal content
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.classList.remove('scale-100');
+    }
 
     // Hide after transition
     setTimeout(() => {
@@ -124,10 +136,9 @@ class UserManager {
         const statusFilter = document.getElementById('status-filter').value;
 
         this.filteredUsers = this.users.filter(user => {
-            const matchSearch = !searchTerm || 
-                user.username.toLowerCase().includes(searchTerm) ||
-                (user.email && user.email.toLowerCase().includes(searchTerm));
-            
+            const matchSearch = !searchTerm ||
+                user.username.toLowerCase().includes(searchTerm);
+
             const matchRole = !roleFilter || user.role === roleFilter;
             const matchStatus = !statusFilter || user.status === statusFilter;
 
@@ -219,7 +230,6 @@ class UserManager {
                         </div>
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email || '-'}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="badge badge-${user.role}">
                         ${this.getRoleName(user.role)}
@@ -293,7 +303,6 @@ class UserManager {
                     </div>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900">${user.username}</h3>
-                <p class="text-sm text-gray-500 mt-1">${user.email || 'Không có email'}</p>
                 <div class="mt-4 flex gap-2">
                     <span class="badge badge-${user.role}">
                         ${this.getRoleName(user.role)}
@@ -408,7 +417,6 @@ class UserManager {
                 
                 const user = await response.json();
                 document.getElementById('username').value = user.username;
-                document.getElementById('email').value = user.email || '';
                 document.getElementById('role').value = user.role;
                 this.updateRoleDescription(user.role);
                 document.getElementById('status').value = user.status;
@@ -432,7 +440,6 @@ class UserManager {
         e.preventDefault();
 
         const username = document.getElementById('username').value.trim();
-        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value.trim();
         const confirmPassword = document.getElementById('confirm-password').value.trim();
         const role = document.getElementById('role').value;
@@ -441,11 +448,6 @@ class UserManager {
         // Validation
         if (!username) {
             this.showNotification('Vui lòng nhập tên đăng nhập', 'error');
-            return;
-        }
-
-        if (!email) {
-            this.showNotification('Vui lòng nhập email', 'error');
             return;
         }
 
@@ -478,7 +480,6 @@ class UserManager {
 
             const formData = {
                 username,
-                email,
                 role,
                 status
             };

@@ -185,7 +185,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
-                        <input type="text" id="search-input" placeholder="Tên đăng nhập, email..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="text" id="search-input" placeholder="Tên đăng nhập..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Vai trò</label>
@@ -230,10 +230,9 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên đăng nhập</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
+                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên đăng nhập</th>
+                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
                             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
@@ -285,12 +284,7 @@
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="username" type="text" placeholder="nguyenvana" required>
                             <p class="text-xs text-gray-500 mt-1">Không được trùng lặp, chỉ dùng chữ và số</p>
                         </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                                Email <span class="text-red-500">*</span>
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="email" type="email" placeholder="email@example.com" required>
-                        </div>
+
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
                                 Mật khẩu <span class="text-red-500">*</span>

@@ -23,6 +23,12 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
  */
 const createUser = async (username, password, role = 'staff', email = null, status = 'active') => {
     try {
+        // Check if username already exists
+        const existingUser = await findUserByUsername(username);
+        if (existingUser) {
+            throw new Error('Username already exists');
+        }
+
         // Hash mật khẩu với salt rounds = 10
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -107,8 +113,12 @@ const updateUser = async (id, updates) => {
         let setClause = []; // Mảng chứa các trường cần update
         let values = []; // Mảng chứa giá trị tương ứng
 
-        // Xây dựng câu UPDATE query động
+        // Check if username is being updated and already exists
         if (username) {
+            const existingUser = await findUserByUsername(username);
+            if (existingUser && existingUser.id !== parseInt(id)) {
+                throw new Error('Username already exists');
+            }
             setClause.push('username = ?');
             values.push(username);
         }
@@ -144,8 +154,9 @@ const updateUser = async (id, updates) => {
         });
 
         // Trả về thông tin user sau khi cập nhật
-        return getUserById(id);
+        return await getUserById(id);
     } catch (err) {
+        console.error('Detailed error in updateUser:', err);
         throw err;
     }
 };
