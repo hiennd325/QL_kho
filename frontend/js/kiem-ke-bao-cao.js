@@ -440,6 +440,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const option = document.createElement('option');
                 option.value = product.custom_id;
                 option.textContent = `${product.custom_id} - ${product.name}`;
+                option.setAttribute('data-quantity', product.quantity || 0);
                 select.appendChild(option);
             });
         } catch (error) {
@@ -641,7 +642,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Product selection change handler
     const selectProduct = document.getElementById('selectProduct');
     if (selectProduct) {
-        selectProduct.addEventListener('change', async () => {
+        selectProduct.addEventListener('change', () => {
             const productId = selectProduct.value;
             if (!productId) {
                 document.getElementById('systemQuantityInput').value = '';
@@ -649,33 +650,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const warehouseId = document.getElementById('inventoryWarehouse').value;
-            if (!warehouseId) {
-                document.getElementById('systemQuantityInput').value = '0';
-                document.getElementById('actualQuantityInput').value = '';
-                return;
-            }
-
-            try {
-                const baseUrl = `http://localhost:3000`;
-                const token = localStorage.getItem('token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-                const response = await fetch(`${baseUrl}/inventory/${productId}?warehouse=${warehouseId}`, { headers });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to fetch inventory');
-                }
-                const inventory = await response.json();
-
-                const systemQuantity = inventory ? inventory.quantity : 0;
-                document.getElementById('systemQuantityInput').value = systemQuantity;
-                document.getElementById('actualQuantityInput').value = '';
-            } catch (error) {
-                console.error('Error loading system quantity:', error);
-                document.getElementById('systemQuantityInput').value = '0';
-                document.getElementById('actualQuantityInput').value = '';
-            }
+            const selectedOption = selectProduct.options[selectProduct.selectedIndex];
+            const systemQuantity = selectedOption.getAttribute('data-quantity') || '0';
+            document.getElementById('systemQuantityInput').value = systemQuantity;
+            document.getElementById('actualQuantityInput').value = '';
         });
     }
 
