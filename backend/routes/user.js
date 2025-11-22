@@ -5,12 +5,36 @@ const userModel = require('../models/user');
 
 /**
  * Lấy danh sách tất cả người dùng
- * GET /users
- * Chỉ admin mới có quyền truy cập
+ * GET /users?search=...&role=...&status=...
+ * Query params:
+ * - search: Tìm kiếm theo username hoặc email
+ * - role: Lọc theo vai trò (admin, staff, viewer)
+ * - status: Lọc theo trạng thái (active, inactive)
  */
 router.get('/', async (req, res) => {
     try {
-        const users = await userModel.getAllUsers();
+        const { search, role, status } = req.query;
+        let users = await userModel.getAllUsers();
+
+        // Filter by role if specified
+        if (role) {
+            users = users.filter(u => u.role === role);
+        }
+
+        // Filter by status if specified
+        if (status) {
+            users = users.filter(u => u.status === status);
+        }
+
+        // Search by username or email if specified
+        if (search) {
+            const searchLower = search.toLowerCase();
+            users = users.filter(u => 
+                u.username.toLowerCase().includes(searchLower) ||
+                (u.email && u.email.toLowerCase().includes(searchLower))
+            );
+        }
+
         res.json(users);
     } catch (err) {
         console.error('Error getting users:', err);
@@ -19,6 +43,10 @@ router.get('/', async (req, res) => {
 });
 
 // Provide a simple count endpoint before '/:id' so '/count' doesn't match ':id'
+/**
+ * Lấy số lượng người dùng
+ * GET /users/count
+ */
 router.get('/count', async (req, res) => {
     try {
         const count = await userModel.getUsersCount();
@@ -97,15 +125,6 @@ router.delete('/:id', async (req, res) => {
     } catch (err) {
         console.error('Error deleting user:', err);
         res.status(500).json({ error: 'Failed to delete user' });
-    }
-});
-
-router.get('/count', async (req, res) => {
-    try {
-        const count = await userModel.getUsersCount();
-        res.json({ count });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to get users count' });
     }
 });
 

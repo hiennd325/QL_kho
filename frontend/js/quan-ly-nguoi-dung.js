@@ -5,13 +5,10 @@ function openModal(modalId) {
         console.error(`Modal element with ID "${modalId}" not found.`);
         return;
     }
-    modal.style.display = 'flex'; // Explicitly set display to flex
-    modal.style.opacity = '1'; // Explicitly set opacity
-    modal.style.pointerEvents = 'auto'; // Explicitly enable interaction
-    
-    // Remove the original hiding classes as well, for thoroughness
+    modal.style.display = 'flex';
     modal.classList.remove('opacity-0');
     modal.classList.remove('pointer-events-none');
+    modal.classList.add('modal-open');
 
     document.body.classList.add('modal-active');
     // Removed feather.replace() for debugging
@@ -20,9 +17,14 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    modal.style.display = 'none'; // Hide it
-    modal.style.opacity = '0'; // Explicitly set opacity to 0
-    modal.style.pointerEvents = 'none'; // Explicitly disable interaction
+    modal.classList.add('opacity-0');
+    modal.classList.add('pointer-events-none');
+    modal.classList.remove('modal-open');
+
+    // Hide after transition
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
 
     document.body.classList.remove('modal-active');
 }

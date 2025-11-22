@@ -7,8 +7,58 @@
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="js/auth.js" defer></script>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-admin {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .badge-staff {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-viewer {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+        }
+        .badge-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .badge-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .modal-fade-enter {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex">
 
@@ -82,21 +132,110 @@
 
         <!-- User Management Content -->
         <main class="p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-semibold">Danh sách người dùng</h3>
-                <button onclick="openModal('user-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                    <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm người dùng mới
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Tổng người dùng</p>
+                            <p id="total-users" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i data-feather="users" class="text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Quản trị viên</p>
+                            <p id="admin-count" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded-lg">
+                            <i data-feather="shield" class="text-red-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Nhân viên kho</p>
+                            <p id="staff-count" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i data-feather="briefcase" class="text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Hoạt động</p>
+                            <p id="active-count" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <i data-feather="check-circle" class="text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                        <input type="text" id="search-input" placeholder="Tên đăng nhập, email..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Vai trò</label>
+                        <select id="role-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Tất cả vai trò</option>
+                            <option value="admin">Quản trị viên</option>
+                            <option value="staff">Nhân viên kho</option>
+                            <option value="viewer">Người xem</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                        <select id="status-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Tạm khóa</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button id="btn-add-user" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm mới
+                        </button>
+                        <button id="btn-reset-filter" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                            <i data-feather="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users List/Grid View Toggle -->
+            <div class="flex gap-2 mb-4">
+                <button id="view-table-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
+                    <i data-feather="list" class="inline mr-1 h-4 w-4"></i> Danh sách
+                </button>
+                <button id="view-grid-btn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
+                    <i data-feather="grid" class="inline mr-1 h-4 w-4"></i> Lưới
                 </button>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Table View -->
+            <div id="table-view" class="bg-white rounded-lg shadow-md overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên đăng nhập</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
                             <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
                         </tr>
                     </thead>
@@ -105,69 +244,99 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Grid View -->
+            <div id="grid-view" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- User cards will be dynamically generated here -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="mt-6 flex justify-center gap-2">
+                <!-- Pagination buttons will be generated here -->
+            </div>
         </main>
     </div>
 
     <!-- Modal for Add/Edit User -->
-    <div id="user-modal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0">
+    <div id="user-modal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0 z-40">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50 z-40" onclick="closeModal('user-modal')"></div>
         
-        <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-xl shadow-2xl z-50 overflow-hidden relative">
+        <div class="modal-container bg-white w-11/12 md:max-w-2xl mx-auto rounded-xl shadow-2xl z-50 overflow-hidden relative">
             
             <div class="modal-content py-4 text-left px-6">
                 <!--Title-->
-                <div class="flex justify-between items-center pb-3">
-                    <p class="text-2xl font-bold">Thêm người dùng mới</p>
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <div>
+                        <p id="modal-title" class="text-2xl font-bold">Thêm người dùng mới</p>
+                        <p id="modal-subtitle" class="text-sm text-gray-500 mt-1">Nhập thông tin chi tiết của người dùng</p>
+                    </div>
                     <div class="modal-close cursor-pointer z-50" onclick="closeModal('user-modal')">
                         <i data-feather="x"></i>
                     </div>
                 </div>
 
                 <!--Body-->
-                <form id="userForm">
-                     <div class="mb-4">
-                         <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
-                             Tên đăng nhập
-                         </label>
-                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="username" type="text" placeholder="nguyenvana">
-                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                            Email
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="email" type="email" placeholder="email@example.com">
+                <form id="userForm" class="mt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                                Tên đăng nhập <span class="text-red-500">*</span>
+                            </label>
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="username" type="text" placeholder="nguyenvana" required>
+                            <p class="text-xs text-gray-500 mt-1">Không được trùng lặp, chỉ dùng chữ và số</p>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="email" type="email" placeholder="email@example.com" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                                Mật khẩu <span class="text-red-500">*</span>
+                            </label>
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="password" type="password" placeholder="••••••••" required>
+                            <p id="password-hint" class="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm-password">
+                                Xác nhận mật khẩu <span class="text-red-500">*</span>
+                            </label>
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="confirm-password" type="password" placeholder="••••••••" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
+                                Vai trò <span class="text-red-500">*</span>
+                            </label>
+                            <select id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">-- Chọn vai trò --</option>
+                                <option value="admin">Quản trị viên</option>
+                                <option value="staff">Nhân viên kho</option>
+                                <option value="viewer">Người xem</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Xác định quyền hạn người dùng</p>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
+                                Trạng thái <span class="text-red-500">*</span>
+                            </label>
+                            <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" required>
+                                <option value="active">Hoạt động</option>
+                                <option value="inactive">Tạm khóa</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                            Mật khẩu <span class="text-red-500">*</span>
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="password" type="password" placeholder="******************" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
-                            Vai trò
-                        </label>
-                        <select id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
-                            <option value="admin">Quản trị viên</option>
-                            <option value="staff">Nhân viên kho</option>
-                            <option value="viewer">Người xem</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                            Trạng thái
-                        </label>
-                        <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500">
-                            <option>Hoạt động</option>
-                            <option>Tạm khóa</option>
-                        </select>
+
+                    <!-- Role Description -->
+                    <div id="role-description" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-gray-700 hidden">
+                        <p id="role-desc-text"></p>
                     </div>
                 </form>
 
                 <!--Footer-->
-                <div class="flex justify-end pt-2">
-                    <button onclick="closeModal('user-modal')" class="px-4 bg-transparent p-3 rounded-lg text-indigo-500 hover:bg-gray-100 hover:text-indigo-400 mr-2">Hủy</button>
-                    <button id="saveUserBtn" type="button" class="px-4 bg-indigo-500 p-3 rounded-lg text-white hover:bg-indigo-400 transition-colors duration-200">Lưu</button>
+                <div class="flex justify-end gap-3 pt-6 border-t mt-6">
+                    <button onclick="closeModal('user-modal')" class="px-6 bg-transparent py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">Hủy</button>
+                    <button id="saveUserBtn" type="button" class="px-6 bg-blue-600 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">Lưu</button>
                 </div>
             </div>
         </div>
@@ -195,7 +364,7 @@
     </div>
 
     <script src="js/app.js" defer></script>
-    <script src="js/quan-ly-nguoi-dung.js"></script>
+    <script src="js/quan-ly-nguoi-dung-new.js" defer></script>
     <script>
         // Initialize Feather Icons when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', (event) => {
