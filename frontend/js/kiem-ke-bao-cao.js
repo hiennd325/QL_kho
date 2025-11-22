@@ -194,7 +194,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.product_id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.quantity}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Intl.NumberFormat('vi-VN').format(item.price)} ₫</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(item.quantity * item.price)} ₫</td>
@@ -888,7 +887,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Print current tab content
     function printCurrentTab() {
         const printWindow = window.open('', '_blank');
-        const tabContent = document.querySelector(`#${currentTab.replace(/\s+/g, '').toLowerCase()}-tab`);
+        const tabContent = tabContents[currentTab];
         const contentHTML = tabContent ? tabContent.innerHTML : 'Không có nội dung';
 
         printWindow.document.write(`

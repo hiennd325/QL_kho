@@ -12,13 +12,24 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
 // Get inventory report
 router.get('/inventory', async (req, res) => {
     try {
+        const { warehouse } = req.query;
+        let query = `
+            SELECT i.warehouse_id, w.name as warehouse_name, p.custom_id as product_id, p.name, p.description, i.quantity, p.price
+            FROM inventory i
+            JOIN products p ON i.product_id = p.custom_id
+            JOIN warehouses w ON i.warehouse_id = w.custom_id
+        `;
+        const params = [];
+
+        if (warehouse && warehouse !== 'Tất cả kho') {
+            query += ' WHERE w.name = ?';
+            params.push(warehouse);
+        }
+
+        query += ' ORDER BY p.name, w.name';
+
         const inventory = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT products.custom_id as product_id, products.name, products.description, SUM(inventory.quantity) as quantity, products.price
-                FROM inventory
-                JOIN products ON inventory.product_id = products.custom_id
-                GROUP BY products.custom_id, products.name, products.description, products.price
-            `, (err, rows) => {
+            db.all(query, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
