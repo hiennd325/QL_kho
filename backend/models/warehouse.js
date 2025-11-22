@@ -145,6 +145,30 @@ const deleteWarehouse = async (custom_id) => {
     }
 };
 
+const updateCurrentUsage = async (warehouseCustomId) => {
+    try {
+        // Calculate total quantity in inventory for this warehouse
+        const totalUsage = await new Promise((resolve, reject) => {
+            db.get('SELECT SUM(quantity) as total FROM inventory WHERE warehouse_id = ?', [warehouseCustomId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row.total || 0);
+            });
+        });
+
+        // Update current_usage in warehouses table
+        await new Promise((resolve, reject) => {
+            db.run('UPDATE warehouses SET current_usage = ? WHERE custom_id = ?', [totalUsage, warehouseCustomId], (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+
+        return totalUsage;
+    } catch (err) {
+        throw err;
+    }
+};
+
 const getWarehousesCount = async () => {
     try {
         return await new Promise((resolve, reject) => {
@@ -165,5 +189,6 @@ module.exports = {
     updateWarehouse,
     getWarehouseProducts,
     deleteWarehouse,
-    getWarehousesCount
+    getWarehousesCount,
+    updateCurrentUsage
 };

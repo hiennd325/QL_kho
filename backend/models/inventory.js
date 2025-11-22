@@ -2,6 +2,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const dotenv = require('dotenv');
+const warehouseModel = require('./warehouse');
 dotenv.config();
 
 const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
@@ -33,6 +34,8 @@ const updateInventoryQuantity = async (productId, quantityChange, warehouseId) =
                     else resolve();
                 });
             });
+            // Update warehouse current usage
+            await warehouseModel.updateCurrentUsage(warehouseId);
             return { product_id: productId, warehouse_id: warehouseId, quantity: quantityChange };
         }
         const newQuantity = current.quantity + quantityChange;
@@ -42,6 +45,8 @@ const updateInventoryQuantity = async (productId, quantityChange, warehouseId) =
                 else resolve();
             });
         });
+        // Update warehouse current usage
+        await warehouseModel.updateCurrentUsage(warehouseId);
         return { product_id: productId, warehouse_id: warehouseId, quantity: newQuantity };
     } catch (err) {
         throw err;
@@ -60,6 +65,8 @@ const addInventoryItem = async (productId, quantity, warehouseId) => {
                     else resolve();
                 });
             });
+            // Update warehouse current usage
+            await warehouseModel.updateCurrentUsage(warehouseId);
             return { product_id: productId, warehouse_id: warehouseId, quantity };
         }
     } catch (err) {
