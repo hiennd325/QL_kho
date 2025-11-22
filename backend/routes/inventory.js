@@ -94,19 +94,22 @@ router.post('/transactions', async (req, res) => {
             return res.status(400).json({ error: 'Invalid quantity' });
         }
 
+        // Ensure warehouse_id is a string (as per schema)
+        const warehouseIdStr = String(warehouse_id);
+
         if (type === 'nhap') {
             // Add inventory
-            await inventoryModel.addInventoryItem(product_id, quantityNum, warehouse_id);
+            await inventoryModel.addInventoryItem(product_id, quantityNum, warehouseIdStr);
         } else if (type === 'xuat') {
             // Check for sufficient stock
-            const currentInventory = await inventoryModel.getInventoryByProductId(product_id, warehouse_id);
+            const currentInventory = await inventoryModel.getInventoryByProductId(product_id, warehouseIdStr);
             if (!currentInventory || currentInventory.quantity < quantityNum) {
-                return res.status(400).json({ error: 'Insufficient stock' });
+                return res.status(400).json({ error: `Insufficient stock. Current: ${currentInventory ? currentInventory.quantity : 0}, Requested: ${quantityNum}` });
             }
             // Reduce inventory
-            await inventoryModel.updateInventoryQuantity(product_id, -quantityNum, warehouse_id);
+            await inventoryModel.updateInventoryQuantity(product_id, -quantityNum, warehouseIdStr);
         } else {
-            return res.status(400).json({ error: 'Invalid transaction type' });
+            return res.status(400).json({ error: 'Invalid transaction type. Must be nhap or xuat' });
         }
 
         // Create transaction record
@@ -116,7 +119,7 @@ router.post('/transactions', async (req, res) => {
         const transaction = await inventoryTransactionModel.createTransaction(
             transactionId,
             product_id,
-            warehouse_id,
+            warehouseIdStr,
             quantityNum,
             type,
             supplier_id,

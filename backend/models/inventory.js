@@ -28,26 +28,31 @@ const updateInventoryQuantity = async (productId, quantityChange, warehouseId) =
     try {
         const current = await getInventoryByProductId(productId, warehouseId);
         if (!current) {
+            // Nếu sản phẩm chưa có trong kho, thêm mới với số lượng bằng quantityChange
             await new Promise((resolve, reject) => {
-                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseId, quantityChange], (err) => {
+                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseId, Math.max(0, quantityChange)], (err) => {
                     if (err) reject(err);
                     else resolve();
                 });
             });
             // Update warehouse current usage
             await warehouseModel.updateCurrentUsage(warehouseId);
-            return { product_id: productId, warehouse_id: warehouseId, quantity: quantityChange };
+            return { product_id: productId, warehouse_id: warehouseId, quantity: Math.max(0, quantityChange) };
         }
+        
         const newQuantity = current.quantity + quantityChange;
+        // Đảm bảo số lượng không âm
+        const finalQuantity = Math.max(0, newQuantity);
+        
         await new Promise((resolve, reject) => {
-            db.run('UPDATE inventory SET quantity = ? WHERE product_id = ? AND warehouse_id = ?', [newQuantity, productId, warehouseId], (err) => {
+            db.run('UPDATE inventory SET quantity = ? WHERE product_id = ? AND warehouse_id = ?', [finalQuantity, productId, warehouseId], (err) => {
                 if (err) reject(err);
                 else resolve();
             });
         });
         // Update warehouse current usage
         await warehouseModel.updateCurrentUsage(warehouseId);
-        return { product_id: productId, warehouse_id: warehouseId, quantity: newQuantity };
+        return { product_id: productId, warehouse_id: warehouseId, quantity: finalQuantity };
     } catch (err) {
         throw err;
     }
@@ -57,17 +62,19 @@ const addInventoryItem = async (productId, quantity, warehouseId) => {
     try {
         const current = await getInventoryByProductId(productId, warehouseId);
         if (current) {
+            // Nếu sản phẩm đã tồn tại, cộng thêm số lượng
             return updateInventoryQuantity(productId, quantity, warehouseId);
         } else {
+            // Nếu sản phẩm chưa tồn tại, thêm mới với số lượng
             await new Promise((resolve, reject) => {
-                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseId, quantity], (err) => {
+                db.run('INSERT INTO inventory (product_id, warehouse_id, quantity) VALUES (?, ?, ?)', [productId, warehouseId, Math.max(0, quantity)], (err) => {
                     if (err) reject(err);
                     else resolve();
                 });
             });
             // Update warehouse current usage
             await warehouseModel.updateCurrentUsage(warehouseId);
-            return { product_id: productId, warehouse_id: warehouseId, quantity };
+            return { product_id: productId, warehouse_id: warehouseId, quantity: Math.max(0, quantity) };
         }
     } catch (err) {
         throw err;

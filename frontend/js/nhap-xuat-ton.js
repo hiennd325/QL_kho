@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         warehouses.forEach(warehouse => {
             const option = document.createElement('option');
-            option.value = warehouse.id;
+            option.value = warehouse.custom_id;  // Use custom_id, not id
             option.textContent = warehouse.name;
             warehouseFilter.appendChild(option);
         });
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 select.innerHTML = '';
                 warehouses.forEach(warehouse => {
                     const option = document.createElement('option');
-                    option.value = warehouse.id;
+                    option.value = warehouse.custom_id;  // Use custom_id, not id
                     option.textContent = warehouse.name;
                     select.appendChild(option);
                 });
@@ -758,27 +758,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                         product_id: productId,
                         type: 'nhap',
                         quantity: parseInt(quantity),
-                        supplier_id: parseInt(supplierId),
-                        warehouse_id: parseInt(warehouseId)
+                        supplier_id: supplierId ? parseInt(supplierId) : null,
+                        warehouse_id: warehouseId
                     })
                 });
 
+                const transactionResult = await transactionResponse.json();
+                
                 if (!transactionResponse.ok) {
-                    throw new Error('Nhập kho thất bại');
-                }
+                    throw new Error(transactionResult.error || 'Nhập kho thất bại');
+                }            alert(`Đã nhập kho ${quantity} sản phẩm: ${product.name}`);
+            importForm.reset();
+            importModal.classList.add('hidden');
 
-                alert(`Đã nhập kho ${quantity} sản phẩm: ${product.name}`);
-                importForm.reset();
-                importModal.classList.add('hidden');
-
-                // Refresh data
-                loadTransactions();
-                // Refresh product list
-                populateProductSelects();
-
-            } catch (error) {
+            // Refresh data
+            loadTransactions();
+            // Refresh product list
+            populateProductSelects();            } catch (error) {
                 console.error('Error importing stock:', error);
-                alert('Lỗi khi nhập kho: ' + error.message);
+                if (error.message.includes('Insufficient stock')) {
+                    alert('Lỗi khi nhập kho: Không đủ hàng trong kho');
+                } else {
+                    alert('Lỗi khi nhập kho: ' + error.message);
+                }
             }
         });
     }
@@ -824,26 +826,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                         type: 'xuat',
                         quantity: parseInt(quantity),
                         customer_name: customer,
-                        warehouse_id: parseInt(warehouseId)
+                        warehouse_id: warehouseId
                     })
                 });
 
+                const transactionResult = await transactionResponse.json();
+                
                 if (!transactionResponse.ok) {
-                    throw new Error('Xuất kho thất bại');
-                }
+                    throw new Error(transactionResult.error || 'Xuất kho thất bại');
+                }            alert(`Đã xuất kho ${quantity} sản phẩm: ${product.name}`);
+            exportForm.reset();
+            exportModal.classList.add('hidden');
 
-                alert(`Đã xuất kho ${quantity} sản phẩm: ${product.name}`);
-                exportForm.reset();
-                exportModal.classList.add('hidden');
-
-                // Refresh data
-                loadTransactions();
-                // Refresh product list
-                populateProductSelects();
-
-            } catch (error) {
+            // Refresh data
+            loadTransactions();
+            // Refresh product list
+            populateProductSelects();            } catch (error) {
                 console.error('Error exporting stock:', error);
-                alert('Lỗi khi xuất kho: ' + error.message);
+                if (error.message.includes('Insufficient stock')) {
+                    alert('Lỗi khi xuất kho: Không đủ hàng trong kho');
+                } else {
+                    alert('Lỗi khi xuất kho: ' + error.message);
+                }
             }
         });
     }
