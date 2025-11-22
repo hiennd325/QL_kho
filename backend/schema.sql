@@ -138,3 +138,16 @@ CREATE TABLE IF NOT EXISTS audits (
     FOREIGN KEY (warehouse_id) REFERENCES warehouses(custom_id),
     FOREIGN KEY (created_by_user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS audit_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    audit_id INTEGER NOT NULL,
+    product_id TEXT NOT NULL,
+    system_quantity INTEGER NOT NULL,
+    actual_quantity INTEGER NOT NULL,
+    discrepancy INTEGER NOT NULL,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (audit_id) REFERENCES audits(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(custom_id)
+);

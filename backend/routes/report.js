@@ -294,9 +294,45 @@ router.get('/audits/:id/export', async (req, res) => {
             return res.status(404).json({ error: 'Audit not found' });
         }
 
-        let csv = 'Mã phiếu,Ngày kiểm,Kho,Người tạo,Chênh lệch,Trạng thái,Ghi chú\n';
+        // Get audit items
+        const items = await new Promise((resolve, reject) => {
+            const query = `
+                SELECT ai.product_id, p.name as product_name, 
+                       ai.system_quantity, ai.actual_quantity, ai.discrepancy, p.price
+                FROM audit_items ai
+                JOIN products p ON ai.product_id = p.custom_id
+                WHERE ai.audit_id = ?
+            `;
+            db.all(query, [id], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        let csv = 'Báo Cáo Kiểm Kê\n';
         const formattedDate = new Date(audit.date).toLocaleDateString('vi-VN');
-        csv += `"${audit.code}","${formattedDate}","${audit.warehouse_name}","${audit.created_by_username}",${audit.discrepancy},"${audit.status}","${audit.notes || ''}"\n`;
+        csv += `Mã phiếu,${audit.code}\n`;
+        csv += `Ngày kiểm,${formattedDate}\n`;
+        csv += `Kho,${audit.warehouse_name}\n`;
+        csv += `Người tạo,${audit.created_by_username}\n`;
+        csv += `Trạng thái,${audit.status}\n`;
+        csv += `Ghi chú,${audit.notes || ''}\n\n`;
+
+        csv += 'Chi tiết sản phẩm kiểm kê\n';
+        csv += 'Mã SP,Tên sản phẩm,Số lượng hệ thống,Số lượng thực tế,Chênh lệch,Đơn giá,Giá trị chênh lệch\n';
+
+        items.forEach(item => {
+            const valueDiff = (item.discrepancy * item.price).toFixed(2);
+            csv += `"${item.product_id}","${item.product_name}",${item.system_quantity},${item.actual_quantity},${item.discrepancy},${item.price},${valueDiff}\n`;
+        });
+
+        csv += '\n';
+        csv += `Tổng chênh lệch (cái): ${audit.discrepancy}\n`;
+        let totalValueDiff = 0;
+        items.forEach(item => {
+            totalValueDiff += (item.discrepancy * item.price);
+        });
+        csv += `Tổng chênh lệch (VNĐ): ${totalValueDiff.toFixed(2)}\n`;
 
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', `attachment; filename="audit_${audit.code}.csv"`);

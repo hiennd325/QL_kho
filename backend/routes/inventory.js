@@ -14,9 +14,28 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
 // Get all inventory items (with product details)
 router.get('/', async (req, res) => {
     try {
-        const inventory = await inventoryModel.getAllInventory();
+        const { warehouse } = req.query;
+        let query = `
+            SELECT i.id, i.product_id, p.custom_id, p.name as product_name, i.quantity, i.warehouse_id
+            FROM inventory i
+            JOIN products p ON i.product_id = p.custom_id
+        `;
+        const params = [];
+
+        if (warehouse) {
+            query += ' WHERE i.warehouse_id = ?';
+            params.push(warehouse);
+        }
+
+        const inventory = await new Promise((resolve, reject) => {
+            db.all(query, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
         if (!inventory || inventory.length === 0) {
-            return res.status(404).json({ error: 'No inventory found' });
+            return res.json([]);
         }
         res.json(inventory);
     } catch (err) {
@@ -113,35 +132,62 @@ router.post('/transactions', async (req, res) => {
 });
 
 
-// POST create inventory audit
+// POST create inventory audit with items
 router.post('/audits', async (req, res) => {
     try {
-        const { code, date, warehouse_id, notes } = req.body;
+        const { code, date, warehouse_id, notes, items } = req.body;
         const created_by_user_id = req.user.id; // Get user ID from authenticated user
 
         if (!code || !date || !warehouse_id || !created_by_user_id) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        if (!items || items.length === 0) {
+            return res.status(400).json({ error: 'At least one item is required' });
+        }
+
+        // Calculate total discrepancy
+        let totalDiscrepancy = 0;
+        items.forEach(item => {
+            totalDiscrepancy += (item.system_quantity - item.actual_quantity);
+        });
+
+        // Create audit
         const audit = await new Promise((resolve, reject) => {
             db.run(
                 `INSERT INTO audits (code, date, warehouse_id, created_by_user_id, discrepancy, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [code, date, warehouse_id, created_by_user_id, 0, 'pending', notes],
+                [code, date, warehouse_id, created_by_user_id, totalDiscrepancy, 'pending', notes],
                 function (err) {
                     if (err) reject(err);
-                    else resolve({ id: this.lastID, code, date, warehouse_id, created_by_user_id, discrepancy: 0, status: 'pending', notes });
+                    else resolve({ id: this.lastID, code, date, warehouse_id, created_by_user_id, discrepancy: totalDiscrepancy, status: 'pending', notes });
                 }
             );
         });
 
-        res.status(201).json(audit);
+        // Insert audit items
+        for (const item of items) {
+            await new Promise((resolve, reject) => {
+                const discrepancy = item.system_quantity - item.actual_quantity;
+                db.run(
+                    `INSERT INTO audit_items (audit_id, product_id, system_quantity, actual_quantity, discrepancy, notes) 
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [audit.id, item.product_id, item.system_quantity, item.actual_quantity, discrepancy, item.notes || ''],
+                    function (err) {
+                        if (err) reject(err);
+                        else resolve();
+                    }
+                );
+            });
+        }
+
+        res.status(201).json({ ...audit, items });
     } catch (err) {
         console.error('Error creating inventory audit:', err);
         res.status(500).json({ error: 'Failed to create inventory audit' });
     }
 });
 
-// GET a single inventory audit by ID
+// GET a single inventory audit by ID with items
 router.get('/audits/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -164,7 +210,22 @@ router.get('/audits/:id', async (req, res) => {
             return res.status(404).json({ error: 'Audit not found' });
         }
 
-        res.json(audit);
+        // Get audit items
+        const items = await new Promise((resolve, reject) => {
+            const query = `
+                SELECT ai.id, ai.product_id, p.name as product_name, 
+                       ai.system_quantity, ai.actual_quantity, ai.discrepancy, ai.notes
+                FROM audit_items ai
+                JOIN products p ON ai.product_id = p.custom_id
+                WHERE ai.audit_id = ?
+            `;
+            db.all(query, [id], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        res.json({ ...audit, items });
     } catch (err) {
         console.error('Error getting inventory audit:', err);
         res.status(500).json({ error: 'Failed to get inventory audit' });

@@ -216,8 +216,8 @@
 
     <!-- Inventory Count Modal -->
     <div id="inventoryCountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="border-b px-6 py-4 flex justify-between items-center sticky top-0 bg-white">
                 <h3 class="text-lg font-semibold">Tạo phiếu kiểm kê</h3>
                 <button id="closeInventoryCountModal" class="text-gray-500 hover:text-gray-700">
                     <i data-feather="x"></i>
@@ -246,13 +246,78 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Người kiểm kê</label>
                         <input type="text" id="inventoryChecker" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên người kiểm kê" required>
                     </div>
+
+                    <!-- Audit Items Table -->
+                    <div class="mt-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block text-sm font-medium text-gray-700">Sản phẩm kiểm kê</label>
+                            <button type="button" id="addAuditItemBtn" class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 flex items-center text-sm">
+                                <i data-feather="plus" class="mr-1 h-4 w-4"></i> Thêm sản phẩm
+                            </button>
+                        </div>
+                        <div class="border rounded-md overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left font-medium text-gray-700">Mã SP</th>
+                                        <th class="px-4 py-2 text-left font-medium text-gray-700">Tên sản phẩm</th>
+                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Số lượng hệ thống</th>
+                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Số lượng thực tế</th>
+                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Chênh lệch</th>
+                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditItemsTableBody">
+                                    <!-- Audit items will be added here -->
+                                </tbody>
+                            </table>
+                            <div id="emptyAuditItemsMessage" class="text-center py-4 text-gray-500">
+                                Chưa có sản phẩm nào. Nhấn "Thêm sản phẩm" để bắt đầu.
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                        <textarea id="inventoryNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Ghi chú thêm (tùy chọn)"></textarea>
+                        <textarea id="inventoryNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2" placeholder="Ghi chú thêm (tùy chọn)"></textarea>
                     </div>
                     <div class="flex justify-end space-x-2">
                         <button type="button" id="cancelInventoryCountBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
                         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Tạo phiếu kiểm kê</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Audit Item Modal -->
+    <div id="addAuditItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="border-b px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Thêm sản phẩm kiểm kê</h3>
+                <button id="closeAddAuditItemModal" class="text-gray-500 hover:text-gray-700">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="addAuditItemForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Chọn sản phẩm</label>
+                        <select id="selectProduct" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <option value="">Chọn sản phẩm</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng hệ thống</label>
+                        <input type="number" id="systemQuantityInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng thực tế <span class="text-red-500">*</span></label>
+                        <input type="number" id="actualQuantityInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required placeholder="Nhập số lượng thực tế">
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelAddAuditItemBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Thêm</button>
                     </div>
                 </form>
             </div>
