@@ -217,9 +217,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 infoDiv.innerHTML = `Hiển thị <span class="font-medium">${start}</span> đến <span class="font-medium">${end}</span> của <span class="font-medium">${totalCount}</span> kết quả`;
             }
 
-            // For low stock, set to 0 for now
+            // Update low stock count
             const lowStockStat = document.getElementById('low-stock-count');
-            if (lowStockStat) lowStockStat.textContent = '0';
+            if (lowStockStat) {
+                // Fetch low stock alerts
+                fetch(`${baseUrl}/reports/alerts`, { headers })
+                    .then(response => response.ok ? response.json() : [])
+                    .then(alerts => {
+                        lowStockStat.textContent = alerts.length || 0;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching low stock alerts:', error);
+                        lowStockStat.textContent = '0';
+                    });
+            }
     
         } catch (error) {
             console.error('Error loading products:', error);
