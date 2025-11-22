@@ -98,25 +98,24 @@
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
                      <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option>Tất cả kho</option>
-                         <option>Kho chính</option>
-                         <option>Kho phụ</option>
+                         <option value="">Tất cả kho</option>
                      </select>
                      <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option>Tất cả trạng thái</option>
-                         <option>Đã cân bằng</option>
-                         <option>Chờ xử lý</option>
-                         <option>Đã hủy</option>
+                         <option value="">Tất cả trạng thái</option>
+                         <option value="pending">Chờ xử lý</option>
+                         <option value="completed">Đã cân bằng</option>
+                         <option value="cancelled">Đã hủy</option>
                      </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button class="p-2 border rounded-lg hover:bg-gray-50">
-                        <i data-feather="filter"></i>
+                    <button id="filterBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <i data-feather="filter" class="mr-2 h-4 w-4"></i>
+                        Lọc
                     </button>
-                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                    <button id="downloadBtn" class="p-2 border rounded-lg hover:bg-gray-50" title="Tải xuống báo cáo">
                         <i data-feather="download"></i>
                     </button>
-                    <button class="p-2 border rounded-lg hover:bg-gray-50">
+                    <button id="printBtn" class="p-2 border rounded-lg hover:bg-gray-50" title="In báo cáo">
                         <i data-feather="printer"></i>
                     </button>
                 </div>

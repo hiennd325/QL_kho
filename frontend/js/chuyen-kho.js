@@ -5,10 +5,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeModalBtn = document.getElementById('closeTransferModal');
     const cancelTransferBtn = document.getElementById('cancelTransferBtn');
     const transfersTableBody = document.querySelector('#transfersTable tbody');
+    const submitTransferBtn = document.querySelector('#transferForm button[type="submit"]');
 
     // Load initial data
-    await loadWarehouses();
-    await loadProducts();
     await loadTransfers();
 
     // Event listeners
@@ -43,26 +42,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Helper functions
     async function loadWarehouses() {
         try {
+            const fromSelect = document.getElementById('from_warehouse_id');
+            const toSelect = document.getElementById('to_warehouse_id');
+
+            // If already loaded, skip
+            if (fromSelect.options.length > 1) return;
+
             const response = await fetch('http://localhost:3000/warehouses', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            
+
             if (!response.ok) throw new Error('Failed to load warehouses');
-            
+
             const warehouses = await response.json();
-            const fromSelect = document.getElementById('from_warehouse_id');
-            const toSelect = document.getElementById('to_warehouse_id');
-            
+
             // Clear existing options
             fromSelect.innerHTML = '<option value="">Chọn kho nguồn</option>';
             toSelect.innerHTML = '<option value="">Chọn kho đích</option>';
-            
+
             // Add warehouses to both selects
             warehouses.forEach(warehouse => {
                 const option = document.createElement('option');
-                option.value = warehouse.id;
+                option.value = warehouse.custom_id;
                 option.textContent = warehouse.name;
                 fromSelect.appendChild(option.cloneNode(true));
                 toSelect.appendChild(option.cloneNode(true));
@@ -75,21 +78,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadProducts() {
         try {
+            const select = document.getElementById('product_id');
+
+            // If already loaded, skip
+            if (select.options.length > 1) return;
+
             const response = await fetch('http://localhost:3000/products', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            
+
             if (!response.ok) throw new Error('Failed to load products');
-            
+
             const data = await response.json();
             const products = data.products || data;
-            const select = document.getElementById('product_id');
-            
+
             // Clear existing options
             select.innerHTML = '<option value="">Chọn sản phẩm</option>';
-            
+
             // Add products to select
             products.forEach(product => {
                 const option = document.createElement('option');
@@ -259,16 +266,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (transferForm) {
                 transferForm.reset();
             }
-            
+
+            // Disable submit button until data loads
+            if (submitTransferBtn) {
+                submitTransferBtn.disabled = true;
+                submitTransferBtn.textContent = 'Đang tải...';
+            }
+
             // Reset select options to show placeholder
             const selects = transferForm.querySelectorAll('select');
             selects.forEach(select => {
                 select.selectedIndex = 0;
             });
-            
+
             // Show modal with enhanced animation
             transferModal.classList.remove('hidden');
-            
+
             // Trigger animation
             const modalContent = transferModal.querySelector('.rounded-2xl');
             if (modalContent) {
@@ -276,7 +289,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 modalContent.classList.add('scale-100');
                 modalContent.classList.add('opacity-100');
             }
-            
+
+            // Load data and enable submit
+            Promise.all([loadWarehouses(), loadProducts()]).then(() => {
+                if (submitTransferBtn) {
+                    submitTransferBtn.disabled = false;
+                    submitTransferBtn.textContent = 'Tạo phiếu điều chuyển';
+                }
+            });
+
             // Focus on first input
             setTimeout(() => {
                 const firstSelect = document.getElementById('from_warehouse_id');
@@ -309,15 +330,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const formData = new FormData(transferForm);
             const transferData = {
-                from_warehouse_id: parseInt(formData.get('from_warehouse_id')),
-                to_warehouse_id: parseInt(formData.get('to_warehouse_id')),
-                product_id: parseInt(formData.get('product_id')),
+                from_warehouse_id: formData.get('from_warehouse_id'),
+                to_warehouse_id: formData.get('to_warehouse_id'),
+                product_id: formData.get('product_id'),
                 quantity: parseInt(formData.get('quantity')),
                 notes: formData.get('notes')
             };
 
+            console.log('Transfer data:', transferData); // Debug
+
             // Validate data
-            if (!transferData.from_warehouse_id || !transferData.to_warehouse_id || 
+            if (!transferData.from_warehouse_id || !transferData.to_warehouse_id ||
                 !transferData.product_id || !transferData.quantity) {
                 alert('Vui lòng điền đầy đủ thông tin');
                 return;
@@ -331,6 +354,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (transferData.quantity <= 0) {
                 alert('Số lượng phải lớn hơn 0');
                 return;
+            }
+
+            // Check stock in from warehouse
+            try {
+                const stockResponse = await fetch(`http://localhost:3000/warehouses/${transferData.from_warehouse_id}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (stockResponse.ok) {
+                    const products = await stockResponse.json();
+                    const productInWarehouse = products.find(p => p.id === transferData.product_id);
+                    if (!productInWarehouse || productInWarehouse.quantity < transferData.quantity) {
+                        alert('Không đủ hàng trong kho nguồn');
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking stock:', error);
+                // Continue anyway, backend will check
             }
 
             const response = await fetch('http://localhost:3000/transfers', {

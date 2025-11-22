@@ -61,16 +61,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const queryParams = new URLSearchParams({ page, limit: 10 });
             if (startDate) queryParams.append('startDate', startDate);
             if (endDate) queryParams.append('endDate', endDate);
-            if (warehouseFilter && warehouseFilter !== 'Tất cả kho') {
+            if (warehouseFilter) {
                 queryParams.append('warehouse', warehouseFilter);
             }
-            if (statusFilter && statusFilter !== 'Tất cả trạng thái') {
-                const statusMap = {
-                    'Đã cân bằng': 'balanced',
-                    'Chờ xử lý': 'pending',
-                    'Đã hủy': 'cancelled'
-                };
-                queryParams.append('status', statusMap[statusFilter]);
+            if (statusFilter) {
+                queryParams.append('status', statusFilter);
             }
 
             const response = await fetch(`${baseUrl}/reports/audits?${queryParams.toString()}`, { headers });
@@ -83,6 +78,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const row = document.createElement('tr');
                 row.className = 'table-row hover:bg-gray-50';
                 row.setAttribute('data-id', audit.id);
+
+                const statusMap = {
+                    pending: { text: 'Chờ xử lý', color: 'yellow' },
+                    completed: { text: 'Đã cân bằng', color: 'green' },
+                    cancelled: { text: 'Đã hủy', color: 'red' }
+                };
+                const statusInfo = statusMap[audit.status] || { text: audit.status, color: 'gray' };
+
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${audit.code}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(audit.date).toLocaleDateString('vi-VN')}</td>
@@ -92,8 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ${audit.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(audit.discrepancy))} ₫
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs font-medium bg-${audit.status === 'completed' ? 'green' : 'yellow'}-100 text-${audit.status === 'completed' ? 'green' : 'yellow'}-800 rounded-full">
-                            ${audit.status === 'completed' ? 'Đã cân bằng' : 'Chờ xử lý'}
+                        <span class="px-2 py-1 text-xs font-medium bg-${statusInfo.color}-100 text-${statusInfo.color}-800 rounded-full">
+                            ${statusInfo.text}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -339,7 +342,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error loading warehouses:', error);
         }
     }
+    async function loadWarehouseFilterOptions() {
+        try {
+            const baseUrl = `http://localhost:3000`;
+            const token = localStorage.getItem('token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const response = await fetch(`${baseUrl}/warehouses`, { headers });
 
+            if (!response.ok) throw new Error('Failed to fetch warehouses');
+
+            const warehouses = await response.json();
+            const select = document.getElementById('warehouseFilter');
+            
+            warehouses.forEach(warehouse => {
+                const option = document.createElement('option');
+                option.value = warehouse.id;
+                option.textContent = warehouse.name;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading warehouse filter options:', error);
+        }
+    }
     // Handle form submission
     async function handleInventoryCountFormSubmit(event) {
         event.preventDefault();
@@ -538,42 +562,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         inventoryCountForm.addEventListener('submit', handleInventoryCountFormSubmit);
     }
 
-    // Add event listeners for filter inputs and buttons
-    const filterInputs = document.querySelectorAll('input[type="date"], select');
-    filterInputs.forEach(input => {
-        input.addEventListener('change', () => {
-            loadAudits(); // Reload audits with filters
+    // Add event listeners for filter and action buttons
+    const filterBtn = document.getElementById('filterBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    if (filterBtn) {
+        filterBtn.addEventListener('click', () => {
+            loadAudits();
             loadInventoryReport();
         });
-    });
+    }
 
-    // Add event listeners for action buttons
-    const actionButtons = document.querySelectorAll('.p-2.border.rounded-lg.hover\\:bg-gray-50');
-    actionButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const icon = button.querySelector('i');
-            if (icon) {
-                const iconName = icon.getAttribute('data-feather');
-                switch(iconName) {
-                    case 'filter':
-                        // Toggle advanced filters
-                        const filterSection = document.querySelector('.flex.flex-wrap.items-center.gap-4');
-                        if (filterSection) {
-                            filterSection.classList.toggle('hidden');
-                        }
-                        break;
-                    case 'download':
-                        // Export reports to CSV
-                        exportReportsToCSV();
-                        break;
-                    case 'printer':
-                        // Print current tab content
-                        printCurrentTab();
-                        break;
-                }
-            }
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            exportReportsToCSV();
         });
-    });
+    }
+
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            printCurrentTab();
+        });
+    }
 
     // Export reports to CSV
     async function exportReportsToCSV() {
@@ -641,4 +652,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAudits();
     loadInventoryReport();
     loadImportExportChart();
+    loadWarehouseFilterOptions();
 });
+
