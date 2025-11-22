@@ -594,27 +594,28 @@ async function fetchDashboardData() {
         // Use absolute URL with port 3000 for backend API
         const baseUrl = `http://localhost:3000`;
         
-        const [alertsRes, statsRes, activitiesRes, productsRes, warehousesRes, usersRes, suppliersRes] = await Promise.all([
+        const [alertsRes, statsRes, activitiesRes, productsRes, warehousesRes, usersRes, suppliersRes, quickStatsRes] = await Promise.all([
             fetch(`${baseUrl}/dashboard/alerts`, { headers }),
             fetch(`${baseUrl}/dashboard/stats`, { headers }),
             fetch(`${baseUrl}/dashboard/recent-activities`, { headers }),
             fetch(`${baseUrl}/products/count`, { headers }),
             fetch(`${baseUrl}/warehouses/count`, { headers }),
             fetch(`${baseUrl}/users/count`, { headers }),
-            fetch(`${baseUrl}/suppliers/count`, { headers })
+            fetch(`${baseUrl}/suppliers/count`, { headers }),
+            fetch(`${baseUrl}/reports/quick-stats`, { headers })
         ]);
 
         // Check for unauthorized responses (401)
         if (alertsRes.status === 401 || statsRes.status === 401 || activitiesRes.status === 401 ||
             productsRes.status === 401 || warehousesRes.status === 401 || usersRes.status === 401 ||
-            suppliersRes.status === 401) {
+            suppliersRes.status === 401 || quickStatsRes.status === 401) {
             window.location.href = '/login.html';
             return;
         }
 
         if (!alertsRes.ok || !statsRes.ok || !activitiesRes.ok ||
             !productsRes.ok || !warehousesRes.ok || !usersRes.ok ||
-            !suppliersRes.ok) {
+            !suppliersRes.ok || !quickStatsRes.ok) {
             throw new Error('Failed to fetch dashboard data');
         }
 
@@ -625,6 +626,7 @@ async function fetchDashboardData() {
         const warehousesCount = await warehousesRes.json();
         const usersCount = await usersRes.json();
         const suppliersCount = await suppliersRes.json();
+        const quickStatsData = await quickStatsRes.json();
         return {
             alerts: alertsData,
             stats: statsData,
@@ -633,7 +635,9 @@ async function fetchDashboardData() {
                 products: productsCount.count || 0,
                 warehouses: warehousesCount.count || 0,
                 users: usersCount.count || 0,
-                suppliers: suppliersCount.count || 0
+                suppliers: suppliersCount.count || 0,
+                total_audits: quickStatsData.total_audits || 0,
+                total_audits_monthly: quickStatsData.total_audits_monthly || 0
             }
         };
     } catch (error) {
@@ -722,12 +726,12 @@ function updateFunctionOverview(counts) {
     // Update reports count and monthly reports
     const reportsCountEl = document.getElementById('reports-count');
     if (reportsCountEl) {
-        reportsCountEl.textContent = '0';
+        reportsCountEl.textContent = counts.total_audits.toLocaleString('vi-VN');
     }
-    
+
     const reportsMonthlyEl = document.getElementById('reports-monthly');
     if (reportsMonthlyEl) {
-        reportsMonthlyEl.textContent = 'Chưa có báo cáo';
+        reportsMonthlyEl.textContent = counts.total_audits_monthly > 0 ? `${counts.total_audits_monthly} báo cáo trong tháng` : 'Chưa có báo cáo tháng này';
     }
 }
 

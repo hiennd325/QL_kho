@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const response = await fetch(`${baseUrl}/reports/audits?${queryParams.toString()}`, { headers });
             if (!response.ok) throw new Error('Failed to fetch audits');
-            const { audits, totalPages } = await response.json();
+            const { audits, totalPages, total = 0 } = await response.json();
 
             const tableBody = document.querySelector('#kiem-ke-tab tbody');
             tableBody.innerHTML = '';
@@ -112,6 +112,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tableBody.appendChild(row);
             });
             feather.replace();
+
+            // Update display text
+            const start = (currentPage - 1) * 10 + 1;
+            const end = Math.min(currentPage * 10, total);
+            const displayText = document.querySelector('.text-sm.text-gray-700');
+            if (displayText) {
+                displayText.innerHTML = `Hiển thị <span class="font-medium">${start}</span> đến <span class="font-medium">${end}</span> của <span class="font-medium">${total}</span> kết quả`;
+            }
+
             renderPagination(totalPages, currentPage);
         } catch (error) {
             console.error('Error loading audits:', error);
@@ -383,7 +392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             warehouses.forEach(warehouse => {
                 const option = document.createElement('option');
-                option.value = warehouse.id;
+                option.value = warehouse.custom_id;
                 option.textContent = warehouse.name;
                 select.appendChild(option);
             });
@@ -403,10 +412,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const warehouses = await response.json();
             const select = document.getElementById('warehouseFilter');
-            
+
             warehouses.forEach(warehouse => {
                 const option = document.createElement('option');
-                option.value = warehouse.id;
+                option.value = warehouse.custom_id;
                 option.textContent = warehouse.name;
                 select.appendChild(option);
             });

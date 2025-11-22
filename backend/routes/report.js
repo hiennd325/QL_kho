@@ -86,7 +86,9 @@ router.get('/quick-stats', async (req, res) => {
                     (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'nhap' AND transaction_date >= DATE('now', '-1 month')) as total_import,
                     (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'xuat' AND transaction_date >= DATE('now', '-1 month')) as total_export,
                     (SELECT SUM(quantity) FROM inventory) as total_inventory,
-                    (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.custom_id) as total_value
+                    (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.custom_id) as total_value,
+                    (SELECT COUNT(*) FROM audits WHERE date >= DATE('now', '-1 month')) as total_audits_monthly,
+                    (SELECT COUNT(*) FROM audits) as total_audits
             `, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -96,12 +98,16 @@ router.get('/quick-stats', async (req, res) => {
                         total_import: rows[0].total_import || 0,
                         total_export: rows[0].total_export || 0,
                         total_inventory: rows[0].total_inventory || 0,
-                        total_value: rows[0].total_value || 0
+                        total_value: rows[0].total_value || 0,
+                        total_audits_monthly: rows[0].total_audits_monthly || 0,
+                        total_audits: rows[0].total_audits || 0
                     } : {
                         total_import: 0,
                         total_export: 0,
                         total_inventory: 0,
-                        total_value: 0
+                        total_value: 0,
+                        total_audits_monthly: 0,
+                        total_audits: 0
                     };
                     resolve(result);
                 }
@@ -165,13 +171,14 @@ router.get('/audits', async (req, res) => {
             const countParams = params.slice(0, -2);
             db.get(countQuery, countParams, (err, row) => {
                 if (err) reject(err);
-                else resolve(row.count);
+                else resolve(row ? row.count : 0);
             });
         });
 
         res.json({
             audits,
-            totalPages: Math.ceil(total / limit)
+            totalPages: Math.ceil(total / limit),
+            total
         });
     } catch (err) {
         console.error('Failed to get audits', err)
