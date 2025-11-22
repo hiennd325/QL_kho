@@ -1,3 +1,22 @@
+// Global functions for modal management
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('opacity-0');
+    modal.classList.remove('pointer-events-none');
+    document.body.classList.add('modal-active');
+    // Re-render feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('opacity-0');
+    modal.classList.add('pointer-events-none');
+    document.body.classList.remove('modal-active');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const tableBody = document.querySelector('tbody');
     const addUserButton = document.querySelector('button[onclick="openModal(\'user-modal\')"]');
@@ -9,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const passwordInput = document.getElementById('password');
     const roleSelect = document.getElementById('role');
     const statusSelect = document.getElementById('status');
-    const saveUserBtn = document.querySelector('button.modal-close');
+    const saveUserBtn = document.getElementById('saveUserBtn');
 
     let currentUserId = null;
 
@@ -82,7 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         usernameInput.value = '';
         emailInput.value = '';
         passwordInput.value = '';
-        roleSelect.value = 'user';
+        roleSelect.value = 'staff';
         statusSelect.value = 'Hoạt động';
         currentUserId = null;
         passwordInput.required = true;
@@ -102,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const user = await response.json();
             usernameInput.value = user.username;
             emailInput.value = user.email || '';
-            roleSelect.value = user.role || 'user';
+            roleSelect.value = user.role || 'staff';
             statusSelect.value = user.status === 'active' ? 'Hoạt động' : 'Tạm khóa';
             currentUserId = userId;
             passwordInput.required = false;

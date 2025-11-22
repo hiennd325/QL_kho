@@ -34,7 +34,7 @@ function authenticate(req, res, next) {
 // Tạo instance của Express app
 const app = express();
 // Đặt port từ biến môi trường hoặc mặc định 3000
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
 // Cấu hình CORS để cho phép frontend truy cập
 app.use(cors({
