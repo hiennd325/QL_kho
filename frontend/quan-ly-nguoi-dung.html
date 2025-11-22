@@ -197,8 +197,10 @@
     <script src="js/app.js" defer></script>
     <script src="js/quan-ly-nguoi-dung.js"></script>
     <script>
-        // Initialize Feather Icons
-        feather.replace();
+        // Initialize Feather Icons when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', (event) => {
+            feather.replace();
+        });
 
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
