@@ -76,14 +76,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function loadProducts() {
+    async function loadProducts(warehouseId = null) {
         try {
             const select = document.getElementById('product_id');
 
-            // If already loaded, skip
-            if (select.options.length > 1) return;
+            // Clear existing options
+            select.innerHTML = '<option value="">Chọn sản phẩm</option>';
 
-            const response = await fetch('http://localhost:3000/products', {
+            if (!warehouseId) {
+                // If no warehouse selected, show placeholder
+                return;
+            }
+
+            const response = await fetch(`http://localhost:3000/warehouses/${warehouseId}/products`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -91,11 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!response.ok) throw new Error('Failed to load products');
 
-            const data = await response.json();
-            const products = data.products || data;
-
-            // Clear existing options
-            select.innerHTML = '<option value="">Chọn sản phẩm</option>';
+            const products = await response.json();
 
             // Add products to select
             products.forEach(product => {
@@ -291,7 +292,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Load data and enable submit
-            Promise.all([loadWarehouses(), loadProducts()]).then(() => {
+            loadWarehouses().then(() => {
+                // Add event listener for from_warehouse_id change
+                const fromWarehouseSelect = document.getElementById('from_warehouse_id');
+                if (fromWarehouseSelect) {
+                    fromWarehouseSelect.addEventListener('change', (e) => {
+                        const selectedWarehouseId = e.target.value;
+                        loadProducts(selectedWarehouseId);
+                    });
+                }
+
+                // Add event listener for to_warehouse_id change to check if same as from
+                const toWarehouseSelect = document.getElementById('to_warehouse_id');
+                if (toWarehouseSelect) {
+                    toWarehouseSelect.addEventListener('change', (e) => {
+                        const selectedToWarehouseId = e.target.value;
+                        const selectedFromWarehouseId = fromWarehouseSelect.value;
+                        if (selectedToWarehouseId && selectedFromWarehouseId && selectedToWarehouseId === selectedFromWarehouseId) {
+                            alert('Kho nguồn và kho đích không thể giống nhau');
+                            e.target.value = ''; // Reset selection
+                        }
+                    });
+                }
+
                 if (submitTransferBtn) {
                     submitTransferBtn.disabled = false;
                     submitTransferBtn.textContent = 'Tạo phiếu điều chuyển';
