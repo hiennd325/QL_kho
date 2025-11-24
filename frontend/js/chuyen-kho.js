@@ -293,9 +293,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Trigger animation
             const modalContent = transferModal.querySelector('.rounded-2xl');
             if (modalContent) {
-                modalContent.classList.remove('scale-95');
-                modalContent.classList.add('scale-100');
-                modalContent.classList.add('opacity-100');
+                // Reset any previous animation states
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
             }
 
             // Load data and enable submit
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 modalContent.classList.remove('opacity-100');
                 modalContent.classList.add('scale-95');
                 modalContent.classList.add('opacity-0');
-                
+
                 // Hide modal after animation completes
                 setTimeout(() => {
                     transferModal.classList.add('hidden');
