@@ -68,6 +68,7 @@ class UserManager {
 
         // Search and filter
         document.getElementById('search-input').addEventListener('input', () => this.applyFilters());
+        document.getElementById('header-search-input').addEventListener('input', () => this.applyFilters());
         document.getElementById('role-filter').addEventListener('change', () => this.applyFilters());
         document.getElementById('status-filter').addEventListener('change', () => this.applyFilters());
         document.getElementById('btn-reset-filter').addEventListener('click', () => this.resetFilters());
@@ -130,7 +131,7 @@ class UserManager {
     }
 
     applyFilters() {
-        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const searchTerm = (document.getElementById('header-search-input').value || document.getElementById('search-input').value).toLowerCase();
         const roleFilter = document.getElementById('role-filter').value;
         const statusFilter = document.getElementById('status-filter').value;
 
@@ -150,6 +151,7 @@ class UserManager {
 
     resetFilters() {
         document.getElementById('search-input').value = '';
+        document.getElementById('header-search-input').value = '';
         document.getElementById('role-filter').value = '';
         document.getElementById('status-filter').value = '';
         this.filteredUsers = [...this.users];

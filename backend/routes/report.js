@@ -132,7 +132,7 @@ router.get('/quick-stats', async (req, res) => {
 
 router.get('/audits', async (req, res) => {
     try {
-        const { startDate, endDate, warehouse, status, page = 1, limit = 10 } = req.query;
+        const { startDate, endDate, warehouse, status, search, page = 1, limit = 10 } = req.query;
         let query = `
             SELECT
                 a.id, a.code, a.date, a.discrepancy, a.status, a.notes,
@@ -162,6 +162,11 @@ router.get('/audits', async (req, res) => {
         if (status && status !== 'Tất cả trạng thái') {
             whereClause += ' AND a.status = ?';
             params.push(status);
+        }
+        if (search) {
+            whereClause += ' AND (a.code LIKE ? OR w.name LIKE ? OR u.username LIKE ?)';
+            const searchTerm = `%${search}%`;
+            params.push(searchTerm, searchTerm, searchTerm);
         }
 
         countQuery += whereClause;

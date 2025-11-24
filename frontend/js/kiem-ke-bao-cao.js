@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const endDate = document.querySelector('input[type="date"]:nth-of-type(2)')?.value;
             const warehouseFilter = document.getElementById('warehouseFilter').value;
             const statusFilter = document.getElementById('statusFilter').value;
+            const searchValue = document.getElementById('searchInput')?.value || '';
 
             // Build query parameters
             const queryParams = new URLSearchParams({ page, limit: 10 });
@@ -68,6 +69,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (statusFilter) {
                 queryParams.append('status', statusFilter);
+            }
+            if (searchValue && searchValue !== '') {
+                queryParams.append('search', searchValue);
             }
 
             const response = await fetch(`${baseUrl}/reports/audits?${queryParams.toString()}`, { headers });
@@ -825,6 +829,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (inventoryCountForm) {
         inventoryCountForm.addEventListener('submit', handleInventoryCountFormSubmit);
     }
+
+    // Add search functionality
+    const setupSearch = () => {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            // Search when typing (with debounce)
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1; // Reset to first page when searching
+                    loadAudits(); // Reload audits with search term
+                }, 500); // Wait for 500ms after user stops typing
+            });
+        } else {
+            // If not found, try again after a short delay
+            setTimeout(setupSearch, 100);
+        }
+    };
+
+    // Initialize search functionality
+    setupSearch();
 
     // Add event listeners for filter and action buttons
     const filterBtn = document.getElementById('filterBtn');
