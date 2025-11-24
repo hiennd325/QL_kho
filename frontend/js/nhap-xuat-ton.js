@@ -507,13 +507,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Get filter values
             const startDate = document.getElementById('startDate')?.value;
             const endDate = document.getElementById('endDate')?.value;
-            const warehouseFilter = document.getElementById('warehouseFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
+            const warehouseFilter = document.getElementById('warehouseFilter')?.value || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const searchValue = document.getElementById('searchInput')?.value || '';
             
             // Get advanced filter values
-            const typeFilter = document.getElementById('typeFilter')?.value;
-            const productFilter = document.getElementById('productFilter')?.value;
-            const userFilter = document.getElementById('userFilter')?.value;
+            const typeFilter = document.getElementById('typeFilter')?.value || '';
+            const productFilter = document.getElementById('productFilter')?.value || '';
+            const userFilter = document.getElementById('userFilter')?.value || '';
 
             // Build query parameters
             const queryParams = new URLSearchParams({
@@ -529,6 +530,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (statusFilter && statusFilter !== '') {
                 queryParams.append('type', statusFilter);
+            }
+            if (searchValue && searchValue !== '') {
+                queryParams.append('search', searchValue);
             }
             
             // Add advanced filters
@@ -587,6 +591,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderPagination(totalPages);
             updateStats();
             renderStockAlerts(alertData);
+            // Re-setup action buttons in case DOM changed
+            setupActionButtons();
 
             // Update pagination info
             const infoDiv = document.querySelector('.bg-white.px-6.py-4.border-t .text-sm.text-gray-700');
@@ -852,6 +858,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Add search functionality
+    // Wait for the search input to be available
+    const setupSearch = () => {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            // Search when typing (with debounce)
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1; // Reset to first page when searching
+                    loadTransactions(); // Reload transactions with search term
+                }, 500); // Wait for 500ms after user stops typing
+            });
+        } else {
+            // If not found, try again after a short delay
+            setTimeout(setupSearch, 100);
+        }
+    };
+    
+    // Initialize search functionality
+    setupSearch();
+
     // Add event listeners for basic filter inputs
     const filterInputs = document.querySelectorAll('#startDate, #endDate, #warehouseFilter, #statusFilter');
     filterInputs.forEach(input => {
@@ -879,33 +908,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Export to CSV
-    const exportCSVBtn = document.getElementById('exportCSV');
-    if (exportCSVBtn) {
-        exportCSVBtn.addEventListener('click', exportTransactionsToCSV);
+    // Setup event listeners for action buttons
+    function setupActionButtons() {
+        // Export to CSV
+        const exportCSVBtn = document.getElementById('exportCSV');
+        if (exportCSVBtn) {
+            // Remove existing event listener if any
+            exportCSVBtn.removeEventListener('click', exportTransactionsToCSV);
+            exportCSVBtn.addEventListener('click', exportTransactionsToCSV);
+        }
+
+        // Print table
+        const printTableBtn = document.getElementById('printTable');
+        if (printTableBtn) {
+            // Remove existing event listener if any
+            printTableBtn.removeEventListener('click', printTransactionsTable);
+            printTableBtn.addEventListener('click', printTransactionsTable);
+        }
     }
 
-    // Print table
-    const printTableBtn = document.getElementById('printTable');
-    if (printTableBtn) {
-        printTableBtn.addEventListener('click', printTransactionsTable);
-    }
+    // Call setupActionButtons initially
+    setupActionButtons();
 
     // Export transactions to CSV
     async function exportTransactionsToCSV() {
         try {
             const baseUrl = `http://localhost:3000`;
             const token = localStorage.getItem('token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            
+            // Kiểm tra xác thực
+            if (!token) {
+                alert('Vui lòng đăng nhập để xuất dữ liệu');
+                return;
+            }
+            
+            const headers = { 'Authorization': `Bearer ${token}` };
+
+            // Hiển thị thông báo đang xử lý
+            const exportCSVBtn = document.getElementById('exportCSV');
+            if (exportCSVBtn) {
+                exportCSVBtn.disabled = true;
+                exportCSVBtn.innerHTML = '<i data-feather="loader" class="animate-spin"></i>';
+                feather.replace();
+            }
 
             const response = await fetch(`${baseUrl}/inventory/transactions/export`, { headers });
-            if (!response.ok) throw new Error('Failed to export transactions');
+            
+            // Khôi phục lại nút sau khi hoàn tất request
+            if (exportCSVBtn) {
+                exportCSVBtn.disabled = false;
+                exportCSVBtn.innerHTML = '<i data-feather="download"></i>';
+                feather.replace();
+            }
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    alert('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                throw new Error(`Failed to export transactions: ${response.statusText}`);
+            }
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'transactions.csv';
+            a.download = `transactions_${new Date().toISOString().slice(0, 10)}.csv`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -914,7 +983,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Xuất dữ liệu giao dịch thành công');
         } catch (error) {
             console.error('Error exporting transactions:', error);
-            alert('Lỗi xuất dữ liệu giao dịch');
+            // Khôi phục lại nút nếu có lỗi
+            const exportCSVBtn = document.getElementById('exportCSV');
+            if (exportCSVBtn) {
+                exportCSVBtn.disabled = false;
+                exportCSVBtn.innerHTML = '<i data-feather="download"></i>';
+                feather.replace();
+            }
+            alert('Lỗi xuất dữ liệu giao dịch: ' + error.message);
         }
     }
 

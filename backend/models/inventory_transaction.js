@@ -101,7 +101,7 @@ const getTransactionById = async (reference_id) => {
     }
 };
 
-const getTransactionsPaginated = async (page = 1, limit = 10, type = null, warehouseId = null, startDate = null, endDate = null) => {
+const getTransactionsPaginated = async (page = 1, limit = 10, type = null, warehouseId = null, startDate = null, endDate = null, search = null) => {
     try {
         const offset = (page - 1) * limit;
 
@@ -109,7 +109,7 @@ const getTransactionsPaginated = async (page = 1, limit = 10, type = null, wareh
         let whereClause = '';
         const whereParams = [];
 
-        if (type || warehouseId || startDate || endDate) {
+        if (type || warehouseId || startDate || endDate || search) {
             const conditions = [];
 
             if (type) {
@@ -132,12 +132,18 @@ const getTransactionsPaginated = async (page = 1, limit = 10, type = null, wareh
                 whereParams.push(endDate);
             }
 
+            if (search) {
+                conditions.push('(it.reference_id LIKE ? OR p.name LIKE ? OR w.name LIKE ?)');
+                const searchTerm = `%${search}%`;
+                whereParams.push(searchTerm, searchTerm, searchTerm);
+            }
+
             whereClause = ' WHERE ' + conditions.join(' AND ');
         }
 
         // Get total count
         const totalCount = await new Promise((resolve, reject) => {
-            let countSql = 'SELECT COUNT(*) as count FROM inventory_transactions it';
+            let countSql = 'SELECT COUNT(*) as count FROM inventory_transactions it JOIN products p ON it.product_id = p.custom_id JOIN warehouses w ON it.warehouse_id = w.custom_id';
             if (whereClause) {
                 countSql += whereClause;
             }
