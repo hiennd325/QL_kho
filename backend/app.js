@@ -166,8 +166,8 @@ function createDatabaseBackup() {
             console.error('Error creating database backup:', err.message);
         } else {
             console.log(`Database backup created: ${backupPath}`);
-            // Dọn dẹp các backup cũ, chỉ giữ lại 3 file mới nhất
-            cleanupOldBackups(3);
+            // Dọn dẹp các backup cũ, chỉ giữ lại 1 file mới nhất
+            cleanupOldBackups(1);
         }
     });
 }
