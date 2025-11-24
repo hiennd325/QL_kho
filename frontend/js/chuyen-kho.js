@@ -84,9 +84,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             select.innerHTML = '<option value="">Chọn sản phẩm</option>';
 
             if (!warehouseId) {
-                // If no warehouse selected, show placeholder
+                // If no warehouse selected, disable select and show placeholder
+                select.disabled = true;
                 return;
             }
+
+            // Enable select when warehouse is selected
+            select.disabled = false;
 
             const response = await fetch(`http://localhost:3000/warehouses/${warehouseId}/products`, {
                 headers: {
@@ -278,6 +282,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const selects = transferForm.querySelectorAll('select');
             selects.forEach(select => {
                 select.selectedIndex = 0;
+                if (select.id === 'product_id') {
+                    select.disabled = true;
+                }
             });
 
             // Show modal with enhanced animation
