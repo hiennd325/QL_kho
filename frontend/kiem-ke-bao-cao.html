@@ -97,15 +97,9 @@
                 <div class="flex flex-wrap items-center gap-4">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
                     <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
-                     <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option value="">Tất cả kho</option>
-                     </select>
-                     <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option value="">Tất cả trạng thái</option>
-                         <option value="pending">Chờ xử lý</option>
-                         <option value="completed">Đã cân bằng</option>
-                         <option value="cancelled">Đã hủy</option>
-                     </select>
+                      <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option value="">Tất cả kho</option>
+                      </select>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="filterBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
@@ -141,15 +135,12 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Người tạo
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Chênh lệch
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Trạng thái
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Thao tác
-                                </th>
+                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                     Chênh lệch
+                                 </th>
+                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                     Thao tác
+                                 </th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="inventory-count-table-body">

@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const startDate = document.querySelector('input[type="date"]:first-of-type')?.value;
             const endDate = document.querySelector('input[type="date"]:nth-of-type(2)')?.value;
             const warehouseFilter = document.getElementById('warehouseFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
             const searchValue = document.getElementById('searchInput')?.value || '';
 
             // Build query parameters
@@ -66,9 +65,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (endDate) queryParams.append('endDate', endDate);
             if (warehouseFilter) {
                 queryParams.append('warehouse', warehouseFilter);
-            }
-            if (statusFilter) {
-                queryParams.append('status', statusFilter);
             }
             if (searchValue && searchValue !== '') {
                 queryParams.append('search', searchValue);
@@ -97,17 +93,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(audit.date).toLocaleDateString('vi-VN')}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${audit.warehouse_name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${audit.created_by_username}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-${audit.discrepancy >= 0 ? 'green' : 'red'}-600">
+                     <td class="px-6 py-4 whitespace-nowrap text-sm text-${audit.discrepancy >= 0 ? 'green' : 'red'}-600">
                         ${audit.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(audit.discrepancy))} ₫
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs font-medium bg-${statusInfo.color}-100 text-${statusInfo.color}-800 rounded-full">
-                            ${statusInfo.text}
-                        </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button class="text-blue-600 hover:text-blue-800 view-audit" title="Xem chi tiết"><i data-feather="eye" class="h-4 w-4"></i></button>
                             <button class="text-green-600 hover:text-green-800 download-audit" title="Tải xuống PDF"><i data-feather="download" class="h-4 w-4"></i></button>
                             <button class="text-red-600 hover:text-red-800 delete-audit" title="Xóa phiếu"><i data-feather="trash-2" class="h-4 w-4"></i></button>
                         </div>
@@ -587,8 +577,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (endDateInput) endDateInput.value = '';
             const warehouseFilter = document.getElementById('warehouseFilter');
             if (warehouseFilter) warehouseFilter.value = 'Tất cả kho';
-            const statusFilter = document.getElementById('statusFilter');
-            if (statusFilter) statusFilter.value = 'Tất cả trạng thái';
 
             loadAudits();
             alert('Tạo phiếu kiểm kê thành công');
