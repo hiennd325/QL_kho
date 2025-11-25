@@ -438,10 +438,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         modal.innerHTML = `
             <div class="bg-white p-6 rounded-lg w-full max-w-md">
                 <h3 class="text-xl font-semibold mb-4">Thêm sản phẩm mới</h3>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
-                    <input type="text" id="productCustomId" class="w-full border rounded px-3 py-2" placeholder="VD: SP001">
-                </div>
+                 <div class="mb-4">
+                     <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm <span class="text-red-500">*</span></label>
+                     <input type="text" id="productCustomId" class="w-full border rounded px-3 py-2" placeholder="VD: SP001" required>
+                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
                     <input type="text" id="productName" class="w-full border rounded px-3 py-2">
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         document.body.appendChild(modal);
 
-document.getElementById('saveBtn').addEventListener('click', async () => {
+        document.getElementById('saveBtn').addEventListener('click', async () => {
             const customId = document.getElementById('productCustomId').value.trim();
             const name = document.getElementById('productName').value.trim();
             const description = document.getElementById('productDescription').value.trim();
@@ -474,11 +474,16 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
             const brand = document.getElementById('productBrand').value.trim();
 
             // Validate inputs
+            if (!customId) {
+                alert('Vui lòng nhập mã sản phẩm');
+                return;
+            }
+
             if (!name) {
                 alert('Vui lòng nhập tên sản phẩm');
                 return;
             }
-            
+
             if (isNaN(price) || price <= 0) {
                 alert('Vui lòng nhập giá hợp lệ');
                 return;
