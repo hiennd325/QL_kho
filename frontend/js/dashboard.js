@@ -575,11 +575,13 @@ async function loadNotificationCount() {
         const data = await response.json();
         const badge = document.getElementById('notificationBadge');
 
-        if (data.count > 0) {
-            badge.textContent = data.count > 99 ? '99+' : data.count;
-            badge.classList.remove('hidden');
-        } else {
-            badge.classList.add('hidden');
+        if (badge) {
+            if (data.count > 0) {
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
     } catch (error) {
         console.error('Error loading notification count:', error);
@@ -652,7 +654,46 @@ function updateAlerts(alerts) {
     if (!alertContainer) return;
 
     alertContainer.children[0].querySelector('p:last-child').textContent = `${alerts.newOrders || 0} đơn hàng mới cần xử lý`;
-    alertContainer.children[1].querySelector('p:last-child').textContent = alerts.systemStatus || 'Hệ thống hoạt động ổn định';
+
+    // Update system status alert with dynamic styling
+    const systemAlert = alertContainer.children[1];
+    const systemStatusText = systemAlert.querySelector('p:last-child');
+    const systemAlertDiv = systemAlert.querySelector('div[role="alert"]');
+
+    systemStatusText.textContent = alerts.systemStatus || 'Hệ thống hoạt động ổn định';
+
+    // Update alert styling based on system health
+    if (systemAlertDiv) {
+        // Remove existing color classes
+        systemAlertDiv.classList.remove('bg-green-100', 'border-green-500', 'text-green-700');
+        systemAlertDiv.classList.remove('bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
+        systemAlertDiv.classList.remove('bg-red-100', 'border-red-500', 'text-red-700');
+
+        // Add appropriate styling based on health status
+        if (alerts.systemHealth === 'critical') {
+            systemAlertDiv.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+            // Update icon to warning
+            const iconSvg = systemAlertDiv.querySelector('svg');
+            if (iconSvg) {
+                iconSvg.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>';
+            }
+        } else if (alerts.systemHealth === 'warning') {
+            systemAlertDiv.classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
+            // Update icon to alert triangle
+            const iconSvg = systemAlertDiv.querySelector('svg');
+            if (iconSvg) {
+                iconSvg.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>';
+            }
+        } else {
+            // Default green for healthy
+            systemAlertDiv.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            // Update icon to check circle
+            const iconSvg = systemAlertDiv.querySelector('svg');
+            if (iconSvg) {
+                iconSvg.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>';
+            }
+        }
+    }
 }
 
 function updateStats(stats) {
