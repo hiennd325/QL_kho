@@ -93,9 +93,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(audit.date).toLocaleDateString('vi-VN')}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${audit.warehouse_name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${audit.created_by_username}</td>
-                     <td class="px-6 py-4 whitespace-nowrap text-sm text-${audit.discrepancy >= 0 ? 'green' : 'red'}-600">
-                        ${audit.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(audit.discrepancy))} ₫
-                    </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-${audit.discrepancy >= 0 ? 'green' : 'red'}-600">
+                         ${audit.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(audit.discrepancy))}
+                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
                             <button class="text-green-600 hover:text-green-800 download-audit" title="Tải xuống PDF"><i data-feather="download" class="h-4 w-4"></i></button>
@@ -314,9 +314,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td class="px-4 py-2 text-center">
                         <input type="number" value="${item.actual_quantity}" min="0" class="w-20 px-2 py-1 border rounded text-center text-sm" onchange="updateAuditItemActualQuantity(${index}, this.value)">
                     </td>
-                    <td class="px-4 py-2 text-center text-sm font-medium text-${item.discrepancy >= 0 ? 'green' : 'red'}-600">
-                        ${item.discrepancy >= 0 ? '+' : ''}${item.discrepancy}
-                    </td>
+                     <td class="px-4 py-2 text-center text-sm font-medium text-${item.discrepancy >= 0 ? 'green' : 'red'}-600">
+                         ${item.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(item.discrepancy))}
+                     </td>
                     <td class="px-4 py-2 text-center">
                         <button type="button" onclick="removeAuditItem(${index})" class="text-red-600 hover:text-red-800">
                             <i data-feather="trash-2" class="h-4 w-4"></i>
@@ -733,9 +733,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <td class="px-3 py-2">${item.product_name || item.product_id}</td>
                         <td class="px-3 py-2 text-center">${item.system_quantity}</td>
                         <td class="px-3 py-2 text-center">${item.actual_quantity}</td>
-                        <td class="px-3 py-2 text-center font-medium ${statusClass}">
-                            ${item.discrepancy >= 0 ? '+' : ''}${item.discrepancy}
-                        </td>
+                         <td class="px-3 py-2 text-center font-medium ${statusClass}">
+                             ${item.discrepancy >= 0 ? '+' : ''}${new Intl.NumberFormat('vi-VN').format(Math.abs(item.discrepancy))}
+                         </td>
                     </tr>
                 `;
             });
