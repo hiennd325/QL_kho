@@ -454,7 +454,7 @@ input:focus, select:focus, textarea:focus {
 
 /* Supplier management page specific styles */
 .supplier-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgb(30 58 138 / var(--tw-bg-opacity, 1));
     color: white;
     position: relative;
     overflow: hidden;
