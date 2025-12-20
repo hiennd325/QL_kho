@@ -203,22 +203,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    const renderTransactions = (transactions) => {
-        tableBody.innerHTML = '';
-        if (transactions.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Không có phiếu nào</td></tr>`;
-            return;
-        }
+const renderTransactions = (transactions) => {
+    tableBody.innerHTML = '';
+    if (transactions.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không có phiếu nào</td></tr>`;
+        return;
+    }
 
-        transactions.forEach(t => {
+    const groupedTransactions = transactions.reduce((acc, t) => {
+        if (!acc[t.reference_id]) {
+            acc[t.reference_id] = [];
+        }
+        acc[t.reference_id].push(t);
+        return acc;
+    }, {});
+
+    Object.values(groupedTransactions).forEach(group => {
+        group.forEach((t, index) => {
             const row = document.createElement('tr');
             row.className = 'table-row hover:bg-gray-50';
+
             const formattedDate = new Date(t.transaction_date).toLocaleDateString('vi-VN');
-            // Sử dụng tên kho và tên sản phẩm từ dữ liệu trả về
             const warehouseName = t.warehouse_name || 'Không xác định';
             const productName = t.product_name || 'Sản phẩm không xác định';
-            
-            // Determine type label and color
+
             let typeLabel = '';
             let typeClass = '';
             if (t.type === 'nhap') {
@@ -231,26 +239,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 typeLabel = t.type;
                 typeClass = 'bg-gray-100 text-gray-800';
             }
-            
-            // Tính giá trị giao dịch
+
             const value = t.value || (t.price && t.quantity ? t.price * t.quantity : 0);
             const formattedValue = value ? new Intl.NumberFormat('vi-VN').format(value) + ' ₫' : '0 ₫';
-            
-            row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${t.reference_id}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedDate}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${productName}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.quantity}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedValue}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${warehouseName}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="status-badge ${typeClass}">${typeLabel}</span>
-                </td>
-            `;
+
+            if (index === 0) {
+                // First row in the group, with rowspan
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" rowspan="${group.length}">${t.reference_id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" rowspan="${group.length}">${formattedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${productName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedValue}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="${group.length}">${warehouseName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap" rowspan="${group.length}">
+                        <span class="status-badge ${typeClass}">${typeLabel}</span>
+                    </td>
+                `;
+            } else {
+                // Subsequent rows in the group
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${productName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${t.quantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedValue}</td>
+                `;
+            }
             tableBody.appendChild(row);
         });
-        feather.replace();
-    };
+    });
+
+    feather.replace();
+};
 
 
 
