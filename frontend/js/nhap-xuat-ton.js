@@ -204,13 +204,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
 const renderTransactions = (transactions) => {
+    const validTransactions = transactions.filter(t => t && t.reference_id);
     tableBody.innerHTML = '';
-    if (transactions.length === 0) {
+    if (validTransactions.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Không có phiếu nào</td></tr>`;
         return;
     }
 
-    const groupedTransactions = transactions.reduce((acc, t) => {
+    const groupedTransactions = validTransactions.reduce((acc, t) => {
         if (!acc[t.reference_id]) {
             acc[t.reference_id] = [];
         }
