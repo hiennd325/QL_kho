@@ -65,8 +65,8 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
             const conditions = [];
             
             if (search) {
-                conditions.push('(name LIKE ? OR custom_id LIKE ?)');
-                whereParams.push(`%${search}%`, `%${search}%`);
+                conditions.push('(p.name LIKE ? OR p.custom_id LIKE ? OR p.description LIKE ? OR p.brand LIKE ? OR s.name LIKE ?)');
+                whereParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
             }
             
             if (category) {
@@ -89,7 +89,9 @@ const getProducts = async (search = '', category = '', brand = '', supplier = ''
         
         // Get total count
         const totalCount = await new Promise((resolve, reject) => {
-            let countSql = 'SELECT COUNT(*) as count FROM products';
+            let countSql = `SELECT COUNT(DISTINCT p.custom_id) as count 
+                            FROM products p 
+                            LEFT JOIN suppliers s ON p.supplier_id = s.id`;
             if (whereClause) {
                 countSql += whereClause;
             }
