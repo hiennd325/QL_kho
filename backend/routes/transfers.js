@@ -34,7 +34,8 @@ router.get('/', authenticateToken, async (req, res) => {
             date: new Date(transfer.created_at).toLocaleDateString('vi-VN'),
             from_warehouse: transfer.from_warehouse_name,
             to_warehouse: transfer.to_warehouse_name,
-            quantity: transfer.quantity,
+            item_count: transfer.item_count,
+            product_names: transfer.product_names,
             status: transfer.status,
             user: transfer.user_name
         }));
@@ -63,10 +64,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // Create new transfer
 router.post('/', authenticateToken, async (req, res) => {
     try {
-        const { from_warehouse_id, to_warehouse_id, product_id, quantity, notes } = req.body;
+        const { from_warehouse_id, to_warehouse_id, items, notes } = req.body;
 
-        if (!from_warehouse_id || !to_warehouse_id || !product_id || !quantity) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (!from_warehouse_id || !to_warehouse_id || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Missing required fields or empty items list' });
         }
 
         if (from_warehouse_id === to_warehouse_id) {
@@ -76,8 +77,10 @@ router.post('/', authenticateToken, async (req, res) => {
         const transferData = {
             from_warehouse_id,
             to_warehouse_id,
-            product_id,
-            quantity: parseInt(quantity),
+            items: items.map(item => ({
+                product_id: item.product_id,
+                quantity: parseInt(item.quantity)
+            })),
             user_id: req.user.id,
             notes
         };

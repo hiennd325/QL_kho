@@ -11,22 +11,48 @@ const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) =>
 
 const createTransfer = async (transferData) => {
     try {
-        const { from_warehouse_id, to_warehouse_id, product_id, quantity, user_id, notes } = transferData;
+        const { from_warehouse_id, to_warehouse_id, items, user_id, notes } = transferData;
         const code = `DC${Date.now()}`;
 
-        const result = await new Promise((resolve, reject) => {
-            db.run(`INSERT INTO transfers (code, from_warehouse_id, to_warehouse_id, product_id, quantity, status, user_id, notes)
-                    VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)`,
-                [code, from_warehouse_id, to_warehouse_id, product_id, quantity, user_id, notes],
-                function(err) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve({ id: this.lastID, code });
+        return await new Promise((resolve, reject) => {
+            db.serialize(() => {
+                db.run('BEGIN TRANSACTION');
+
+                db.run(`INSERT INTO transfers (code, from_warehouse_id, to_warehouse_id, status, user_id, notes)
+                        VALUES (?, ?, ?, 'pending', ?, ?)`,
+                    [code, from_warehouse_id, to_warehouse_id, user_id, notes],
+                    function(err) {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            return reject(err);
+                        }
+                        
+                        const transferId = this.lastID;
+                        const itemStmt = db.prepare(`INSERT INTO transfer_items (transfer_id, product_id, quantity) VALUES (?, ?, ?)`);
+                        
+                        items.forEach(item => {
+                            itemStmt.run(transferId, item.product_id, item.quantity, (err) => {
+                                if (err) {
+                                    db.run('ROLLBACK');
+                                    return reject(err);
+                                }
+                            });
+                        });
+
+                        itemStmt.finalize((err) => {
+                            if (err) {
+                                db.run('ROLLBACK');
+                                return reject(err);
+                            }
+                            db.run('COMMIT', (err) => {
+                                if (err) reject(err);
+                                else resolve({ id: transferId, code });
+                            });
+                        });
                     }
-                });
+                );
+            });
         });
-        return result;
     } catch (err) {
         throw err;
     }
@@ -34,13 +60,17 @@ const createTransfer = async (transferData) => {
 
 const getTransfers = async (limit = 10) => {
     try {
-        const query = `SELECT t.id, t.code, t.quantity, t.status, t.created_at, t.updated_at,
+        const query = `SELECT t.id, t.code, t.status, t.created_at, t.updated_at,
                               fw.name as from_warehouse_name, tw.name as to_warehouse_name,
-                              p.name as product_name, u.username as user_name
+                              u.username as user_name,
+                              (SELECT COUNT(*) FROM transfer_items WHERE transfer_id = t.id) as item_count,
+                              (SELECT GROUP_CONCAT(p.name, ', ') 
+                               FROM transfer_items ti 
+                               JOIN products p ON ti.product_id = p.custom_id 
+                               WHERE ti.transfer_id = t.id) as product_names
                        FROM transfers t
                        JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
                        JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
-                       JOIN products p ON t.product_id = p.custom_id
                        JOIN users u ON t.user_id = u.id
                        ORDER BY t.created_at DESC
                        LIMIT ?`;
@@ -58,21 +88,37 @@ const getTransfers = async (limit = 10) => {
 
 const getTransferById = async (id) => {
     try {
-        const query = `SELECT t.*, fw.name as from_warehouse_name, tw.name as to_warehouse_name,
-                              p.name as product_name, u.username as user_name
-                       FROM transfers t
-                       JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
-                       JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
-                       JOIN products p ON t.product_id = p.custom_id
-                       JOIN users u ON t.user_id = u.id
-                       WHERE t.id = ?`;
+        const transferQuery = `SELECT t.*, fw.name as from_warehouse_name, tw.name as to_warehouse_name,
+                                      u.username as user_name
+                               FROM transfers t
+                               JOIN warehouses fw ON t.from_warehouse_id = fw.custom_id
+                               JOIN warehouses tw ON t.to_warehouse_id = tw.custom_id
+                               JOIN users u ON t.user_id = u.id
+                               WHERE t.id = ?`;
 
-        return await new Promise((resolve, reject) => {
-            db.get(query, [id], (err, row) => {
+        const itemsQuery = `SELECT ti.*, p.name as product_name
+                            FROM transfer_items ti
+                            JOIN products p ON ti.product_id = p.custom_id
+                            WHERE ti.transfer_id = ?`;
+
+        const transfer = await new Promise((resolve, reject) => {
+            db.get(transferQuery, [id], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
         });
+
+        if (!transfer) return null;
+
+        const items = await new Promise((resolve, reject) => {
+            db.all(itemsQuery, [id], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+
+        transfer.items = items;
+        return transfer;
     } catch (err) {
         throw err;
     }
@@ -80,8 +126,9 @@ const getTransferById = async (id) => {
 
 const updateTransferStatus = async (id, status) => {
     try {
-        // First get the transfer details
+        // First get the transfer details with items
         const transfer = await getTransferById(id);
+        if (!transfer) throw new Error('Transfer not found');
         
         // Update the transfer status
         const result = await new Promise((resolve, reject) => {
@@ -95,12 +142,14 @@ const updateTransferStatus = async (id, status) => {
                 });
         });
         
-        // If status is completed, update inventory
-        if (status === 'completed' && transfer) {
-            // Reduce inventory in from_warehouse
-            await updateInventoryForTransfer(transfer.product_id, transfer.from_warehouse_id, -transfer.quantity);
-            // Increase inventory in to_warehouse
-            await updateInventoryForTransfer(transfer.product_id, transfer.to_warehouse_id, transfer.quantity);
+        // If status is completed, update inventory for ALL items
+        if (status === 'completed') {
+            for (const item of transfer.items) {
+                // Reduce inventory in from_warehouse
+                await updateInventoryForTransfer(item.product_id, transfer.from_warehouse_id, -item.quantity);
+                // Increase inventory in to_warehouse
+                await updateInventoryForTransfer(item.product_id, transfer.to_warehouse_id, item.quantity);
+            }
         }
         
         return result;

@@ -7,12 +7,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const transfersTableBody = document.querySelector('#transfersTable tbody');
     const submitTransferBtn = document.querySelector('#transferForm button[type="submit"]');
 
+    const addProductRowBtn = document.getElementById('addProductRowBtn');
+    const productRowsContainer = document.getElementById('productRowsContainer');
+    let warehouseProducts = []; // Cache products for the selected from_warehouse
+
     // Load initial data
     await loadTransfers();
 
     // Event listeners
     document.getElementById('openTransferModal').addEventListener('click', openTransferModal);
-        document.getElementById('openTransferModal2').addEventListener('click', openTransferModal);
+    document.getElementById('openTransferModal2').addEventListener('click', openTransferModal);
+    
+    if (addProductRowBtn) {
+        addProductRowBtn.addEventListener('click', () => addProductRow());
+    }
     
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeTransferModal);
@@ -76,21 +84,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function loadProducts(warehouseId = null) {
+    async function loadWarehouseProducts(warehouseId) {
         try {
-            const select = document.getElementById('product_id');
-
-            // Clear existing options
-            select.innerHTML = '<option value="">Chọn sản phẩm</option>';
-
             if (!warehouseId) {
-                // If no warehouse selected, disable select and show placeholder
-                select.disabled = true;
+                warehouseProducts = [];
                 return;
             }
-
-            // Enable select when warehouse is selected
-            select.disabled = false;
 
             const response = await fetch(`http://localhost:3000/warehouses/${warehouseId}/products`, {
                 headers: {
@@ -100,19 +99,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!response.ok) throw new Error('Failed to load products');
 
-            const products = await response.json();
-
-            // Add products to select
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = `${product.name} (${product.quantity} tồn kho)`;
-                select.appendChild(option);
-            });
+            warehouseProducts = await response.json();
         } catch (error) {
             console.error('Error loading products:', error);
             alert('Lỗi tải danh sách sản phẩm: ' + error.message);
+            warehouseProducts = [];
         }
+    }
+
+    function addProductRow(productId = '', quantity = '') {
+        const rowId = Date.now() + Math.random();
+        const rowHtml = `
+            <div class="product-row grid grid-cols-12 gap-3 items-end bg-white p-3 rounded-xl border border-gray-200 shadow-sm animate-slide-up" data-row-id="${rowId}">
+                <div class="col-span-7 space-y-1">
+                    <label class="block text-xs font-semibold text-gray-500">Sản phẩm</label>
+                    <div class="relative">
+                        <select name="product_id" class="product-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none bg-white text-sm" required>
+                            <option value="">Chọn sản phẩm</option>
+                            ${warehouseProducts.map(p => `<option value="${p.id}" ${p.id === productId ? 'selected' : ''}>${p.name} (Tồn: ${p.quantity})</option>`).join('')}
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                            <i data-feather="chevron-down" class="h-4 w-4"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-3 space-y-1">
+                    <label class="block text-xs font-semibold text-gray-500">Số lượng</label>
+                    <input type="number" name="quantity" value="${quantity}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm" min="1" required placeholder="SL">
+                </div>
+                <div class="col-span-2">
+                    <button type="button" class="remove-row-btn w-full py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex justify-center items-center" title="Xóa dòng">
+                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        productRowsContainer.insertAdjacentHTML('beforeend', rowHtml);
+        
+        // Initialize Feather icons for the new row
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+
+        // Add event listener to remove button
+        const newRow = productRowsContainer.lastElementChild;
+        newRow.querySelector('.remove-row-btn').addEventListener('click', () => {
+            if (productRowsContainer.querySelectorAll('.product-row').length > 1) {
+                newRow.remove();
+            } else {
+                alert('Phải có ít nhất một sản phẩm');
+            }
+        });
     }
 
     async function loadTransfers() {
@@ -187,12 +225,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="font-medium">${transfer.to_warehouse}</span>
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <div class="flex items-center">
-                        <div class="bg-yellow-100 p-1 rounded mr-2">
-                            <i data-feather="package" class="w-3 h-3 text-yellow-600"></i>
-                        </div>
-                        <span class="font-semibold">${transfer.quantity}</span>
+                <td class="px-6 py-4 text-sm max-w-xs overflow-hidden">
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-blue-700">${transfer.item_count} sản phẩm</span>
+                        <span class="text-xs text-gray-500 truncate" title="${transfer.product_names || ''}">${transfer.product_names || ''}</span>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -203,12 +239,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex space-x-2">
-                        <button onclick="updateTransferStatus(${transfer.id}, 'completed')" class="text-green-600 hover:text-white hover:bg-green-600 p-2 rounded-lg transition-all duration-200 border border-green-300 hover:border-green-600">
-                            <i data-feather="check-circle" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="updateTransferStatus(${transfer.id}, 'cancelled')" class="text-red-600 hover:text-white hover:bg-red-600 p-2 rounded-lg transition-all duration-200 border border-red-300 hover:border-red-600">
-                            <i data-feather="x-circle" class="w-4 h-4"></i>
-                        </button>
+                        ${transfer.status === 'pending' || transfer.status === 'in_progress' ? `
+                            <button onclick="updateTransferStatus(${transfer.id}, 'completed')" class="text-green-600 hover:text-white hover:bg-green-600 p-2 rounded-lg transition-all duration-200 border border-green-300 hover:border-green-600" title="Hoàn thành">
+                                <i data-feather="check-circle" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="updateTransferStatus(${transfer.id}, 'cancelled')" class="text-red-600 hover:text-white hover:bg-red-600 p-2 rounded-lg transition-all duration-200 border border-red-300 hover:border-red-600" title="Hủy bỏ">
+                                <i data-feather="x-circle" class="w-4 h-4"></i>
+                            </button>
+                        ` : `
+                            <span class="text-gray-400 italic text-xs">Không khả dụng</span>
+                        `}
                     </div>
                 </td>
             </tr>
@@ -265,11 +305,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function openTransferModal() {
+    async function openTransferModal() {
         if (transferModal) {
             // Reset form
             if (transferForm) {
                 transferForm.reset();
+                productRowsContainer.innerHTML = ''; // Clear rows
             }
 
             // Disable submit button until data loads
@@ -278,75 +319,54 @@ document.addEventListener('DOMContentLoaded', async () => {
                 submitTransferBtn.textContent = 'Đang tải...';
             }
 
-            // Reset select options to show placeholder
-            const selects = transferForm.querySelectorAll('select');
-            selects.forEach(select => {
-                select.selectedIndex = 0;
-                if (select.id === 'product_id') {
-                    select.disabled = true;
-                }
-            });
-
-            // Show modal with enhanced animation
+            // Show modal
             transferModal.classList.remove('hidden');
 
             // Trigger animation
             const modalContent = transferModal.querySelector('.rounded-2xl');
             if (modalContent) {
-                // Reset any previous animation states
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
             }
 
-            // Load data and enable submit
-            loadWarehouses().then(() => {
-                // Add event listener for from_warehouse_id change
-                const fromWarehouseSelect = document.getElementById('from_warehouse_id');
-                if (fromWarehouseSelect) {
-                    fromWarehouseSelect.addEventListener('change', (e) => {
-                        const selectedWarehouseId = e.target.value;
-                        loadProducts(selectedWarehouseId);
-                    });
-                }
+            // Load warehouses
+            await loadWarehouses();
 
-                // Add event listener for to_warehouse_id change to check if same as from
-                const toWarehouseSelect = document.getElementById('to_warehouse_id');
-                if (toWarehouseSelect) {
-                    toWarehouseSelect.addEventListener('change', (e) => {
-                        const selectedToWarehouseId = e.target.value;
-                        const selectedFromWarehouseId = fromWarehouseSelect.value;
-                        if (selectedToWarehouseId && selectedFromWarehouseId && selectedToWarehouseId === selectedFromWarehouseId) {
-                            alert('Kho nguồn và kho đích không thể giống nhau');
-                            e.target.value = ''; // Reset selection
-                        }
-                    });
-                }
+            // Set up event listeners for warehouse changes
+            const fromWarehouseSelect = document.getElementById('from_warehouse_id');
+            const toWarehouseSelect = document.getElementById('to_warehouse_id');
 
-                if (submitTransferBtn) {
-                    submitTransferBtn.disabled = false;
-                    submitTransferBtn.textContent = 'Tạo phiếu điều chuyển';
+            fromWarehouseSelect.onchange = async (e) => {
+                const warehouseId = e.target.value;
+                await loadWarehouseProducts(warehouseId);
+                
+                // Clear existing rows and add a fresh one with new product list
+                productRowsContainer.innerHTML = '';
+                if (warehouseId) {
+                    addProductRow();
                 }
-            });
+            };
 
-            // Focus on first input
-            setTimeout(() => {
-                const firstSelect = document.getElementById('from_warehouse_id');
-                if (firstSelect) firstSelect.focus();
-            }, 300);
+            toWarehouseSelect.onchange = (e) => {
+                if (e.target.value && e.target.value === fromWarehouseSelect.value) {
+                    alert('Kho nguồn và kho đích không thể giống nhau');
+                    e.target.value = '';
+                }
+            };
+
+            if (submitTransferBtn) {
+                submitTransferBtn.disabled = false;
+                submitTransferBtn.textContent = 'Tạo phiếu điều chuyển';
+            }
         }
     }
 
     function closeTransferModal() {
         if (transferModal) {
-            // Add closing animation
             const modalContent = transferModal.querySelector('.rounded-2xl');
             if (modalContent) {
-                modalContent.classList.remove('scale-100');
-                modalContent.classList.remove('opacity-100');
-                modalContent.classList.add('scale-95');
-                modalContent.classList.add('opacity-0');
-
-                // Hide modal after animation completes
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
                 setTimeout(() => {
                     transferModal.classList.add('hidden');
                 }, 300);
@@ -359,51 +379,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function submitTransfer() {
         try {
             const formData = new FormData(transferForm);
-            const transferData = {
-                from_warehouse_id: formData.get('from_warehouse_id'),
-                to_warehouse_id: formData.get('to_warehouse_id'),
-                product_id: formData.get('product_id'),
-                quantity: parseInt(formData.get('quantity')),
-                notes: formData.get('notes')
-            };
+            const from_warehouse_id = formData.get('from_warehouse_id');
+            const to_warehouse_id = formData.get('to_warehouse_id');
+            const notes = formData.get('notes');
 
-            console.log('Transfer data:', transferData); // Debug
-
-            // Validate data
-            if (!transferData.from_warehouse_id || !transferData.to_warehouse_id ||
-                !transferData.product_id || !transferData.quantity) {
-                alert('Vui lòng điền đầy đủ thông tin');
-                return;
-            }
-
-            if (transferData.from_warehouse_id === transferData.to_warehouse_id) {
-                alert('Kho nguồn và kho đích không thể giống nhau');
-                return;
-            }
-
-            if (transferData.quantity <= 0) {
-                alert('Số lượng phải lớn hơn 0');
-                return;
-            }
-
-            // Check stock in from warehouse
-            try {
-                const stockResponse = await fetch(`http://localhost:3000/warehouses/${transferData.from_warehouse_id}/products`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (stockResponse.ok) {
-                    const products = await stockResponse.json();
-                    const productInWarehouse = products.find(p => p.id === transferData.product_id);
-                    if (!productInWarehouse || productInWarehouse.quantity < transferData.quantity) {
-                        alert('Không đủ hàng trong kho nguồn');
-                        return;
-                    }
+            // Collect items from rows
+            const items = [];
+            const rows = productRowsContainer.querySelectorAll('.product-row');
+            
+            rows.forEach(row => {
+                const productId = row.querySelector('[name="product_id"]').value;
+                const quantity = parseInt(row.querySelector('[name="quantity"]').value);
+                
+                if (productId && quantity > 0) {
+                    items.push({ product_id: productId, quantity });
                 }
-            } catch (error) {
-                console.error('Error checking stock:', error);
-                // Continue anyway, backend will check
+            });
+
+            // Validate
+            if (!from_warehouse_id || !to_warehouse_id || items.length === 0) {
+                alert('Vui lòng điền đầy đủ thông tin và ít nhất một sản phẩm');
+                return;
+            }
+
+            // Check for duplicate products in items
+            const productIds = items.map(i => i.product_id);
+            if (new Set(productIds).size !== productIds.length) {
+                alert('Có sản phẩm bị trùng lặp trong danh sách. Vui lòng gộp chung hoặc xóa bớt.');
+                return;
+            }
+
+            // Check stock for each item
+            for (const item of items) {
+                const product = warehouseProducts.find(p => p.id === item.product_id);
+                if (!product || product.quantity < item.quantity) {
+                    alert(`Sản phẩm "${product ? product.name : item.product_id}" không đủ tồn kho (Hiện có: ${product ? product.quantity : 0})`);
+                    return;
+                }
             }
 
             const response = await fetch('http://localhost:3000/transfers', {
@@ -412,7 +424,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(transferData)
+                body: JSON.stringify({
+                    from_warehouse_id,
+                    to_warehouse_id,
+                    items,
+                    notes
+                })
             });
 
             if (!response.ok) {
@@ -420,19 +437,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(error.error || 'Failed to create transfer');
             }
 
-            const result = await response.json();
             alert('Tạo phiếu điều chuyển thành công!');
             closeTransferModal();
-            loadTransfers(); // Refresh transfers list
+            loadTransfers();
             
         } catch (error) {
             console.error('Error submitting transfer:', error);
-            alert('Lỗi khi tạo phiếu điều chuyển: ' + error.message);
+            alert('Lỗi: ' + error.message);
         }
     }
 
-    // Make functions available globally for inline event handlers
     window.updateTransferStatus = async function(transferId, status) {
+        if (status === 'cancelled' && !confirm('Bạn có chắc chắn muốn hủy phiếu điều chuyển này?')) {
+            return;
+        }
+
         try {
             const response = await fetch(`http://localhost:3000/transfers/${transferId}/status`, {
                 method: 'PUT',
@@ -445,15 +464,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Failed to update transfer status');
+                throw new Error(error.error || 'Failed to update status');
             }
 
             alert('Cập nhật trạng thái thành công!');
-            loadTransfers(); // Refresh transfers list
-            
+            loadTransfers();
         } catch (error) {
-            console.error('Error updating transfer status:', error);
-            alert('Lỗi khi cập nhật trạng thái: ' + error.message);
+            console.error('Error updating status:', error);
+            alert('Lỗi: ' + error.message);
         }
     };
 });
