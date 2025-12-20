@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentPage = 1;
     const limit = 10;
     let pollInterval;
+    let products = [];
+    let suppliers = [];
 
     // Load warehouses from API
     const loadWarehouses = async () => {
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error('Failed to fetch products');
             }
             const productsData = await response.json();
+            products = productsData.products || [];
             return productsData.products || [];
         } catch (error) {
             console.error('Error loading products:', error);
@@ -70,6 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error('Failed to fetch suppliers');
             }
             const suppliersData = await response.json();
+            suppliers = suppliersData || [];
             return suppliersData || [];
         } catch (error) {
             console.error('Error loading suppliers:', error);
@@ -115,38 +119,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Populate product selects in modals
     const populateProductSelects = async () => {
-        const importProductSelect = document.getElementById('importProductId');
-        const exportProductSelect = document.getElementById('exportProductId');
         const importSupplierSelect = document.getElementById('importSupplier');
 
-        const products = await loadProducts();
-        const suppliers = await loadSuppliers();
+        await loadProducts();
+        await loadSuppliers();
         
-        // Clear existing options
-        if (importProductSelect) {
-            importProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
-        }
-        
-        if (exportProductSelect) {
-            exportProductSelect.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
-        }
-
-                // Add products to select dropdowns
-        products.forEach(product => {
-            if (importProductSelect) {
-                const importOption = document.createElement('option');
-                importOption.value = product.custom_id;
-                importOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
-                importProductSelect.appendChild(importOption);
-            }
-
-            if (exportProductSelect) {
-                const exportOption = document.createElement('option');
-                exportOption.value = product.custom_id;
-                exportOption.textContent = `${product.name} (${product.quantity} tồn kho)`;
-                exportProductSelect.appendChild(exportOption);
-            }
-        });        // Populate supplier dropdown
+        // Populate supplier dropdown
         if (importSupplierSelect) {
             importSupplierSelect.innerHTML = '<option value="">-- Chọn nhà cung cấp --</option>';
             suppliers.forEach(supplier => {
@@ -157,6 +135,58 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     };
+
+    const createProductRow = (productList, type) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center space-x-2 product-row';
+
+        const select = document.createElement('select');
+        select.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 product-select';
+        select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+        products.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.custom_id;
+            option.textContent = `${product.name} (${product.quantity} tồn kho)`;
+            select.appendChild(option);
+        });
+
+        const quantityInput = document.createElement('input');
+        quantityInput.type = 'number';
+        quantityInput.className = 'w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 quantity-input';
+        quantityInput.placeholder = 'SL';
+        quantityInput.min = '1';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'p-2 text-red-500 hover:text-red-700';
+        removeBtn.innerHTML = '<i data-feather="trash-2" class="h-5 w-5"></i>';
+        removeBtn.addEventListener('click', () => {
+            row.remove();
+        });
+
+        row.appendChild(select);
+        row.appendChild(quantityInput);
+        row.appendChild(removeBtn);
+
+        productList.appendChild(row);
+        feather.replace();
+    };
+
+    const addImportProductBtn = document.getElementById('addImportProductBtn');
+    if (addImportProductBtn) {
+        addImportProductBtn.addEventListener('click', () => {
+            const productList = document.getElementById('import-product-list');
+            createProductRow(productList, 'import');
+        });
+    }
+
+    const addExportProductBtn = document.getElementById('addExportProductBtn');
+    if (addExportProductBtn) {
+        addExportProductBtn.addEventListener('click', () => {
+            const productList = document.getElementById('export-product-list');
+            createProductRow(productList, 'export');
+        });
+    }
 
     // Tab switching functionality
     tabs.forEach(tab => {
@@ -666,9 +696,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Show import modal for create import receipt
     if (createImportReceiptBtn && importModal) {
         createImportReceiptBtn.addEventListener('click', () => {
+            const productList = document.getElementById('import-product-list');
+            productList.innerHTML = '';
+            createProductRow(productList, 'import');
             createReceiptDropdown.classList.add('hidden');
             importModal.classList.remove('hidden');
-            // Initialize Feather icons in the modal
             feather.replace();
         });
     }
@@ -676,9 +708,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Show export modal for create export receipt
     if (createExportReceiptBtn && exportModal) {
         createExportReceiptBtn.addEventListener('click', () => {
+            const productList = document.getElementById('export-product-list');
+            productList.innerHTML = '';
+            createProductRow(productList, 'export');
             createReceiptDropdown.classList.add('hidden');
             exportModal.classList.remove('hidden');
-            // Initialize Feather icons in the modal
             feather.replace();
         });
     }
@@ -733,13 +767,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (importForm) {
         importForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const productId = document.getElementById('importProductId').value;
-            const quantity = document.getElementById('importQuantity').value;
+            const productRows = document.querySelectorAll('#import-product-list .product-row');
             const supplierId = document.getElementById('importSupplier').value;
             const warehouseId = document.getElementById('importWarehouse').value;
 
-            if (!productId || !quantity || !supplierId) {
-                alert('Vui lòng điền đầy đủ thông tin');
+            const productsToImport = [];
+            for (const row of productRows) {
+                const productId = row.querySelector('.product-select').value;
+                const quantity = row.querySelector('.quantity-input').value;
+                if (productId && quantity) {
+                    productsToImport.push({
+                        product_id: productId,
+                        quantity: parseInt(quantity),
+                    });
+                }
+            }
+
+            if (productsToImport.length === 0 || !supplierId || !warehouseId) {
+                alert('Vui lòng điền đầy đủ thông tin và thêm ít nhất một sản phẩm.');
                 return;
             }
 
@@ -748,45 +793,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 
-                // Load all products to find the matching one
-                const products = await loadProducts();
-                const product = products.find(p => p.custom_id == productId);
-                
-                if (!product) {
-                    throw new Error('Sản phẩm không tồn tại');
-                }
-
-                // Create inventory transaction
-                const transactionResponse = await fetch(`${baseUrl}/inventory/transactions`, {
+                const response = await fetch(`${baseUrl}/inventory/import`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        product_id: productId,
-                        type: 'nhap',
-                        quantity: parseInt(quantity),
-                        supplier_id: supplierId ? parseInt(supplierId) : null,
-                        warehouse_id: warehouseId
+                        supplier_id: parseInt(supplierId),
+                        warehouse_id: warehouseId,
+                        products: productsToImport,
                     })
                 });
 
-                const transactionResult = await transactionResponse.json();
+                const result = await response.json();
                 
-                if (!transactionResponse.ok) {
-                    throw new Error(transactionResult.error || 'Nhập kho thất bại');
-                }            alert(`Đã nhập kho ${quantity} sản phẩm: ${product.name}`);
-            importForm.reset();
-            importModal.classList.add('hidden');
-
-            // Refresh data
-            loadTransactions();
-            // Refresh product list
-            populateProductSelects();            } catch (error) {
-                console.error('Error importing stock:', error);
-                if (error.message.includes('Insufficient stock')) {
-                    alert('Lỗi khi nhập kho: Không đủ hàng trong kho');
-                } else {
-                    alert('Lỗi khi nhập kho: ' + error.message);
+                if (!response.ok) {
+                    throw new Error(result.error || 'Nhập kho thất bại');
                 }
+                
+                alert('Nhập kho thành công!');
+                importForm.reset();
+                document.getElementById('import-product-list').innerHTML = '';
+                importModal.classList.add('hidden');
+
+                // Refresh data
+                loadTransactions();
+                populateProductSelects();
+            } catch (error) {
+                console.error('Error importing stock:', error);
+                alert('Lỗi khi nhập kho: ' + error.message);
             }
         });
     }
@@ -795,13 +828,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (exportForm) {
         exportForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const productId = document.getElementById('exportProductId').value;
-            const quantity = document.getElementById('exportQuantity').value;
+            const productRows = document.querySelectorAll('#export-product-list .product-row');
             const customer = document.getElementById('exportCustomer').value;
             const warehouseId = document.getElementById('exportWarehouse').value;
 
-            if (!productId || !quantity || !customer) {
-                alert('Vui lòng điền đầy đủ thông tin');
+            const productsToExport = [];
+            for (const row of productRows) {
+                const productId = row.querySelector('.product-select').value;
+                const quantity = row.querySelector('.quantity-input').value;
+                if (productId && quantity) {
+                    productsToExport.push({
+                        product_id: productId,
+                        quantity: parseInt(quantity),
+                    });
+                }
+            }
+
+            if (productsToExport.length === 0 || !customer || !warehouseId) {
+                alert('Vui lòng điền đầy đủ thông tin và thêm ít nhất một sản phẩm.');
                 return;
             }
 
@@ -810,50 +854,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 
-                // Load all products to find the matching one
-                const products = await loadProducts();
-                const product = products.find(p => p.custom_id == productId);
-                
-                if (!product) {
-                    throw new Error('Sản phẩm không tồn tại');
-                }
-
-                // Check if there's enough stock
-                if (product.quantity < parseInt(quantity)) {
-                    throw new Error(`Không đủ hàng trong kho. Tồn kho hiện tại: ${product.quantity}`);
-                }
-
-                // Create inventory transaction
-                const transactionResponse = await fetch(`${baseUrl}/inventory/transactions`, {
+                const response = await fetch(`${baseUrl}/inventory/export`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        product_id: productId,
-                        type: 'xuat',
-                        quantity: parseInt(quantity),
                         customer_name: customer,
-                        warehouse_id: warehouseId
+                        warehouse_id: warehouseId,
+                        products: productsToExport,
                     })
                 });
 
-                const transactionResult = await transactionResponse.json();
+                const result = await response.json();
                 
-                if (!transactionResponse.ok) {
-                    throw new Error(transactionResult.error || 'Xuất kho thất bại');
-                }            alert(`Đã xuất kho ${quantity} sản phẩm: ${product.name}`);
-            exportForm.reset();
-            exportModal.classList.add('hidden');
-
-            // Refresh data
-            loadTransactions();
-            // Refresh product list
-            populateProductSelects();            } catch (error) {
-                console.error('Error exporting stock:', error);
-                if (error.message.includes('Insufficient stock')) {
-                    alert('Lỗi khi xuất kho: Không đủ hàng trong kho');
-                } else {
-                    alert('Lỗi khi xuất kho: ' + error.message);
+                if (!response.ok) {
+                    throw new Error(result.error || 'Xuất kho thất bại');
                 }
+                
+                alert('Xuất kho thành công!');
+                exportForm.reset();
+                document.getElementById('export-product-list').innerHTML = '';
+                exportModal.classList.add('hidden');
+
+                // Refresh data
+                loadTransactions();
+                populateProductSelects();
+            } catch (error) {
+                console.error('Error exporting stock:', error);
+                alert('Lỗi khi xuất kho: ' + error.message);
             }
         });
     }

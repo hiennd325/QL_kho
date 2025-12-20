@@ -88,167 +88,113 @@ router.get('/:productId', async (req, res) => {
 
 // Add a new inventory transaction (import or export)
 
-
-router.post('/transactions', async (req, res) => {
-
-
+router.post('/import', async (req, res) => {
     try {
+        const { warehouse_id, supplier_id, products } = req.body;
 
-
-        const { product_id, warehouse_id, quantity, type, supplier_id, customer_name, reference_id, notes } = req.body;
-
-
-
-
-
-        // Basic validation
-
-
-        if (!product_id || !warehouse_id || quantity === undefined || !type) {
-
-
-            return res.status(400).json({ error: 'product_id, warehouse_id, quantity, and type are required' });
-
-
+        if (!warehouse_id || !supplier_id || !products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ error: 'warehouse_id, supplier_id, and a non-empty array of products are required' });
         }
 
+        await new Promise((resolve, reject) => {
+            db.run('BEGIN TRANSACTION', err => err ? reject(err) : resolve());
+        });
 
+        const referenceId = `TXN${Date.now()}`;
 
+        for (const product of products) {
+            const { product_id, quantity } = product;
+            const quantityNum = parseInt(quantity);
 
-
-        const quantityNum = parseInt(quantity);
-
-
-        if (isNaN(quantityNum) || quantityNum <= 0) {
-
-
-            return res.status(400).json({ error: 'Invalid quantity' });
-
-
-        }
-
-
-
-
-
-        // Ensure warehouse_id is a string (as per schema)
-
-
-        const warehouseIdStr = String(warehouse_id);
-
-
-
-
-
-        if (type === 'nhap') {
-
-
-            // Add inventory
-
-
-            await inventoryModel.addInventoryItem(product_id, quantityNum, warehouseIdStr);
-
-
-        } else if (type === 'xuat') {
-
-
-            // Check for sufficient stock
-
-
-            const currentInventory = await inventoryModel.getInventoryByProductId(product_id, warehouseIdStr);
-
-
-            if (!currentInventory || currentInventory.quantity < quantityNum) {
-
-
-                return res.status(400).json({ error: `Insufficient stock. Current: ${currentInventory ? currentInventory.quantity : 0}, Requested: ${quantityNum}` });
-
-
+            if (!product_id || isNaN(quantityNum) || quantityNum <= 0) {
+                await db.run('ROLLBACK');
+                return res.status(400).json({ error: 'Invalid product data in the products array' });
             }
 
-
-            // Reduce inventory
-
-
-            await inventoryModel.updateInventoryQuantity(product_id, -quantityNum, warehouseIdStr);
-
-
-        } else {
-
-
-            return res.status(400).json({ error: 'Invalid transaction type. Must be nhap or xuat' });
-
-
+            await inventoryModel.addInventoryItem(product_id, quantityNum, String(warehouse_id));
+            await inventoryTransactionModel.createTransaction(
+                referenceId,
+                product_id,
+                String(warehouse_id),
+                quantityNum,
+                'nhap',
+                supplier_id,
+                null,
+                `Part of bulk import ${referenceId}`
+            );
         }
 
+        await new Promise((resolve, reject) => {
+            db.run('COMMIT', err => err ? reject(err) : resolve());
+        });
 
-
-
-
-        // Create transaction record
-
-
-        // Tạo mã giao dịch nếu không được cung cấp
-
-
-        const transactionId = reference_id || `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-
-
-        
-
-
-        const transaction = await inventoryTransactionModel.createTransaction(
-
-
-            transactionId,
-
-
-            product_id,
-
-
-            warehouseIdStr,
-
-
-            quantityNum,
-
-
-            type,
-
-
-            supplier_id,
-
-
-            customer_name,
-
-
-            notes
-
-
-        );
-
-
-
-
-
-        res.status(201).json({ message: 'Transaction successful', transaction: { reference_id: transaction.reference_id } });
-
+        res.status(201).json({ message: 'Bulk import successful', reference_id: referenceId });
 
     } catch (err) {
-
-
-        console.error('Transaction error:', err);
-
-
-        res.status(500).json({ error: 'Failed to process transaction' });
-
-
+        await new Promise((resolve, reject) => {
+            db.run('ROLLBACK', error => error ? reject(error) : resolve());
+        });
+        console.error('Bulk import error:', err);
+        res.status(500).json({ error: 'Failed to process bulk import' });
     }
-
-
 });
 
+router.post('/export', async (req, res) => {
+    try {
+        const { warehouse_id, customer_name, products } = req.body;
 
+        if (!warehouse_id || !customer_name || !products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ error: 'warehouse_id, customer_name, and a non-empty array of products are required' });
+        }
 
+        await new Promise((resolve, reject) => {
+            db.run('BEGIN TRANSACTION', err => err ? reject(err) : resolve());
+        });
+
+        const referenceId = `TXN${Date.now()}`;
+
+        for (const product of products) {
+            const { product_id, quantity } = product;
+            const quantityNum = parseInt(quantity);
+
+            if (!product_id || isNaN(quantityNum) || quantityNum <= 0) {
+                await db.run('ROLLBACK');
+                return res.status(400).json({ error: 'Invalid product data in the products array' });
+            }
+
+            const currentInventory = await inventoryModel.getInventoryByProductId(product_id, String(warehouse_id));
+            if (!currentInventory || currentInventory.quantity < quantityNum) {
+                await db.run('ROLLBACK');
+                return res.status(400).json({ error: `Insufficient stock for product ${product_id}. Current: ${currentInventory ? currentInventory.quantity : 0}, Requested: ${quantityNum}` });
+            }
+
+            await inventoryModel.updateInventoryQuantity(product_id, -quantityNum, String(warehouse_id));
+            await inventoryTransactionModel.createTransaction(
+                referenceId,
+                product_id,
+                String(warehouse_id),
+                quantityNum,
+                'xuat',
+                null,
+                customer_name,
+                `Part of bulk export ${referenceId}`
+            );
+        }
+
+        await new Promise((resolve, reject) => {
+            db.run('COMMIT', err => err ? reject(err) : resolve());
+        });
+
+        res.status(201).json({ message: 'Bulk export successful', reference_id: referenceId });
+
+    } catch (err) {
+        await new Promise((resolve, reject) => {
+            db.run('ROLLBACK', error => error ? reject(error) : resolve());
+        });
+        console.error('Bulk export error:', err);
+        res.status(500).json({ error: 'Failed to process bulk export' });
+    }
+});
 
 
 // Export all inventory transactions to CSV

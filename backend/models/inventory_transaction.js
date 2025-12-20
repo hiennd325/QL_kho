@@ -14,12 +14,6 @@ const createTransaction = async (reference_id, productId, warehouseId, quantity,
         // Tự động tạo reference_id nếu không được cung cấp
         const final_reference_id = reference_id || `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
         
-        // Kiểm tra nếu reference_id đã tồn tại
-        const existingTransaction = await getTransactionByReferenceId(final_reference_id);
-        if (existingTransaction) {
-            throw new Error('Mã giao dịch đã tồn tại');
-        }
-        
         const result = await new Promise((resolve, reject) => {
             db.run('INSERT INTO inventory_transactions (reference_id, product_id, warehouse_id, quantity, type, supplier_id, customer_name, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
             [final_reference_id, productId, warehouseId, quantity, type, supplier_id, customer_name, notes], function(err) {
