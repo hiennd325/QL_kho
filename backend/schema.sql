@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS products (
     name TEXT NOT NULL,
     description TEXT,
     price REAL NOT NULL,
-    category TEXT,
     brand TEXT,
     supplier_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -23,7 +22,6 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS warehouses (
     custom_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    location TEXT NOT NULL,
     capacity INTEGER NOT NULL,
     current_usage INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
