@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const dotenv = require('dotenv');
+const warehouseModel = require('./warehouse');
 dotenv.config();
 
 const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
@@ -129,7 +130,31 @@ const updateTransferStatus = async (id, status) => {
         // First get the transfer details with items
         const transfer = await getTransferById(id);
         if (!transfer) throw new Error('Transfer not found');
-        
+
+        // If status is completed, check capacity before updating inventory
+        if (status === 'completed') {
+            // Get to_warehouse capacity and current usage
+            const toWarehouse = await new Promise((resolve, reject) => {
+                db.get('SELECT capacity, current_usage FROM warehouses WHERE custom_id = ?', [transfer.to_warehouse_id], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+
+            if (!toWarehouse) throw new Error('Destination warehouse not found');
+
+            // Calculate total quantity to be added
+            let totalTransferQuantity = 0;
+            for (const item of transfer.items) {
+                totalTransferQuantity += item.quantity;
+            }
+
+            // Check if transfer would exceed capacity
+            if (toWarehouse.current_usage + totalTransferQuantity > toWarehouse.capacity) {
+                throw new Error(`Cannot complete transfer. Destination warehouse capacity exceeded. Current usage: ${toWarehouse.current_usage}, Capacity: ${toWarehouse.capacity}, Trying to add: ${totalTransferQuantity}`);
+            }
+        }
+
         // Update the transfer status
         const result = await new Promise((resolve, reject) => {
             db.run('UPDATE transfers SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
@@ -141,7 +166,7 @@ const updateTransferStatus = async (id, status) => {
                     }
                 });
         });
-        
+
         // If status is completed, update inventory for ALL items
         if (status === 'completed') {
             for (const item of transfer.items) {
@@ -150,8 +175,12 @@ const updateTransferStatus = async (id, status) => {
                 // Increase inventory in to_warehouse
                 await updateInventoryForTransfer(item.product_id, transfer.to_warehouse_id, item.quantity);
             }
+
+            // Update current_usage for both warehouses after all inventory updates
+            await warehouseModel.updateCurrentUsage(transfer.from_warehouse_id);
+            await warehouseModel.updateCurrentUsage(transfer.to_warehouse_id);
         }
-        
+
         return result;
     } catch (err) {
         throw err;

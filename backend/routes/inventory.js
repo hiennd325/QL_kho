@@ -96,6 +96,35 @@ router.post('/import', async (req, res) => {
             return res.status(400).json({ error: 'warehouse_id, supplier_id, and a non-empty array of products are required' });
         }
 
+        // Get warehouse info to check capacity
+        const warehouse = await new Promise((resolve, reject) => {
+            db.get('SELECT capacity, current_usage FROM warehouses WHERE custom_id = ?', [warehouse_id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!warehouse) {
+            return res.status(400).json({ error: 'Warehouse not found' });
+        }
+
+        // Calculate total quantity to be added
+        let totalNewQuantity = 0;
+        for (const product of products) {
+            const quantityNum = parseInt(product.quantity);
+            if (!product.product_id || isNaN(quantityNum) || quantityNum <= 0) {
+                return res.status(400).json({ error: 'Invalid product data in the products array' });
+            }
+            totalNewQuantity += quantityNum;
+        }
+
+        // Check if adding this quantity would exceed warehouse capacity
+        if (warehouse.current_usage + totalNewQuantity > warehouse.capacity) {
+            return res.status(400).json({
+                error: `Cannot import. Warehouse capacity exceeded. Current usage: ${warehouse.current_usage}, Capacity: ${warehouse.capacity}, Trying to add: ${totalNewQuantity}`
+            });
+        }
+
         await new Promise((resolve, reject) => {
             db.run('BEGIN TRANSACTION', err => err ? reject(err) : resolve());
         });
@@ -106,11 +135,7 @@ router.post('/import', async (req, res) => {
             const { product_id, quantity } = product;
             const quantityNum = parseInt(quantity);
 
-            if (!product_id || isNaN(quantityNum) || quantityNum <= 0) {
-                await db.run('ROLLBACK');
-                return res.status(400).json({ error: 'Invalid product data in the products array' });
-            }
-
+            // Validation already done above, just add
             await inventoryModel.addInventoryItem(product_id, quantityNum, String(warehouse_id));
             await inventoryTransactionModel.createTransaction(
                 referenceId,
