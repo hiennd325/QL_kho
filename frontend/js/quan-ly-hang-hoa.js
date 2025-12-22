@@ -347,23 +347,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     const showDetailModal = async (product) => {
-        // Fetch supplier name if supplierId exists
-        let supplierName = 'N/A';
-        if (product.supplierId) {
-            try {
-                const baseUrl = `http://localhost:3000`;
-                const token = localStorage.getItem('token');
-                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const response = await fetch(`${baseUrl}/suppliers/${product.supplierId}`, { headers });
-                if (response.ok) {
-                    const supplier = await response.json();
-                    supplierName = supplier.name;
-                }
-            } catch (error) {
-                console.error('Error fetching supplier details:', error);
-            }
-        }
-
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
         modal.innerHTML = `
@@ -406,10 +389,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
                             <p class="text-gray-900">${product.createdAt}</p>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-500 mb-1">Nhà cung cấp</label>
-                            <p class="text-gray-900">${supplierName}</p>
                         </div>
                     </div>
                 </div>
