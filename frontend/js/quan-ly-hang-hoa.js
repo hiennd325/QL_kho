@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <h3 class="text-xl font-semibold mb-4">Chỉnh sửa sản phẩm</h3>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mã sản phẩm</label>
-                    <input type="text" id="editProductCustomId" class="w-full border rounded px-3 py-2" value="${customId || ''}" placeholder="VD: SP001">
+                    <input type="text" id="editProductCustomId" class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" value="${customId || ''}" placeholder="VD: SP001" disabled>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm</label>
