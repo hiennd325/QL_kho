@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const userModel = require('../models/user');
+const { authorizeAdmin } = require('../middleware/auth');
 
 /**
  * Lấy danh sách tất cả người dùng
@@ -80,7 +81,7 @@ router.get('/:id', async (req, res) => {
  * Body: { username, password, role?, email?, status? }
  * Chỉ admin mới có quyền tạo
  */
-router.post('/', async (req, res) => {
+router.post('/', authorizeAdmin, async (req, res) => {
     try {
         const { username, password, role, email, status } = req.body;
         const newUser = await userModel.createUser(username, password, role, email, status);
@@ -97,14 +98,9 @@ router.post('/', async (req, res) => {
  * Body: { username?, password?, role?, email?, status? }
  * Chỉ admin mới có thể khóa tài khoản (set status = 'inactive')
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', authorizeAdmin, async (req, res) => {
     try {
         const { username, password, role, email, status } = req.body;
-
-        // Kiểm tra nếu đang cố gắng khóa tài khoản (set status = 'inactive'), chỉ admin mới được phép
-        if (status === 'inactive' && req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Access denied. Only admin can lock user accounts.' });
-        }
 
         const updatedUser = await userModel.updateUser(req.params.id, {
             username,
@@ -125,7 +121,7 @@ router.put('/:id', async (req, res) => {
  * DELETE /users/:id
  * Chỉ admin mới có quyền xóa
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeAdmin, async (req, res) => {
     try {
         const result = await userModel.deleteUser(req.params.id);
         res.json(result);
