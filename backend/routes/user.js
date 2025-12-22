@@ -1,8 +1,14 @@
+/**
+ * File định nghĩa các route quản lý người dùng (users)
+ * Bao gồm: lấy danh sách, tạo, cập nhật, xóa người dùng
+ * Các route tạo, cập nhật, xóa yêu cầu quyền admin
+ */
+
 // Import các module cần thiết
-const express = require('express');
-const router = express.Router();
-const userModel = require('../models/user');
-const { authorizeAdmin } = require('../middleware/auth');
+const express = require('express'); // Framework web
+const router = express.Router(); // Tạo router instance
+const userModel = require('../models/user'); // Model xử lý logic người dùng
+const { authorizeAdmin } = require('../middleware/auth'); // Middleware kiểm tra quyền admin
 
 /**
  * Lấy danh sách tất cả người dùng
@@ -171,4 +177,5 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     }
 });
 
+// Xuất router để sử dụng trong ứng dụng chính
 module.exports = router;

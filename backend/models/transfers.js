@@ -1,36 +1,50 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const dotenv = require('dotenv');
-const warehouseModel = require('./warehouse');
-dotenv.config();
+// Module quản lý chuyển kho - models/transfers.js
+// Module này xử lý việc tạo, quản lý và cập nhật trạng thái các phiếu chuyển kho
+// giữa các kho khác nhau, bao gồm kiểm tra tồn kho và cập nhật số lượng.
 
+const sqlite3 = require('sqlite3').verbose(); // Thư viện SQLite3 để quản lý CSDL
+const path = require('path'); // Xử lý đường dẫn file
+const dotenv = require('dotenv'); // Tải biến môi trường
+const warehouseModel = require('./warehouse'); // Import model kho để cập nhật sử dụng kho
+dotenv.config(); // Khởi tạo biến môi trường
+
+// Kết nối CSDL SQLite
 const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
     if (err) {
         console.error('Could not connect to database:', err.message);
     }
 });
 
+// Hàm tạo phiếu chuyển kho mới
+// Tham số: transferData - Đối tượng chứa from_warehouse_id, to_warehouse_id, items (mảng sản phẩm), user_id, notes
+// Trả về: Đối tượng chứa ID và mã code của phiếu chuyển kho
 const createTransfer = async (transferData) => {
     try {
         const { from_warehouse_id, to_warehouse_id, items, user_id, notes } = transferData;
+        // Tạo mã code duy nhất cho phiếu chuyển kho
         const code = `DC${Date.now()}`;
 
         return await new Promise((resolve, reject) => {
+            // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
             db.serialize(() => {
+                // Bắt đầu transaction
                 db.run('BEGIN TRANSACTION');
 
+                // Chèn thông tin phiếu chuyển kho
                 db.run(`INSERT INTO transfers (code, from_warehouse_id, to_warehouse_id, status, user_id, notes)
                         VALUES (?, ?, ?, 'pending', ?, ?)`,
                     [code, from_warehouse_id, to_warehouse_id, user_id, notes],
                     function(err) {
                         if (err) {
-                            db.run('ROLLBACK');
+                            db.run('ROLLBACK'); // Rollback nếu có lỗi
                             return reject(err);
                         }
-                        
+
                         const transferId = this.lastID;
+                        // Chuẩn bị statement để chèn các item
                         const itemStmt = db.prepare(`INSERT INTO transfer_items (transfer_id, product_id, quantity) VALUES (?, ?, ?)`);
-                        
+
+                        // Chèn từng item trong phiếu chuyển kho
                         items.forEach(item => {
                             itemStmt.run(transferId, item.product_id, item.quantity, (err) => {
                                 if (err) {
@@ -40,11 +54,13 @@ const createTransfer = async (transferData) => {
                             });
                         });
 
+                        // Hoàn tất statement
                         itemStmt.finalize((err) => {
                             if (err) {
                                 db.run('ROLLBACK');
                                 return reject(err);
                             }
+                            // Commit transaction
                             db.run('COMMIT', (err) => {
                                 if (err) reject(err);
                                 else resolve({ id: transferId, code });
@@ -59,6 +75,9 @@ const createTransfer = async (transferData) => {
     }
 };
 
+// Hàm lấy danh sách phiếu chuyển kho với giới hạn
+// Tham số: limit - Số lượng phiếu cần lấy (mặc định 10)
+// Trả về: Mảng phiếu chuyển kho với thông tin chi tiết
 const getTransfers = async (limit = 10) => {
     try {
         const query = `SELECT t.id, t.code, t.status, t.created_at, t.updated_at,
@@ -87,6 +106,9 @@ const getTransfers = async (limit = 10) => {
     }
 };
 
+// Hàm lấy thông tin chi tiết phiếu chuyển kho theo ID
+// Tham số: id - ID phiếu chuyển kho
+// Trả về: Đối tượng phiếu chuyển kho với danh sách items hoặc null
 const getTransferById = async (id) => {
     try {
         const transferQuery = `SELECT t.*, fw.name as from_warehouse_name, tw.name as to_warehouse_name,
@@ -125,6 +147,10 @@ const getTransferById = async (id) => {
     }
 };
 
+// Hàm cập nhật trạng thái phiếu chuyển kho
+// Khi hoàn thành, sẽ cập nhật tồn kho và kiểm tra dung lượng kho đích
+// Tham số: id - ID phiếu chuyển kho, status - Trạng thái mới
+// Trả về: Kết quả cập nhật
 const updateTransferStatus = async (id, status) => {
     try {
         // First get the transfer details with items
@@ -187,7 +213,8 @@ const updateTransferStatus = async (id, status) => {
     }
 };
 
-// Helper function to update inventory for a transfer
+// Hàm hỗ trợ cập nhật tồn kho cho việc chuyển kho
+// Tham số: productId - ID sản phẩm, warehouseCustomId - ID kho, quantityChange - Thay đổi số lượng
 const updateInventoryForTransfer = async (productId, warehouseCustomId, quantityChange) => {
     try {
         // Check if inventory record exists
@@ -242,6 +269,9 @@ const updateInventoryForTransfer = async (productId, warehouseCustomId, quantity
     }
 };
 
+// Hàm xóa phiếu chuyển kho
+// Tham số: id - ID phiếu chuyển kho cần xóa
+// Trả về: Kết quả xóa
 const deleteTransfer = async (id) => {
     try {
         const result = await new Promise((resolve, reject) => {
@@ -259,10 +289,11 @@ const deleteTransfer = async (id) => {
     }
 };
 
+// Xuất các hàm để sử dụng trong các module khác
 module.exports = {
-    createTransfer,
-    getTransfers,
-    getTransferById,
-    updateTransferStatus,
-    deleteTransfer
+    createTransfer, // Tạo phiếu chuyển kho mới
+    getTransfers, // Lấy danh sách phiếu chuyển kho
+    getTransferById, // Lấy phiếu chuyển kho theo ID
+    updateTransferStatus, // Cập nhật trạng thái phiếu
+    deleteTransfer // Xóa phiếu chuyển kho
 };

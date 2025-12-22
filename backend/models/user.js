@@ -1,11 +1,14 @@
-// models/user.js - Model để xử lý các thao tác với bảng users
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const bcrypt = require('bcrypt'); // Để hash mật khẩu
-const dotenv = require('dotenv');
-dotenv.config();
+// Module quản lý người dùng - models/user.js
+// Module này cung cấp các chức năng CRUD cho người dùng, bao gồm
+// tạo tài khoản, xác thực đăng nhập, cập nhật thông tin và quản lý vai trò.
 
-// Kết nối đến database
+const sqlite3 = require('sqlite3').verbose(); // Thư viện SQLite3 để quản lý CSDL
+const path = require('path'); // Xử lý đường dẫn file
+const bcrypt = require('bcrypt'); // Thư viện để hash mật khẩu bảo mật
+const dotenv = require('dotenv'); // Tải biến môi trường
+dotenv.config(); // Khởi tạo biến môi trường
+
+// Kết nối CSDL SQLite
 const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
     if (err) {
         console.error('Could not connect to database:', err.message);
@@ -180,6 +183,10 @@ const deleteUser = async (id) => {
     }
 };
 
+/**
+ * Đếm tổng số người dùng trong hệ thống
+ * @returns {number} - Số lượng người dùng
+ */
 const getUsersCount = async () => {
     try {
         return await new Promise((resolve, reject) => {
@@ -193,12 +200,13 @@ const getUsersCount = async () => {
     }
 };
 
+// Xuất các hàm để sử dụng trong các module khác
 module.exports = {
-    createUser,
-    findUserByUsername,
-    getAllUsers,
-    getUserById,
-    updateUser,
-    deleteUser,
-    getUsersCount
+    createUser, // Tạo người dùng mới với mật khẩu được hash
+    findUserByUsername, // Tìm người dùng theo tên đăng nhập
+    getAllUsers, // Lấy danh sách tất cả người dùng
+    getUserById, // Lấy thông tin người dùng theo ID
+    updateUser, // Cập nhật thông tin người dùng
+    deleteUser, // Xóa người dùng
+    getUsersCount // Đếm tổng số người dùng
 };

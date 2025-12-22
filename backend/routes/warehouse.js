@@ -1,8 +1,18 @@
-const express = require('express');
-const router = express.Router();
-const warehouseModel = require('../models/warehouse');
+/**
+ * File định nghĩa các route quản lý kho bãi (warehouses)
+ * Bao gồm: lấy danh sách, tạo, cập nhật, xóa kho, và lấy sản phẩm trong kho
+ */
 
-// GET all warehouses
+// Import các module cần thiết
+const express = require('express'); // Framework web
+const router = express.Router(); // Tạo router instance
+const warehouseModel = require('../models/warehouse'); // Model xử lý logic kho
+
+/**
+ * Route lấy danh sách tất cả kho bãi
+ * Phương thức: GET
+ * Đường dẫn: /warehouses
+ */
 router.get('/', async (req, res) => {
     try {
         const warehouses = await warehouseModel.getWarehouses();
@@ -12,7 +22,12 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Expose count before '/:id' so '/count' isn't treated as an id
+/**
+ * Route lấy tổng số lượng kho bãi
+ * Phương thức: GET
+ * Đường dẫn: /warehouses/count
+ * Lưu ý: Route này phải được định nghĩa trước /:custom_id
+ */
 router.get('/count', async (req, res) => {
     try {
         const count = await warehouseModel.getWarehousesCount();
@@ -22,7 +37,11 @@ router.get('/count', async (req, res) => {
     }
 });
 
-// GET a single warehouse by custom_id
+/**
+ * Route lấy thông tin một kho bãi theo custom_id
+ * Phương thức: GET
+ * Đường dẫn: /warehouses/:custom_id
+ */
 router.get('/:custom_id', async (req, res) => {
     try {
         const warehouse = await warehouseModel.getWarehouseById(req.params.custom_id);
@@ -35,13 +54,19 @@ router.get('/:custom_id', async (req, res) => {
     }
 });
 
-// POST new warehouse
+/**
+ * Route tạo kho bãi mới
+ * Phương thức: POST
+ * Đường dẫn: /warehouses
+ * Body: { custom_id, name, location, capacity }
+ */
 router.post('/', async (req, res) => {
     try {
         const { custom_id, name, location, capacity } = req.body;
         const warehouse = await warehouseModel.createWarehouse(name, location, capacity, custom_id);
         res.status(201).json(warehouse);
     } catch (err) {
+        // Xử lý lỗi trùng mã kho
         if (err.message === 'Mã kho đã tồn tại') {
             res.status(400).json({ error: err.message });
         } else {
@@ -50,7 +75,12 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PUT update warehouse
+/**
+ * Route cập nhật thông tin kho bãi
+ * Phương thức: PUT
+ * Đường dẫn: /warehouses/:custom_id
+ * Body: { name?, location?, capacity? }
+ */
 router.put('/:custom_id', async (req, res) => {
     try {
         const updates = req.body;
@@ -61,7 +91,11 @@ router.put('/:custom_id', async (req, res) => {
     }
 });
 
-// GET products in a warehouse
+/**
+ * Route lấy danh sách sản phẩm trong một kho bãi
+ * Phương thức: GET
+ * Đường dẫn: /warehouses/:custom_id/products
+ */
 router.get('/:custom_id/products', async (req, res) => {
     try {
         const products = await warehouseModel.getWarehouseProducts(req.params.custom_id);
@@ -71,7 +105,11 @@ router.get('/:custom_id/products', async (req, res) => {
     }
 });
 
-// DELETE warehouse
+/**
+ * Route xóa kho bãi
+ * Phương thức: DELETE
+ * Đường dẫn: /warehouses/:custom_id
+ */
 router.delete('/:custom_id', async (req, res) => {
     try {
         const result = await warehouseModel.deleteWarehouse(req.params.custom_id);
@@ -81,6 +119,7 @@ router.delete('/:custom_id', async (req, res) => {
     }
 });
 
+// Route count trùng lặp - có thể xóa
 router.get('/count', async (req, res) => {
     try {
         const count = await warehouseModel.getWarehousesCount();
@@ -90,4 +129,5 @@ router.get('/count', async (req, res) => {
     }
 });
 
+// Xuất router
 module.exports = router;

@@ -1,18 +1,34 @@
-const express = require('express');
-const router = express.Router();
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+/**
+ * File định nghĩa các route liên quan đến báo cáo (reports)
+ * Bao gồm báo cáo tồn kho, bán hàng, cảnh báo, thống kê nhanh, kiểm kê, và xuất CSV
+ */
 
+// Import các module cần thiết
+const express = require('express'); // Framework web
+const router = express.Router(); // Tạo router instance
+const sqlite3 = require('sqlite3').verbose(); // Thư viện SQLite3
+const path = require('path'); // Module xử lý đường dẫn
+
+// Khởi tạo kết nối database
 const db = new sqlite3.Database(path.join(__dirname, '../database.db'), (err) => {
     if (err) {
         console.error('Could not connect to database:', err.message);
     }
 });
 
-// Get inventory report
+/**
+ * Route lấy báo cáo tồn kho
+ * Phương thức: GET
+ * Đường dẫn: /reports/inventory
+ * Query parameters: warehouse (tùy chọn) - lọc theo kho cụ thể
+ * Trả về: Danh sách sản phẩm trong kho với thông tin chi tiết
+ */
 router.get('/inventory', async (req, res) => {
     try {
+        // Lấy tham số warehouse từ query
         const { warehouse } = req.query;
+
+        // Xây dựng câu truy vấn cơ bản lấy tồn kho
         let query = `
             SELECT i.warehouse_id, w.name as warehouse_name, p.custom_id as product_id, p.name, p.description, i.quantity, p.price
             FROM inventory i
@@ -21,28 +37,40 @@ router.get('/inventory', async (req, res) => {
         `;
         const params = [];
 
+        // Nếu có bộ lọc kho, thêm điều kiện WHERE
         if (warehouse && warehouse !== 'Tất cả kho') {
             query += ' WHERE w.name = ?';
             params.push(warehouse);
         }
 
+        // Sắp xếp theo tên sản phẩm và tên kho
         query += ' ORDER BY p.name, w.name';
 
+        // Thực hiện truy vấn
         const inventory = await new Promise((resolve, reject) => {
             db.all(query, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
+
+        // Trả về dữ liệu tồn kho
         res.json(inventory);
     } catch (err) {
+        // Trả về lỗi 500 nếu có lỗi
         res.status(500).json({ error: 'Failed to get inventory report' });
     }
 });
 
-// Get sales report for the last 30 days
+/**
+ * Route lấy báo cáo bán hàng 30 ngày gần nhất
+ * Phương thức: GET
+ * Đường dẫn: /reports/sales
+ * Trả về: Thống kê bán hàng theo sản phẩm trong 30 ngày
+ */
 router.get('/sales', async (req, res) => {
     try {
+        // Truy vấn thống kê bán hàng 30 ngày qua
         const sales = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT p.name, SUM(oi.quantity) as total_quantity, SUM(oi.price * oi.quantity) as total_sales
@@ -62,9 +90,19 @@ router.get('/sales', async (req, res) => {
     }
 });
 
+/**
+ * Route lấy báo cáo cảnh báo tồn kho thấp
+ * Phương thức: GET
+ * Đường dẫn: /reports/alerts
+ * Query parameters: warehouse (tùy chọn)
+ * Trả về: Danh sách sản phẩm có số lượng <= 10
+ */
 router.get('/alerts', async (req, res) => {
     try {
+        // Lấy tham số warehouse
         const { warehouse } = req.query;
+
+        // Câu truy vấn lấy sản phẩm tồn kho thấp
         let query = `
             SELECT p.custom_id as id, p.name, i.quantity, p.price, (p.price * i.quantity) as value, w.name as warehouse_name
             FROM inventory i
@@ -73,38 +111,50 @@ router.get('/alerts', async (req, res) => {
             WHERE i.quantity <= 10
         `;
         const params = [];
+
+        // Bộ lọc theo kho nếu có
         if (warehouse) {
             query += ' AND i.warehouse_id = ?';
             params.push(warehouse);
         }
+
+        // Thực hiện truy vấn
         const alerts = await new Promise((resolve, reject) => {
             db.all(query, params, (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
         });
+
         res.json(alerts);
     } catch (err) {
         res.status(500).json({ error: 'Failed to get alerts' });
     }
 });
 
+/**
+ * Route lấy thống kê nhanh cho dashboard
+ * Phương thức: GET
+ * Đường dẫn: /reports/quick-stats
+ * Trả về: Các chỉ số thống kê quan trọng như nhập/xuất, tồn kho, giá trị, kiểm kê
+ */
 router.get('/quick-stats', async (req, res) => {
     try {
+        // Truy vấn lấy nhiều thống kê trong một lần gọi
         const stats = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT
-                    (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'nhap' AND transaction_date >= DATE('now', '-1 month')) as total_import,
-                    (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'xuat' AND transaction_date >= DATE('now', '-1 month')) as total_export,
-                    (SELECT SUM(quantity) FROM inventory) as total_inventory,
-                    (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.custom_id) as total_value,
-                    (SELECT COUNT(*) FROM audits WHERE date >= DATE('now', '-1 month')) as total_audits_monthly,
-                    (SELECT COUNT(*) FROM audits) as total_audits
+                    (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'nhap' AND transaction_date >= DATE('now', '-1 month')) as total_import,  -- Tổng nhập tháng này
+                    (SELECT SUM(quantity) FROM inventory_transactions WHERE type = 'xuat' AND transaction_date >= DATE('now', '-1 month')) as total_export,  -- Tổng xuất tháng này
+                    (SELECT SUM(quantity) FROM inventory) as total_inventory,  -- Tổng tồn kho hiện tại
+                    (SELECT SUM(p.price * i.quantity) FROM inventory i JOIN products p ON i.product_id = p.custom_id) as total_value,  -- Tổng giá trị tồn kho
+                    (SELECT COUNT(*) FROM audits WHERE date >= DATE('now', '-1 month')) as total_audits_monthly,  -- Số kiểm kê tháng này
+                    (SELECT COUNT(*) FROM audits) as total_audits  -- Tổng số kiểm kê
             `, (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
-                    // Đảm bảo rằng giá trị total_value luôn là số, ngay cả khi là null
+                    // Đảm bảo giá trị mặc định là 0 nếu null
                     const result = rows && rows.length > 0 ? {
                         total_import: rows[0].total_import || 0,
                         total_export: rows[0].total_export || 0,
@@ -113,6 +163,7 @@ router.get('/quick-stats', async (req, res) => {
                         total_audits_monthly: rows[0].total_audits_monthly || 0,
                         total_audits: rows[0].total_audits || 0
                     } : {
+                        // Giá trị mặc định nếu không có dữ liệu
                         total_import: 0,
                         total_export: 0,
                         total_inventory: 0,
@@ -124,6 +175,8 @@ router.get('/quick-stats', async (req, res) => {
                 }
             });
         });
+
+        // Trả về thống kê
         res.json(stats);
     } catch (err) {
         res.status(500).json({ error: 'Failed to get quick stats' });
@@ -501,4 +554,13 @@ router.get('/transactions/export', async (req, res) => {
 });
 
 
+// Các routes khác bao gồm:
+// - /audits: Lấy danh sách kiểm kê với bộ lọc và phân trang
+// - /generate: Tạo báo cáo động theo loại và khoảng thời gian
+// - /audits/:id/export: Xuất chi tiết một phiên kiểm kê ra CSV
+// - /audits/export: Xuất danh sách kiểm kê ra CSV
+// - /inventory/export: Xuất báo cáo tồn kho ra CSV
+// - /transactions/export: Xuất giao dịch tồn kho ra CSV
+
+// Xuất router
 module.exports = router;
