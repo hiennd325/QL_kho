@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     let currentPage = 1;
-    const limit = 10;
+    const limit = 6;
 
     const renderPagination = (totalPages) => {
         const paginationContainer = document.getElementById('pagination-buttons');
