@@ -226,9 +226,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="px-6 py-4 text-sm max-w-xs overflow-hidden">
-                    <div class="flex flex-col">
+                    <div class="flex flex-col" title="${transfer.product_names || ''}">
                         <span class="font-semibold text-blue-700">${transfer.item_count} sản phẩm</span>
-                        <span class="text-xs text-gray-500 truncate" title="${transfer.product_names || ''}">${transfer.product_names || ''}</span>
+                        ${(() => {
+                            const products = (transfer.product_names || '').split(', ');
+                            if (products.length > 1) {
+                                return `<span class="text-xs text-gray-500">${products[0]} và ${products.length - 1} sản phẩm khác</span>`;
+                            }
+                            return `<span class="text-xs text-gray-500">${transfer.product_names || ''}</span>`;
+                        })()}
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
