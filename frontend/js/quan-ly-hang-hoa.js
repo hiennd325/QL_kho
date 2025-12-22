@@ -34,13 +34,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.custom_id || product.id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.name}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.description || 'Chưa có mô tả'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.brand || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.quantity || 0}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                      <div class="flex space-x-2">
+                         <button type="button" class="text-green-600 hover:text-green-800 view-btn" data-id="${product.id}" data-custom-id="${product.custom_id || ''}" data-name="${product.name}" data-description="${product.description || ''}" data-price="${product.price}" data-brand="${product.brand || ''}" data-quantity="${product.quantity || 0}" data-created-at="${formattedDate}" data-supplier-id="${product.supplier_id || ''}">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                 <circle cx="12" cy="12" r="3"></circle>
+                             </svg>
+                         </button>
                          <button type="button" class="text-blue-600 hover:text-blue-800 edit-btn" data-id="${product.id}" data-custom-id="${product.custom_id || ''}" data-name="${product.name}" data-description="${product.description || ''}" data-price="${product.price}" data-brand="${product.brand || ''}" data-supplier-id="${product.supplier_id || ''}">
                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -262,6 +267,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('click', async (e) => {
         const deleteBtn = e.target.closest('.delete-btn');
         const editBtn = e.target.closest('.edit-btn');
+        const viewBtn = e.target.closest('.view-btn');
+
+        if (viewBtn) {
+            const productData = {
+                id: viewBtn.dataset.id || viewBtn.getAttribute('data-id'),
+                customId: viewBtn.dataset.customId || viewBtn.getAttribute('data-custom-id') || '',
+                name: viewBtn.dataset.name || viewBtn.getAttribute('data-name'),
+                description: viewBtn.dataset.description || viewBtn.getAttribute('data-description') || '',
+                price: viewBtn.dataset.price || viewBtn.getAttribute('data-price'),
+                brand: viewBtn.dataset.brand || viewBtn.getAttribute('data-brand') || '',
+                quantity: viewBtn.dataset.quantity || viewBtn.getAttribute('data-quantity') || 0,
+                createdAt: viewBtn.dataset.createdAt || viewBtn.getAttribute('data-created-at'),
+                supplierId: viewBtn.dataset.supplierId || viewBtn.getAttribute('data-supplier-id') || ''
+            };
+            
+            showDetailModal(productData);
+        }
 
         if (deleteBtn) {
             // Lấy ID từ thuộc tính data-id của nút hoặc từ phần tử cha
@@ -322,6 +344,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
+
+
+    const showDetailModal = async (product) => {
+        // Fetch supplier name if supplierId exists
+        let supplierName = 'N/A';
+        if (product.supplierId) {
+            try {
+                const baseUrl = `http://localhost:3000`;
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const response = await fetch(`${baseUrl}/suppliers/${product.supplierId}`, { headers });
+                if (response.ok) {
+                    const supplier = await response.json();
+                    supplierName = supplier.name;
+                }
+            } catch (error) {
+                console.error('Error fetching supplier details:', error);
+            }
+        }
+
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white p-6 rounded-lg w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Chi tiết sản phẩm</h3>
+                    <button class="text-gray-500 hover:text-gray-700" id="closeDetailModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Mã sản phẩm</label>
+                            <p class="text-lg font-semibold text-gray-900">${product.customId || product.id}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Tên sản phẩm</label>
+                            <p class="text-lg text-gray-900">${product.name}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Giá</label>
+                            <p class="text-lg font-bold text-blue-600">${new Intl.NumberFormat('vi-VN').format(product.price)} ₫</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Nhãn hiệu</label>
+                            <p class="text-gray-900">${product.brand || 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Số lượng tồn kho</label>
+                            <p class="text-lg font-semibold text-gray-900">${product.quantity}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
+                            <p class="text-gray-900">${product.createdAt}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Nhà cung cấp</label>
+                            <p class="text-gray-900">${supplierName}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Mô tả chi tiết</label>
+                    <div class="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap min-h-[100px]">${product.description || 'Chưa có mô tả'}</div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors" id="closeDetailBtn">Đóng</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const closeBtn = document.getElementById('closeDetailBtn');
+        const closeIconBtn = document.getElementById('closeDetailModal');
+
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        closeIconBtn.addEventListener('click', closeModal);
+        
+        // Close on click outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    };
 
 
     const showEditModal = (id, customId, name, description, price, brand, supplierId) => {
