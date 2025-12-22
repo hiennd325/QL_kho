@@ -50,15 +50,28 @@ class UserManager {
         this.pageSize = 10;
         this.currentUserId = null;
         this.viewMode = 'table'; // 'table' or 'grid'
+        this.currentUser = null;
         this.init();
     }
 
     init() {
+        this.currentUser = this.getCurrentUser();
         this.setupEventListeners();
         this.loadUsers();
         this.initializeRoleDescriptions();
     }
 
+    getCurrentUser() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return null;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return { id: payload.id, role: payload.role, username: payload.username };
+        } catch (e) {
+            console.error('Error decoding token:', e);
+            return null;
+        }
+    }
     setupEventListeners() {
         // Add user button
         document.getElementById('btn-add-user').addEventListener('click', () => this.openModal(null));
@@ -218,6 +231,9 @@ class UserManager {
         paginatedUsers.forEach(user => {
             const row = document.createElement('tr');
             const dateStr = new Date(user.created_at).toLocaleDateString('vi-VN');
+            const isSelf = this.currentUser ? this.currentUser.id === user.id : false;
+            const isAdmin = user.username === 'admin';
+            const actionsDisabled = isSelf || isAdmin;
             
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${user.id}</td>
@@ -243,10 +259,18 @@ class UserManager {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${dateStr}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button class="text-blue-600 hover:text-blue-900 mr-3 edit-btn" data-id="${user.id}">
+                    <button 
+                        class="text-blue-600 hover:text-blue-900 mr-3 edit-btn ${actionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}" 
+                        data-id="${user.id}"
+                        ${actionsDisabled ? 'disabled' : ''}
+                        title="${actionsDisabled ? 'Không thể sửa người dùng này' : 'Sửa'}">
                         <i data-feather="edit-2" class="h-4 w-4"></i>
                     </button>
-                    <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${user.id}">
+                    <button 
+                        class="text-red-600 hover:text-red-900 delete-btn ${actionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}" 
+                        data-id="${user.id}"
+                        ${actionsDisabled ? 'disabled' : ''}
+                        title="${actionsDisabled ? 'Không thể xóa người dùng này' : 'Xóa'}">
                         <i data-feather="trash-2" class="h-4 w-4"></i>
                     </button>
                 </td>
@@ -255,10 +279,10 @@ class UserManager {
         });
 
         // Attach event listeners
-        document.querySelectorAll('.edit-btn').forEach(btn => {
+        document.querySelectorAll('.edit-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', (e) => this.openModal(parseInt(e.currentTarget.dataset.id)));
         });
-        document.querySelectorAll('.delete-btn').forEach(btn => {
+        document.querySelectorAll('.delete-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', (e) => this.deleteUser(parseInt(e.currentTarget.dataset.id)));
         });
 
@@ -287,6 +311,9 @@ class UserManager {
         paginatedUsers.forEach(user => {
             const card = document.createElement('div');
             const dateStr = new Date(user.created_at).toLocaleDateString('vi-VN');
+            const isSelf = this.currentUser ? this.currentUser.id === user.id : false;
+            const isAdmin = user.username === 'admin';
+            const actionsDisabled = isSelf || isAdmin;
             
             card.className = 'user-card bg-white rounded-lg shadow-md p-6';
             card.innerHTML = `
@@ -295,10 +322,18 @@ class UserManager {
                         <span class="text-blue-600 font-semibold text-lg">${user.username[0].toUpperCase()}</span>
                     </div>
                     <div class="flex gap-2">
-                        <button class="text-blue-600 hover:text-blue-900 edit-btn" data-id="${user.id}">
+                         <button 
+                            class="text-blue-600 hover:text-blue-900 edit-btn ${actionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}" 
+                            data-id="${user.id}"
+                            ${actionsDisabled ? 'disabled' : ''}
+                            title="${actionsDisabled ? 'Không thể sửa người dùng này' : 'Sửa'}">
                             <i data-feather="edit-2" class="h-4 w-4"></i>
                         </button>
-                        <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${user.id}">
+                        <button 
+                            class="text-red-600 hover:text-red-900 delete-btn ${actionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}" 
+                            data-id="${user.id}"
+                            ${actionsDisabled ? 'disabled' : ''}
+                            title="${actionsDisabled ? 'Không thể xóa người dùng này' : 'Xóa'}">
                             <i data-feather="trash-2" class="h-4 w-4"></i>
                         </button>
                     </div>
@@ -318,10 +353,10 @@ class UserManager {
         });
 
         // Attach event listeners
-        document.querySelectorAll('.edit-btn').forEach(btn => {
+        document.querySelectorAll('.edit-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', (e) => this.openModal(parseInt(e.currentTarget.dataset.id)));
         });
-        document.querySelectorAll('.delete-btn').forEach(btn => {
+        document.querySelectorAll('.delete-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', (e) => this.deleteUser(parseInt(e.currentTarget.dataset.id)));
         });
 
@@ -515,6 +550,12 @@ class UserManager {
     }
 
     async deleteUser(userId) {
+        const userToDelete = this.users.find(u => u.id === userId);
+        if (userToDelete && (userToDelete.username === 'admin' || (this.currentUser && this.currentUser.id === userId))) {
+            this.showNotification('Không thể xóa người dùng này.', 'error');
+            return;
+        }
+        
         if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
             return;
         }

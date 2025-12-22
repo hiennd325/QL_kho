@@ -100,6 +100,26 @@ router.post('/', authorizeAdmin, async (req, res) => {
  */
 router.put('/:id', authorizeAdmin, async (req, res) => {
     try {
+        const userIdToUpdate = req.params.id;
+
+        // Get user info to check their username
+        const userToUpdate = await userModel.getUserById(userIdToUpdate);
+
+        if (!userToUpdate) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Prevent editing the main 'admin' account, but allow the admin to edit their own info if their ID matches.
+        // This handles the case where the logged-in admin is the one being edited.
+        if (userToUpdate.username === 'admin' && userToUpdate.id != req.user.id) {
+             return res.status(403).json({ error: 'Không thể chỉnh sửa tài khoản quản trị viên mặc định.' });
+        }
+
+        // A more specific check: prevent changing the role of the default admin
+        if (userToUpdate.username === 'admin' && req.body.role && req.body.role !== 'admin') {
+            return res.status(403).json({ error: 'Không thể thay đổi vai trò của quản trị viên mặc định.' });
+        }
+        
         const { username, password, role, email, status } = req.body;
 
         const updatedUser = await userModel.updateUser(req.params.id, {
@@ -123,7 +143,27 @@ router.put('/:id', authorizeAdmin, async (req, res) => {
  */
 router.delete('/:id', authorizeAdmin, async (req, res) => {
     try {
-        const result = await userModel.deleteUser(req.params.id);
+        const userIdToDelete = req.params.id;
+        const requestingUserId = req.user.id;
+
+        // Prevent user from deleting themselves
+        if (userIdToDelete == requestingUserId) {
+            return res.status(403).json({ error: 'Bạn không thể tự xóa tài khoản của mình.' });
+        }
+
+        // Get user info to check their username
+        const userToDelete = await userModel.getUserById(userIdToDelete);
+
+        if (!userToDelete) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Prevent deleting the main 'admin' account
+        if (userToDelete.username === 'admin') {
+            return res.status(403).json({ error: 'Không thể xóa tài khoản quản trị viên mặc định.' });
+        }
+
+        const result = await userModel.deleteUser(userIdToDelete);
         res.json(result);
     } catch (err) {
         console.error('Error deleting user:', err);
