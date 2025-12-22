@@ -43,6 +43,21 @@ router.post('/', async (req, res) => {
         if (!code) {
             return res.status(400).json({ error: 'Mã nhà cung cấp là bắt buộc' });
         }
+
+        if (phone) {
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(phone)) {
+                return res.status(400).json({ error: 'Số điện thoại phải là 10 chữ số.' });
+            }
+        }
+
+        if (email) {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.com$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ error: 'Email phải có định dạng example@company.com' });
+            }
+        }
+
         const supplier = await supplierModel.createSupplier(code, name, name, phone, email, address);
         res.status(201).json(supplier);
     } catch (err) {
@@ -60,6 +75,21 @@ router.put('/:id', async (req, res) => {
         if (updates.name) {
             updates.contact_person = updates.name;
         }
+
+        if (updates.phone) {
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(updates.phone)) {
+                return res.status(400).json({ error: 'Số điện thoại phải là 10 chữ số.' });
+            }
+        }
+
+        if (updates.email) {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.com$/;
+            if (!emailRegex.test(updates.email)) {
+                return res.status(400).json({ error: 'Email phải có định dạng example@company.com' });
+            }
+        }
+        
         const updatedSupplier = await supplierModel.updateSupplier(req.params.id, updates);
         res.json(updatedSupplier);
     } catch (err) {

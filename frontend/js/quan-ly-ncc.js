@@ -174,6 +174,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const updatedPhone = document.getElementById('editSupplierPhone').value;
             const updatedEmail = document.getElementById('editSupplierEmail').value;
 
+            const phoneRegex = /^\d{10}$/;
+            if (updatedPhone && !phoneRegex.test(updatedPhone)) {
+                alert('Số điện thoại phải là 10 chữ số.');
+                return;
+            }
+
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.com$/;
+            if (updatedEmail && !emailRegex.test(updatedEmail)) {
+                alert('Email phải có định dạng example@company.com');
+                return;
+            }
+
             try {
                 const baseUrl = `http://localhost:3000`;
                 const token = localStorage.getItem('token');
@@ -264,6 +276,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 if (!code) {
                     alert('Vui lòng nhập mã nhà cung cấp');
+                    return;
+                }
+
+                const phoneRegex = /^\d{10}$/;
+                if (phone && !phoneRegex.test(phone)) {
+                    alert('Số điện thoại phải là 10 chữ số.');
+                    return;
+                }
+
+                const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.com$/;
+                if (email && !emailRegex.test(email)) {
+                    alert('Email phải có định dạng example@company.com');
                     return;
                 }
                 
