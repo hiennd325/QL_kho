@@ -3,360 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý người dùng - Hệ Thống Quản Lý Kho Hàng Thông Minh</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <title>Quản Lý Người Dùng - SMART STOCK</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="js/auth.js" defer></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="css/portfolio-theme.css">
     <style>
-        .user-card {
-            transition: all 0.3s ease;
-        }
-        .user-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .badge-admin {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-        .badge-staff {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-active {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        .badge-inactive {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-        .modal-fade-enter {
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
+        body { background-color: #11071f; }
+        .sidebar { background: linear-gradient(180deg, #1a0b2e 0%, #11071f 100%); border-right: 1px solid rgba(152, 87, 211, 0.1); }
+        .sidebar-link { color: #b5bddb; }
+        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(135deg, rgba(152, 87, 211, 0.3) 0%, rgba(58, 134, 255, 0.2) 100%); color: #ffffff; }
+        .header { background: rgba(26, 11, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(152, 87, 211, 0.1); }
+        .table-container { background: linear-gradient(135deg, #2c1250 0%, #2b215a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .form-input { background: rgba(44, 18, 80, 0.6); border: 1px solid rgba(152, 87, 211, 0.3); color: #ffffff; }
+        .modal-content { background: linear-gradient(135deg, #2c1250 0%, #1a0b2e 100%); border: 1px solid rgba(152, 87, 211, 0.2); border-radius: 20px; }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            Auth.redirectIfNotAuthenticated();
+            const logoutModal = document.getElementById('logoutModal');
+            document.getElementById('logoutBtn').addEventListener('click', () => logoutModal.classList.remove('hidden'));
+            document.getElementById('cancelLogout').addEventListener('click', () => logoutModal.classList.add('hidden'));
+            document.getElementById('confirmLogout').addEventListener('click', () => { logoutModal.classList.add('hidden'); Auth.logout(); });
+            logoutModal.addEventListener('click', (e) => { if (e.target === logoutModal) logoutModal.classList.add('hidden'); });
+        });
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex">
-
-    <!-- Sidebar Navigation -->
-    <div class="sidebar bg-blue-900 text-white w-72 min-h-screen flex flex-col">
-        <div class="p-5 border-b border-blue-800">
-            <h1 class="text-xl font-bold flex items-center">
-                <i data-feather="package" class="mr-2"></i> SMART STOCK
-            </h1>
-            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+<body class="min-h-screen flex">
+    <div id="vanta-background"></div>
+    <aside class="sidebar w-72 min-h-screen flex flex-col fixed">
+        <div class="p-6 border-b border-purple-500/20">
+            <h1 class="text-2xl font-bold flex items-center text-white"><i data-feather="package" class="mr-3 text-purple-400"></i> SMART STOCK</h1>
+            <p class="text-purple-300/60 text-sm mt-1">Hệ thống quản lý kho thông minh</p>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto pt-5">
-            <div class="px-4 space-y-2">
-                <a href="index.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="home" class="mr-3"></i> Tổng quan
-                </a>
-                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
-                </a>
-                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
-                </a>
-                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
-                </a>
-                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
-                </a>
-                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
-                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
-                </a>
-                <a href="quan-ly-ncc.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp
-                </a>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <div class="px-4 space-y-1">
+                <a href="index.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="home" class="mr-3"></i> Tổng quan</a>
+                <a href="quan-ly-hang-hoa.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="box" class="mr-3"></i> Quản lý hàng hóa</a>
+                <a href="nhap-xuat-ton.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn</a>
+                <a href="quan-ly-kho-bai.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="database" class="mr-3"></i> Quản lý kho bãi</a>
+                <a href="kiem-ke-bao-cao.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo</a>
+                <a href="quan-ly-nguoi-dung.html" class="sidebar-link active flex items-center px-4 py-3 rounded-lg"><i data-feather="users" class="mr-3"></i> Quản lý người dùng</a>
+                <a href="quan-ly-ncc.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp</a>
             </div>
         </nav>
-        
-        <div class="p-4 border-t border-blue-800">
-            <div class="flex items-center">
-                <div>
-                    <p id="user-name" class="text-sm font-medium">Nguyễn Văn A</p>
-                    <p id="user-role" class="text-xs text-blue-300">Quản lý kho</p>
-                </div>
+        <div class="p-4 border-t border-purple-500/20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center"><i data-feather="user" class="text-white"></i></div>
+                <div><p class="text-sm font-medium text-white">Nguyễn Văn A</p><p class="text-xs text-purple-300">Quản lý kho</p></div>
             </div>
         </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="flex items-center justify-between px-6 py-4">
-                <div class="flex items-center">
-                    <h2 class="text-xl font-semibold">Quản lý người dùng</h2>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <input type="text" id="header-search-input" placeholder="Tìm kiếm người dùng..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
-                    </div>
-
-                    <button id="logoutBtn" class="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600" title="Đăng xuất">
-                        <i data-feather="log-out"></i>
-                    </button>
+    </aside>
+    <div class="flex-1 ml-72">
+        <header class="header px-8 py-5 fixed top-0 right-0 left-72 z-40">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-white">Quản Lý Người Dùng</h2>
+                <div class="flex items-center gap-3">
+                    <div class="relative"><input type="text" id="searchInput" placeholder="Tìm kiếm..." class="form-input rounded-lg pl-10 pr-4 py-2.5 w-64"><i data-feather="search" class="absolute left-3 top-3 text-gray-500"></i></div>
+                    <button id="addUserBtn" class="btn-primary px-4 py-2.5 rounded-lg flex items-center"><i data-feather="user-plus" class="mr-2 h-4 w-4"></i> Thêm người dùng</button>
+                    <button id="logoutBtn" class="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400"><i data-feather="log-out"></i></button>
                 </div>
             </div>
         </header>
-
-        <!-- User Management Content -->
-        <main class="p-6">
-            <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tổng người dùng</p>
-                            <p id="total-users" class="text-3xl font-bold text-gray-900">0</p>
-                        </div>
-                        <div class="bg-blue-100 p-3 rounded-lg">
-                            <i data-feather="users" class="text-blue-600"></i>
-                        </div>
-                    </div>
+        <main class="pt-24 px-8 pb-8">
+            <div class="table-container">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-[#1a0b2e]"><tr><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Tên đăng nhập</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Email</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Vai trò</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Trạng thái</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Ngày tạo</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Thao tác</th></tr></thead>
+                        <tbody id="users-table-body" class="divide-y divide-purple-500/10"></tbody>
+                    </table>
                 </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Quản trị viên</p>
-                            <p id="admin-count" class="text-3xl font-bold text-gray-900">0</p>
-                        </div>
-                        <div class="bg-red-100 p-3 rounded-lg">
-                            <i data-feather="shield" class="text-red-600"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Nhân viên kho</p>
-                            <p id="staff-count" class="text-3xl font-bold text-gray-900">0</p>
-                        </div>
-                        <div class="bg-blue-100 p-3 rounded-lg">
-                            <i data-feather="briefcase" class="text-blue-600"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Hoạt động</p>
-                            <p id="active-count" class="text-3xl font-bold text-gray-900">0</p>
-                        </div>
-                        <div class="bg-green-100 p-3 rounded-lg">
-                            <i data-feather="check-circle" class="text-green-600"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Filters and Search -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
-                        <input type="text" id="search-input" placeholder="Tên đăng nhập..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Vai trò</label>
-                        <select id="role-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Tất cả vai trò</option>
-                            <option value="admin">Quản trị viên</option>
-                            <option value="staff">Nhân viên kho</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-                        <select id="status-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="active">Hoạt động</option>
-                            <option value="inactive">Tạm khóa</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end gap-2">
-                        <button id="btn-add-user" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center">
-                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm mới
-                        </button>
-                        <button id="btn-reset-filter" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-                            <i data-feather="x" class="h-4 w-4"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Users List/Grid View Toggle -->
-            <div class="flex gap-2 mb-4">
-                <button id="view-table-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
-                    <i data-feather="list" class="inline mr-1 h-4 w-4"></i> Danh sách
-                </button>
-                <button id="view-grid-btn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
-                    <i data-feather="grid" class="inline mr-1 h-4 w-4"></i> Lưới
-                </button>
-            </div>
-
-            <!-- Table View -->
-            <div id="table-view" class="bg-white rounded-lg shadow-md overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên đăng nhập</th>
-                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vai trò</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200" id="users-table-body">
-                        <!-- User rows will be dynamically generated here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Grid View -->
-            <div id="grid-view" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- User cards will be dynamically generated here -->
-            </div>
-
-            <!-- Pagination -->
-            <div id="pagination" class="mt-6 flex justify-center gap-2">
-                <!-- Pagination buttons will be generated here -->
             </div>
         </main>
     </div>
-
-    <!-- Modal for Add/Edit User -->
-    <div id="user-modal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0 z-40">
-        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50 z-40" onclick="closeModal('user-modal')"></div>
-        
-        <div class="modal-container bg-white w-11/12 md:max-w-2xl mx-auto rounded-xl shadow-2xl z-50 overflow-hidden relative">
-            
-            <div class="modal-content py-4 text-left px-6">
-                <!--Title-->
-                <div class="flex justify-between items-center pb-3 border-b">
-                    <div>
-                        <p id="modal-title" class="text-2xl font-bold">Thêm người dùng mới</p>
-                        <p id="modal-subtitle" class="text-sm text-gray-500 mt-1">Nhập thông tin chi tiết của người dùng</p>
-                    </div>
-                    <div class="modal-close cursor-pointer z-50" onclick="closeModal('user-modal')">
-                        <i data-feather="x"></i>
-                    </div>
-                </div>
-
-                <!--Body-->
-                <form id="userForm" class="mt-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
-                                Tên đăng nhập <span class="text-red-500">*</span>
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="username" type="text" placeholder="nguyenvana" required>
-                            <p class="text-xs text-gray-500 mt-1">Không được trùng lặp, chỉ dùng chữ và số</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                                Mật khẩu <span class="text-red-500">*</span>
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="password" type="password" placeholder="••••••••" required>
-                            <p id="password-hint" class="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm-password">
-                                Xác nhận mật khẩu <span class="text-red-500">*</span>
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" id="confirm-password" type="password" placeholder="••••••••" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
-                                Vai trò <span class="text-red-500">*</span>
-                            </label>
-                            <select id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" required>
-                                <option value="">-- Chọn vai trò --</option>
-                                <option value="admin">Quản trị viên</option>
-                                <option value="staff">Nhân viên kho</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Xác định quyền hạn người dùng</p>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                                Trạng thái <span class="text-red-500">*</span>
-                            </label>
-                            <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-500 focus:ring-2 focus:ring-blue-500" required>
-                                <option value="active">Hoạt động</option>
-                                <option value="inactive">Tạm khóa</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Role Description -->
-                    <div id="role-description" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-gray-700 hidden">
-                        <p id="role-desc-text"></p>
-                    </div>
-                </form>
-
-                <!--Footer-->
-                <div class="flex justify-end gap-3 pt-6 border-t mt-6">
-                    <button onclick="closeModal('user-modal')" class="px-6 bg-transparent py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">Hủy</button>
-                    <button id="saveUserBtn" type="button" class="px-6 bg-blue-600 py-2 rounded-lg text-white hover:bg-blue-700 transition-colors">Lưu</button>
-                </div>
-            </div>
+    <div id="logoutModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-[#2c1250] rounded-2xl w-96 border border-purple-500/20 p-6">
+            <div class="flex items-center mb-4"><i data-feather="alert-triangle" class="w-6 h-6 text-yellow-400 mr-3"></i><h3 class="text-lg font-semibold text-white">Xác nhận đăng xuất</h3></div>
+            <p class="text-gray-400 mb-6">Bạn có chắc muốn đăng xuất?</p>
+            <div class="flex justify-end gap-3"><button id="cancelLogout" class="px-5 py-2.5 border border-gray-600 rounded-lg text-gray-300">Hủy</button><button id="confirmLogout" class="px-5 py-2.5 bg-red-600 text-white rounded-lg">Đăng xuất</button></div>
         </div>
     </div>
-
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-96 max-w-[90vw] mx-4">
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
-                    <h3 class="text-lg font-semibold text-gray-800">Xác nhận đăng xuất</h3>
-                </div>
-                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelLogout" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        Hủy
-                    </button>
-                    <button id="confirmLogout" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Đăng xuất
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/app.js" defer></script>
-    <script src="js/quan-ly-nguoi-dung-new.js" defer></script>
-    <script>
-        // Initialize Feather Icons when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', (event) => {
-            feather.replace();
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script>VANTA.GLOBE({ el: "#vanta-background", mouseControls: true, touchControls: true, gyroControls: false, minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1, color: 0x9857d3, backgroundColor: 0x11071f, size: 0.8 });</script>
+    <script src="js/app.js"></script>
+    <script src="js/quan-ly-nguoi-dung.js"></script>
 </body>
 </html>

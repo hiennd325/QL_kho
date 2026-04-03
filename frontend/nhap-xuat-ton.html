@@ -4,444 +4,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhập - Xuất - Tồn - SMART STOCK</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="js/auth.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/portfolio-theme.css">
     <style>
-        .dropdown-menu {
-            position: absolute;
-            right: 0;
-            z-index: 1000;
-        }
+        body { background-color: #11071f; }
+        .sidebar { background: linear-gradient(180deg, #1a0b2e 0%, #11071f 100%); border-right: 1px solid rgba(152, 87, 211, 0.1); }
+        .sidebar-link { color: #b5bddb; }
+        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(135deg, rgba(152, 87, 211, 0.3) 0%, rgba(58, 134, 255, 0.2) 100%); color: #ffffff; }
+        .header { background: rgba(26, 11, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(152, 87, 211, 0.1); }
+        .table-container { background: linear-gradient(135deg, #2c1250 0%, #2b215a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .form-input { background: rgba(44, 18, 80, 0.6); border: 1px solid rgba(152, 87, 211, 0.3); color: #ffffff; }
+        .stats-card { background: linear-gradient(135deg, #2c1250 0%, #2b0b3a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .tab-button { color: #b5bddb; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-button:hover { color: #ffffff; }
+        .tab-button.tab-active { color: #9857d3; border-bottom-color: #9857d3; }
+        .modal-content { background: linear-gradient(135deg, #2c1250 0%, #1a0b2e 100%); border: 1px solid rgba(152, 87, 211, 0.2); border-radius: 20px; }
     </style>
     <script>
-        // Check authentication when page loads
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Feather icons
             feather.replace();
-            
             Auth.redirectIfNotAuthenticated();
-
-            // Logout modal functionality
+            
             const logoutModal = document.getElementById('logoutModal');
-            const cancelLogout = document.getElementById('cancelLogout');
-            const confirmLogout = document.getElementById('confirmLogout');
-
-            function showLogoutModal() {
-                logoutModal.classList.remove('hidden');
-            }
-
-            function hideLogoutModal() {
-                logoutModal.classList.add('hidden');
-            }
-
-            // Add logout button event listeners
-            const logoutButton = document.getElementById('logoutButton');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
             const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            // Modal button event listeners
-            if (cancelLogout) {
-                cancelLogout.addEventListener('click', hideLogoutModal);
-            }
-
-            if (confirmLogout) {
-                confirmLogout.addEventListener('click', () => {
-                    hideLogoutModal();
-                    Auth.logout();
-                });
-            }
-
-            // Close modal when clicking outside
-            logoutModal.addEventListener('click', (e) => {
-                if (e.target === logoutModal) {
-                    hideLogoutModal();
-                }
-            });
+            if (logoutBtn) logoutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+            document.getElementById('cancelLogout').addEventListener('click', () => logoutModal.classList.add('hidden'));
+            document.getElementById('confirmLogout').addEventListener('click', () => { logoutModal.classList.add('hidden'); Auth.logout(); });
+            logoutModal.addEventListener('click', (e) => { if (e.target === logoutModal) logoutModal.classList.add('hidden'); });
         });
     </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex">
-    <!-- Sidebar Navigation -->
-    <div class="sidebar bg-blue-900 text-white w-72 min-h-screen flex flex-col">
-        <div class="p-5 border-b border-blue-800">
-            <h1 class="text-xl font-bold flex items-center">
-                <i data-feather="package" class="mr-2"></i> SMART STOCK
-            </h1>
-            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+<body class="min-h-screen flex">
+    <div id="vanta-background"></div>
+    
+    <aside class="sidebar w-72 min-h-screen flex flex-col fixed">
+        <div class="p-6 border-b border-purple-500/20">
+            <h1 class="text-2xl font-bold flex items-center text-white"><i data-feather="package" class="mr-3 text-purple-400"></i> SMART STOCK</h1>
+            <p class="text-purple-300/60 text-sm mt-1">Hệ thống quản lý kho thông minh</p>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto pt-5">
-            <div class="px-4 space-y-2">
-                <a href="index.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="home" class="mr-3"></i> Tổng quan
-                </a>
-                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
-                </a>
-                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
-                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
-                </a>
-                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
-                </a>
-                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
-                </a>
-                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
-                </a>
-                <a href="quan-ly-ncc.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp
-                </a>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <div class="px-4 space-y-1">
+                <a href="index.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="home" class="mr-3"></i> Tổng quan</a>
+                <a href="quan-ly-hang-hoa.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="box" class="mr-3"></i> Quản lý hàng hóa</a>
+                <a href="nhap-xuat-ton.html" class="sidebar-link active flex items-center px-4 py-3 rounded-lg"><i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn</a>
+                <a href="quan-ly-kho-bai.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="database" class="mr-3"></i> Quản lý kho bãi</a>
+                <a href="kiem-ke-bao-cao.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo</a>
+                <a href="quan-ly-nguoi-dung.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="users" class="mr-3"></i> Quản lý người dùng</a>
+                <a href="quan-ly-ncc.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp</a>
             </div>
         </nav>
-        
-        <div class="p-4 border-t border-blue-800">
-            <div class="flex items-center">
-                <div>
-                    <p id="user-name" class="text-sm font-medium">Nguyễn Văn A</p>
-                    <p id="user-role" class="text-xs text-blue-300">Quản lý kho</p>
-                </div>
+        <div class="p-4 border-t border-purple-500/20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center"><i data-feather="user" class="text-white"></i></div>
+                <div><p class="text-sm font-medium text-white">Nguyễn Văn A</p><p class="text-xs text-purple-300">Quản lý kho</p></div>
             </div>
-
         </div>
-    </div>
+    </aside>
 
-    <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="flex items-center justify-between px-6 py-4">
-                <div class="flex items-center">
-                    <h2 class="text-xl font-semibold">Quản Lý Nhập - Xuất - Tồn</h2>
-                </div>
-                <div class="flex items-center space-x-4">
+    <div class="flex-1 ml-72">
+        <header class="header px-8 py-5 fixed top-0 right-0 left-72 z-40">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-white">Quản Lý Nhập - Xuất - Tồn</h2>
+                <div class="flex items-center gap-3">
                     <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Tìm kiếm phiếu..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Tìm kiếm phiếu..." class="form-input rounded-lg pl-10 pr-4 py-2.5 w-64">
+                        <i data-feather="search" class="absolute left-3 top-3 text-gray-500"></i>
                     </div>
-                    <div class="relative">
-                        <button id="createReceiptBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center transition-all duration-200 hover:scale-105">
-                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm mới
-                        </button>
-                        <!-- Dropdown Menu -->
-                        <div id="createReceiptDropdown" class="dropdown-menu hidden bg-white shadow-lg rounded-md py-1 mt-1 w-48">
-                            <button id="createImportReceiptBtn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i data-feather="log-in" class="mr-2 h-4 w-4 inline"></i> Phiếu nhập kho
-                            </button>
-                            <button id="createExportReceiptBtn" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i data-feather="log-out" class="mr-2 h-4 w-4 inline"></i> Phiếu xuất kho
-                            </button>
-                        </div>
-                    </div>
-                    <button id="logoutBtn" class="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600" title="Đăng xuất">
-                        <i data-feather="log-out"></i>
-                    </button>
+                    <button id="createReceiptBtn" class="btn-primary px-4 py-2.5 rounded-lg flex items-center"><i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm mới</button>
+                    <button id="logoutBtn" class="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400"><i data-feather="log-out"></i></button>
                 </div>
             </div>
         </header>
 
-    <!-- Tabs Navigation -->
-    <div class="bg-white border-b">
-        <div class="flex px-6">
-             <button class="px-4 py-3 tab-button tab-active" data-tab="Phiếu nhập kho">Phiếu nhập kho</button>
-             <button class="px-4 py-3 tab-button text-gray-600 hover:text-blue-600" data-tab="Phiếu xuất kho">Phiếu xuất kho</button>
-             <button class="px-4 py-3 tab-button text-gray-600 hover:text-blue-600" data-tab="Cảnh báo tồn kho">Cảnh báo tồn kho</button>
-        </div>
-    </div>        <!-- Filter and Actions -->
-        <div class="bg-white border-b p-4">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-4">
-                    <input type="date" id="startDate" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
-                    <input type="date" id="endDate" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
-                     <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option value="">Tất cả kho</option>
-                     </select>
-                     <select id="statusFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                         <option value="">Tất cả trạng thái</option>
-                         <option value="nhap">Nhập kho</option>
-                         <option value="xuat">Xuất kho</option>
-                     </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="toggleFilters" class="p-2 border rounded-lg hover:bg-gray-50 transition-colors" title="Bộ lọc nâng cao">
-                        <i data-feather="filter"></i>
-                    </button>
-                    <button id="exportCSV" class="p-2 border rounded-lg hover:bg-gray-50 transition-colors" title="Xuất Excel">
-                        <i data-feather="download"></i>
-                    </button>
-                    <button id="printTable" class="p-2 border rounded-lg hover:bg-gray-50 transition-colors" title="In">
-                        <i data-feather="printer"></i>
-                    </button>
-                </div>
-            </div>
-            <!-- Advanced Filters (Hidden by default) -->
-            <div id="advancedFilters" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Loại giao dịch</label>
-                        <select id="typeFilter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Tất cả loại</option>
-                            <option value="nhap">Nhập kho</option>
-                            <option value="xuat">Xuất kho</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sản phẩm</label>
-                        <input type="text" id="productFilter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tên sản phẩm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Người thực hiện</label>
-                        <input type="text" id="userFilter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tên người thực hiện">
-                    </div>
-                </div>
-                <div class="mt-4 flex justify-end">
-                    <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Áp dụng</button>
-                </div>
+        <div class="header pt-20" style="margin-top: 80px;">
+            <div class="flex px-8">
+                <button class="tab-button tab-active px-4 py-3" data-tab="Phiếu nhập kho">Phiếu nhập kho</button>
+                <button class="tab-button px-4 py-3" data-tab="Phiếu xuất kho">Phiếu xuất kho</button>
+                <button class="tab-button px-4 py-3" data-tab="Cảnh báo tồn kho">Cảnh báo tồn kho</button>
             </div>
         </div>
 
-        <!-- Transactions Content -->
-        <main class="p-6">
-            <!-- Quick Stats -->
+        <main class="pt-36 px-8 pb-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div id="import-stats" class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tổng nhập tháng</p>
-                            <p id="import-value" class="text-2xl font-bold text-green-600">0</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <i data-feather="trending-up"></i>
-                        </div>
-                    </div>
-                </div>
-                <div id="export-stats" class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tổng xuất tháng</p>
-                            <p id="export-value" class="text-2xl font-bold text-red-600">0</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-red-100 text-red-600">
-                            <i data-feather="trending-down"></i>
-                        </div>
-                    </div>
-                </div>
-                <div id="inventory-stats" class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tồn kho hiện tại</p>
-                            <p id="inventory-value" class="text-2xl font-bold text-blue-600">0</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <i data-feather="package"></i>
-                        </div>
-                    </div>
-                </div>
-                <div id="value-stats" class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tổng giá trị tồn</p>
-                            <p id="value-value" class="text-2xl font-bold text-purple-600">0 ₫</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <i data-feather="dollar-sign"></i>
-                        </div>
-                    </div>
-                </div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tổng nhập tháng</p><p id="import-value" class="text-2xl font-bold text-green-400 mt-1">0</p></div><div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center"><i data-feather="trending-up" class="text-green-400"></i></div></div></div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tổng xuất tháng</p><p id="export-value" class="text-2xl font-bold text-red-400 mt-1">0</p></div><div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center"><i data-feather="trending-down" class="text-red-400"></i></div></div></div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tồn kho hiện tại</p><p id="inventory-value" class="text-2xl font-bold text-blue-400 mt-1">0</p></div><div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center"><i data-feather="package" class="text-blue-400"></i></div></div></div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tổng giá trị tồn</p><p id="value-value" class="text-2xl font-bold text-purple-400 mt-1">0 ₫</p></div><div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><i data-feather="dollar-sign" class="text-purple-400"></i></div></div></div>
             </div>
 
-            <!-- Transactions Table -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="table-container">
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    ID
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Ngày giao dịch
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Sản phẩm
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Số lượng
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Giá trị
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Kho
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Trạng thái
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="transactions-table-body">
-                            <!-- Transaction rows will be dynamically generated here -->
-                        </tbody>
+                        <thead class="bg-[#1a0b2e]"><tr><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">ID</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Ngày giao dịch</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Sản phẩm</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Số lượng</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Giá trị</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Kho</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Trạng thái</th></tr></thead>
+                        <tbody id="transactions-table-body" class="divide-y divide-purple-500/10"></tbody>
                     </table>
-                </div>
-                
-                <!-- Pagination -->
-                <div class="bg-white px-6 py-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-700">
-                            Hiển thị <span class="font-medium">1</span> đến <span class="font-medium">3</span> của <span class="font-medium">45</span> kết quả
-                        </div>
-                        <div class="flex space-x-2">
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                Trước
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                                1
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                2
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                3
-                            </button>
-                            <button class="px-3 py-1 border rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                                Sau
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Stock Alerts -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-semibold">Cảnh báo tồn kho gần đây</h3>
-                    <a href="#" class="text-blue-600 text-sm flex items-center">
-                        Xem tất cả <i data-feather="chevron-right" class="ml-1 h-4 w-4"></i>
-                    </a>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="stock-alerts-container">
-                    <!-- Stock alerts will be dynamically loaded here -->
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Import Modal -->
-    <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Nhập kho</h3>
-                <button id="closeImportModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="importForm" class="space-y-4">
-                    <div id="import-product-list" class="space-y-4 max-h-60 overflow-y-auto">
-                        <!-- Product rows will be dynamically added here -->
-                    </div>
-                    <button type="button" id="addImportProductBtn" class="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                        <i data-feather="plus" class="mr-1 h-4 w-4"></i> Thêm sản phẩm
-                    </button>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
-                        <select id="importSupplier" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">-- Chọn nhà cung cấp --</option>
-                            <!-- Options will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
-                        <select id="importWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- Options will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="cancelImportBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
-                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Nhập kho</button>
-                    </div>
-                </form>
-            </div>
+    <div id="logoutModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-[#2c1250] rounded-2xl w-96 border border-purple-500/20 p-6">
+            <div class="flex items-center mb-4"><i data-feather="alert-triangle" class="w-6 h-6 text-yellow-400 mr-3"></i><h3 class="text-lg font-semibold text-white">Xác nhận đăng xuất</h3></div>
+            <p class="text-gray-400 mb-6">Bạn có chắc muốn đăng xuất?</p>
+            <div class="flex justify-end gap-3"><button id="cancelLogout" class="px-5 py-2.5 border border-gray-600 rounded-lg text-gray-300">Hủy</button><button id="confirmLogout" class="px-5 py-2.5 bg-red-600 text-white rounded-lg">Đăng xuất</button></div>
         </div>
     </div>
 
-    <!-- Export Modal -->
-    <div id="exportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Xuất kho</h3>
-                <button id="closeExportModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="exportForm" class="space-y-4">
-                    <div id="export-product-list" class="space-y-4 max-h-60 overflow-y-auto">
-                        <!-- Product rows will be dynamically added here -->
-                    </div>
-                    <button type="button" id="addExportProductBtn" class="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center">
-                        <i data-feather="plus" class="mr-1 h-4 w-4"></i> Thêm sản phẩm
-                    </button>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Khách hàng</label>
-                        <input type="text" id="exportCustomer" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên khách hàng">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Kho</label>
-                        <select id="exportWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- Options will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="cancelExportBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
-                        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Xuất kho</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-96 max-w-[90vw] mx-4">
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
-                    <h3 class="text-lg font-semibold text-gray-800">Xác nhận đăng xuất</h3>
-                </div>
-                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelLogout" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        Hủy
-                    </button>
-                    <button id="confirmLogout" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Đăng xuất
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script>
+        VANTA.GLOBE({ el: "#vanta-background", mouseControls: true, touchControls: true, gyroControls: false, minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1, color: 0x9857d3, backgroundColor: 0x11071f, size: 0.8 });
+    </script>
     <script src="js/app.js"></script>
     <script src="js/nhap-xuat-ton.js"></script>
 </body>

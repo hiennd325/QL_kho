@@ -4,372 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kiểm Kê & Báo Cáo - SMART STOCK</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" defer></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="js/auth.js" defer></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="css/portfolio-theme.css">
+    <style>
+        body { background-color: #11071f; }
+        .sidebar { background: linear-gradient(180deg, #1a0b2e 0%, #11071f 100%); border-right: 1px solid rgba(152, 87, 211, 0.1); }
+        .sidebar-link { color: #b5bddb; }
+        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(135deg, rgba(152, 87, 211, 0.3) 0%, rgba(58, 134, 255, 0.2) 100%); color: #ffffff; }
+        .header { background: rgba(26, 11, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(152, 87, 211, 0.1); }
+        .table-container { background: linear-gradient(135deg, #2c1250 0%, #2b215a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .form-input { background: rgba(44, 18, 80, 0.6); border: 1px solid rgba(152, 87, 211, 0.3); color: #ffffff; }
+        .modal-content { background: linear-gradient(135deg, #2c1250 0%, #1a0b2e 100%); border: 1px solid rgba(152, 87, 211, 0.2); border-radius: 20px; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            Auth.redirectIfNotAuthenticated();
+            const logoutModal = document.getElementById('logoutModal');
+            document.getElementById('logoutBtn').addEventListener('click', () => logoutModal.classList.remove('hidden'));
+            document.getElementById('cancelLogout').addEventListener('click', () => logoutModal.classList.add('hidden'));
+            document.getElementById('confirmLogout').addEventListener('click', () => { logoutModal.classList.add('hidden'); Auth.logout(); });
+            logoutModal.addEventListener('click', (e) => { if (e.target === logoutModal) logoutModal.classList.add('hidden'); });
+        });
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex">
-    <!-- Sidebar Navigation -->
-    <div class="sidebar bg-blue-900 text-white w-72 min-h-screen flex flex-col">
-        <div class="p-5 border-b border-blue-800">
-            <h1 class="text-xl font-bold flex items-center">
-                <i data-feather="package" class="mr-2"></i> SMART STOCK
-            </h1>
-            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+<body class="min-h-screen flex">
+    <div id="vanta-background"></div>
+    <aside class="sidebar w-72 min-h-screen flex flex-col fixed">
+        <div class="p-6 border-b border-purple-500/20">
+            <h1 class="text-2xl font-bold flex items-center text-white"><i data-feather="package" class="mr-3 text-purple-400"></i> SMART STOCK</h1>
+            <p class="text-purple-300/60 text-sm mt-1">Hệ thống quản lý kho thông minh</p>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto pt-5">
-            <div class="px-4 space-y-2">
-                <a href="index.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="home" class="mr-3"></i> Tổng quan
-                </a>
-                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
-                </a>
-                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
-                </a>
-                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
-                </a>
-                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
-                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
-                </a>
-                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
-                </a>
-                <a href="quan-ly-ncc.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp
-                </a>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <div class="px-4 space-y-1">
+                <a href="index.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="home" class="mr-3"></i> Tổng quan</a>
+                <a href="quan-ly-hang-hoa.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="box" class="mr-3"></i> Quản lý hàng hóa</a>
+                <a href="nhap-xuat-ton.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn</a>
+                <a href="quan-ly-kho-bai.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="database" class="mr-3"></i> Quản lý kho bãi</a>
+                <a href="kiem-ke-bao-cao.html" class="sidebar-link active flex items-center px-4 py-3 rounded-lg"><i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo</a>
+                <a href="quan-ly-nguoi-dung.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="users" class="mr-3"></i> Quản lý người dùng</a>
+                <a href="quan-ly-ncc.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp</a>
             </div>
         </nav>
-        
-        <div class="p-4 border-t border-blue-800">
-            <div class="flex items-center">
-                <div>
-                    <p id="user-name" class="text-sm font-medium">Nguyễn Văn A</p>
-                    <p id="user-role" class="text-xs text-blue-300">Quản lý kho</p>
-                </div>
+        <div class="p-4 border-t border-purple-500/20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center"><i data-feather="user" class="text-white"></i></div>
+                <div><p class="text-sm font-medium text-white">Nguyễn Văn A</p><p class="text-xs text-purple-300">Quản lý kho</p></div>
             </div>
-
         </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="flex items-center justify-between px-6 py-4">
-                <div class="flex items-center">
-                    <h2 class="text-xl font-semibold">Kiểm Kê & Báo Cáo</h2>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Tìm kiếm phiếu..." class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
-                    </div>
-                    <button id="createInventoryCountBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                        <i data-feather="plus" class="mr-2 h-4 w-4"></i> Tạo phiếu kiểm kê
-                    </button>
-                    <button id="logoutBtn" class="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600" title="Đăng xuất">
-                        <i data-feather="log-out"></i>
-                    </button>
+    </aside>
+    <div class="flex-1 ml-72">
+        <header class="header px-8 py-5 fixed top-0 right-0 left-72 z-40">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-white">Kiểm Kê & Báo Cáo</h2>
+                <div class="flex items-center gap-3">
+                    <div class="relative"><input type="text" id="searchInput" placeholder="Tìm kiếm phiếu..." class="form-input rounded-lg pl-10 pr-4 py-2.5 w-64"><i data-feather="search" class="absolute left-3 top-3 text-gray-500"></i></div>
+                    <button id="createInventoryCountBtn" class="btn-primary px-4 py-2.5 rounded-lg flex items-center"><i data-feather="plus" class="mr-2 h-4 w-4"></i> Tạo phiếu kiểm kê</button>
+                    <button id="logoutBtn" class="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400"><i data-feather="log-out"></i></button>
                 </div>
             </div>
         </header>
-
-        <!-- Tabs Navigation -->
-        <div class="bg-white border-b">
-            <div class="flex px-6">
-                <button class="px-4 py-3 tab-active">Phiếu kiểm kê</button>
-                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Báo cáo tồn kho</button>
-                <button class="px-4 py-3 text-gray-600 hover:text-blue-600">Báo cáo nhập/xuất</button>
-            </div>
-        </div>
-
-        <!-- Filter and Actions -->
-        <div class="bg-white border-b p-4">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-4">
-                    <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Từ ngày">
-                    <input type="date" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đến ngày">
-                      <select id="warehouseFilter" class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <option value="">Tất cả kho</option>
-                      </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="filterBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
-                        <i data-feather="filter" class="mr-2 h-4 w-4"></i>
-                        Lọc
-                    </button>
-                    <button id="downloadBtn" class="p-2 border rounded-lg hover:bg-gray-50" title="Tải xuống báo cáo">
-                        <i data-feather="download"></i>
-                    </button>
-                    <button id="printBtn" class="p-2 border rounded-lg hover:bg-gray-50" title="In báo cáo">
-                        <i data-feather="printer"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Inventory Count Table -->
-        <main class="p-6" id="kiem-ke-tab">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <main class="pt-24 px-8 pb-8">
+            <div class="table-container">
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Mã phiếu
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Ngày kiểm
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Kho
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Người tạo
-                                </th>
-                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                     Chênh lệch
-                                 </th>
-                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                     Thao tác
-                                 </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="inventory-count-table-body">
-                            <!-- Inventory count rows will be dynamically generated here -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Pagination -->
-                <div class="bg-white px-6 py-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-700">
-                            Hiển thị <span class="font-medium">1</span> đến <span class="font-medium">2</span> của <span class="font-medium">15</span> kết quả
-                        </div>
-                        <div id="pagination-container" class="flex space-x-2">
-                            <!-- Pagination will be dynamically generated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <main class="p-6 hidden" id="bao-cao-ton-kho-tab">
-             <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Mã SP
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Tên sản phẩm
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Số lượng
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Đơn giá
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Thành tiền
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="inventory-report-table-body">
-                            <!-- Inventory report rows will be dynamically generated here -->
-                        </tbody>
+                        <thead class="bg-[#1a0b2e]"><tr><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Mã phiếu</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Ngày kiểm</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Kho</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Người tạo</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Chênh lệch</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Thao tác</th></tr></thead>
+                        <tbody id="inventory-count-table-body" class="divide-y divide-purple-500/10"></tbody>
                     </table>
                 </div>
             </div>
         </main>
-
-        <main class="p-6 hidden" id="bao-cao-nhap-xuat-tab">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <canvas id="nhap-xuat-chart"></canvas>
-            </div>
-        </main>
-
     </div>
-
-    <!-- Inventory Count Modal -->
-    <div id="inventoryCountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="border-b px-6 py-4 flex justify-between items-center sticky top-0 bg-white">
-                <h3 class="text-lg font-semibold">Tạo phiếu kiểm kê</h3>
-                <button id="closeInventoryCountModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="inventoryCountForm" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mã phiếu</label>
-                            <input type="text" id="inventoryCode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tự động tạo" readonly>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày kiểm kê</label>
-                            <input type="date" id="inventoryDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Kho kiểm kê</label>
-                        <select id="inventoryWarehouse" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Chọn kho</option>
-                            <!-- Warehouses will be loaded here -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Người kiểm kê</label>
-                        <input type="text" id="inventoryChecker" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên người kiểm kê" required>
-                    </div>
-
-                    <!-- Audit Items Table -->
-                    <div class="mt-6">
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="block text-sm font-medium text-gray-700">Sản phẩm kiểm kê</label>
-                            <button type="button" id="addAuditItemBtn" class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 flex items-center text-sm">
-                                <i data-feather="plus" class="mr-1 h-4 w-4"></i> Thêm sản phẩm
-                            </button>
-                        </div>
-                        <div class="border rounded-md overflow-hidden">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left font-medium text-gray-700">Mã SP</th>
-                                        <th class="px-4 py-2 text-left font-medium text-gray-700">Tên sản phẩm</th>
-                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Số lượng hệ thống</th>
-                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Số lượng thực tế</th>
-                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Chênh lệch</th>
-                                        <th class="px-4 py-2 text-center font-medium text-gray-700">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="auditItemsTableBody">
-                                    <!-- Audit items will be added here -->
-                                </tbody>
-                            </table>
-                            <div id="emptyAuditItemsMessage" class="text-center py-4 text-gray-500">
-                                Chưa có sản phẩm nào. Nhấn "Thêm sản phẩm" để bắt đầu.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                        <textarea id="inventoryNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2" placeholder="Ghi chú thêm (tùy chọn)"></textarea>
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="cancelInventoryCountBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Tạo phiếu kiểm kê</button>
-                    </div>
-                </form>
-            </div>
+    <div id="logoutModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-[#2c1250] rounded-2xl w-96 border border-purple-500/20 p-6">
+            <div class="flex items-center mb-4"><i data-feather="alert-triangle" class="w-6 h-6 text-yellow-400 mr-3"></i><h3 class="text-lg font-semibold text-white">Xác nhận đăng xuất</h3></div>
+            <p class="text-gray-400 mb-6">Bạn có chắc muốn đăng xuất?</p>
+            <div class="flex justify-end gap-3"><button id="cancelLogout" class="px-5 py-2.5 border border-gray-600 rounded-lg text-gray-300">Hủy</button><button id="confirmLogout" class="px-5 py-2.5 bg-red-600 text-white rounded-lg">Đăng xuất</button></div>
         </div>
     </div>
-
-    <!-- Add Audit Item Modal -->
-    <div id="addAuditItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Thêm sản phẩm kiểm kê</h3>
-                <button id="closeAddAuditItemModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="addAuditItemForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Chọn sản phẩm</label>
-                        <select id="selectProduct" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <option value="">Chọn sản phẩm</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng hệ thống</label>
-                        <input type="number" id="systemQuantityInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng thực tế <span class="text-red-500">*</span></label>
-                        <input type="number" id="actualQuantityInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" required placeholder="Nhập số lượng thực tế">
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="cancelAddAuditItemBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Thêm</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Audit Modal -->
-    <div id="viewAuditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Chi tiết phiếu kiểm kê</h3>
-                <button id="closeViewAuditModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6 space-y-4" id="viewAuditModalBody">
-                <!-- Audit details will be rendered here -->
-            </div>
-            <div class="bg-gray-50 px-6 py-3 flex justify-end">
-                 <button type="button" id="closeViewAuditModalBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Product Modal -->
-    <div id="viewProductModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Chi tiết sản phẩm</h3>
-                <button id="closeViewProductModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6 space-y-4" id="viewProductModalBody">
-                <!-- Product details will be rendered here -->
-            </div>
-            <div class="bg-gray-50 px-6 py-3 flex justify-end">
-                 <button type="button" id="closeViewProductModalBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Đóng</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-96 max-w-[90vw] mx-4">
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
-                    <h3 class="text-lg font-semibold text-gray-800">Xác nhận đăng xuất</h3>
-                </div>
-                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelLogout" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        Hủy
-                    </button>
-                    <button id="confirmLogout" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Đăng xuất
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script>VANTA.GLOBE({ el: "#vanta-background", mouseControls: true, touchControls: true, gyroControls: false, minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1, color: 0x9857d3, backgroundColor: 0x11071f, size: 0.8 });</script>
     <script src="js/app.js"></script>
-    <script src="js/kiem-ke-bao-cao.js" defer></script>
+    <script src="js/kiem-ke-bao-cao.js"></script>
 </body>
 </html>

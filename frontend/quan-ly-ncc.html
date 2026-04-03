@@ -4,227 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Nhà Cung Cấp - SMART STOCK</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="js/auth.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/portfolio-theme.css">
+    <style>
+        body { background-color: #11071f; }
+        .sidebar { background: linear-gradient(180deg, #1a0b2e 0%, #11071f 100%); border-right: 1px solid rgba(152, 87, 211, 0.1); }
+        .sidebar-link { color: #b5bddb; }
+        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(135deg, rgba(152, 87, 211, 0.3) 0%, rgba(58, 134, 255, 0.2) 100%); color: #ffffff; }
+        .header { background: rgba(26, 11, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(152, 87, 211, 0.1); }
+        .table-container { background: linear-gradient(135deg, #2c1250 0%, #2b215a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .form-input { background: rgba(44, 18, 80, 0.6); border: 1px solid rgba(152, 87, 211, 0.3); color: #ffffff; }
+    </style>
     <script>
-        // Check authentication when page loads
         document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
             Auth.redirectIfNotAuthenticated();
-
-            // Logout modal functionality
             const logoutModal = document.getElementById('logoutModal');
-            const cancelLogout = document.getElementById('cancelLogout');
-            const confirmLogout = document.getElementById('confirmLogout');
-
-            function showLogoutModal() {
-                logoutModal.classList.remove('hidden');
-            }
-
-            function hideLogoutModal() {
-                logoutModal.classList.add('hidden');
-            }
-
-            // Add logout button event listeners
-            const logoutButton = document.getElementById('logoutButton');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            // Modal button event listeners
-            if (cancelLogout) {
-                cancelLogout.addEventListener('click', hideLogoutModal);
-            }
-
-            if (confirmLogout) {
-                confirmLogout.addEventListener('click', () => {
-                    hideLogoutModal();
-                    Auth.logout();
-                });
-            }
-
-            // Close modal when clicking outside
-            logoutModal.addEventListener('click', (e) => {
-                if (e.target === logoutModal) {
-                    hideLogoutModal();
-                }
-            });
+            document.getElementById('logoutBtn').addEventListener('click', () => logoutModal.classList.remove('hidden'));
+            document.getElementById('cancelLogout').addEventListener('click', () => logoutModal.classList.add('hidden'));
+            document.getElementById('confirmLogout').addEventListener('click', () => { logoutModal.classList.add('hidden'); Auth.logout(); });
+            logoutModal.addEventListener('click', (e) => { if (e.target === logoutModal) logoutModal.classList.add('hidden'); });
         });
     </script>
 </head>
-    <body class="bg-gray-100 min-h-screen flex">
-    <!-- Mobile Sidebar Overlay -->
-    <div class="sidebar-overlay fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
-
-    <!-- Mobile Sidebar Toggle -->
-    <button class="sidebar-toggle md:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-2 rounded-lg shadow-lg">
-        <i data-feather="menu"></i>
-    </button>
-
-    <!-- Sidebar Navigation -->
-    <div class="sidebar bg-blue-900 text-white w-72 min-h-screen flex flex-col">
-        <div class="p-5 border-b border-blue-800">
-            <h1 class="text-xl font-bold flex items-center">
-                <i data-feather="package" class="mr-2"></i> SMART STOCK
-            </h1>
-            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+<body class="min-h-screen flex">
+    <div id="vanta-background"></div>
+    <aside class="sidebar w-72 min-h-screen flex flex-col fixed">
+        <div class="p-6 border-b border-purple-500/20">
+            <h1 class="text-2xl font-bold flex items-center text-white"><i data-feather="package" class="mr-3 text-purple-400"></i> SMART STOCK</h1>
+            <p class="text-purple-300/60 text-sm mt-1">Hệ thống quản lý kho thông minh</p>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto pt-5">
-            <div class="px-4 space-y-2">
-                <a href="index.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="home" class="mr-3"></i> Tổng quan
-                </a>
-                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
-                </a>
-                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
-                </a>
-                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
-                </a>
-                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
-                </a>
-                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
-                </a>
-                <a href="quan-ly-ncc.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp
-                </a>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <div class="px-4 space-y-1">
+                <a href="index.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="home" class="mr-3"></i> Tổng quan</a>
+                <a href="quan-ly-hang-hoa.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="box" class="mr-3"></i> Quản lý hàng hóa</a>
+                <a href="nhap-xuat-ton.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn</a>
+                <a href="quan-ly-kho-bai.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="database" class="mr-3"></i> Quản lý kho bãi</a>
+                <a href="kiem-ke-bao-cao.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo</a>
+                <a href="quan-ly-nguoi-dung.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="users" class="mr-3"></i> Quản lý người dùng</a>
+                <a href="quan-ly-ncc.html" class="sidebar-link active flex items-center px-4 py-3 rounded-lg"><i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp</a>
             </div>
         </nav>
-        
-        <div class="p-4 border-t border-blue-800">
-            <div class="flex items-center">
-                <div>
-                    <p id="user-name" class="text-sm font-medium">Nguyễn Văn A</p>
-                    <p id="user-role" class="text-xs text-blue-300">Quản lý kho</p>
-                </div>
+        <div class="p-4 border-t border-purple-500/20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center"><i data-feather="user" class="text-white"></i></div>
+                <div><p class="text-sm font-medium text-white">Nguyễn Văn A</p><p class="text-xs text-purple-300">Quản lý kho</p></div>
             </div>
         </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
-        <!-- Header -->
-        <header class="supplier-header shadow-lg">
-            <div class="flex items-center justify-between px-6 py-4 relative z-10">
-                <div class="flex items-center">
-                    <i data-feather="truck" class="mr-3 h-6 w-6"></i>
-                    <h2 class="text-2xl font-bold">Quản Lý Nhà Cung Cấp</h2>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative">
-                        <input type="text" id="search-input" placeholder="Tìm kiếm nhà cung cấp..." class="pl-10 pr-4 py-2 border-2 border-white/20 rounded-lg bg-white/10 backdrop-blur-sm text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50">
-                        <i data-feather="search" class="absolute left-3 top-2.5 text-white/70"></i>
-                    </div>
-                      <button class="add-supplier-btn bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 flex items-center border border-white/20">
-                          <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm NCC
-                      </button>
-                      <button id="logoutBtn" class="p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/20" title="Đăng xuất">
-                          <i data-feather="log-out"></i>
-                      </button>
+    </aside>
+    <div class="flex-1 ml-72">
+        <header class="header px-8 py-5 fixed top-0 right-0 left-72 z-40">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-white">Quản Lý Nhà Cung Cấp</h2>
+                <div class="flex items-center gap-3">
+                    <div class="relative"><input type="text" id="searchInput" placeholder="Tìm kiếm..." class="form-input rounded-lg pl-10 pr-4 py-2.5 w-64"><i data-feather="search" class="absolute left-3 top-3 text-gray-500"></i></div>
+                    <button id="addSupplierBtn" class="btn-primary px-4 py-2.5 rounded-lg flex items-center"><i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm NCC</button>
+                    <button id="logoutBtn" class="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400"><i data-feather="log-out"></i></button>
                 </div>
             </div>
         </header>
-
-        <!-- Suppliers Grid -->
-        <main class="p-6">
-            <div id="suppliers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Suppliers will be dynamically added here -->
+        <main class="pt-24 px-8 pb-8">
+            <div class="table-container">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-[#1a0b2e]"><tr><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Mã NCC</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Tên nhà cung cấp</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Số điện thoại</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Email</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Địa chỉ</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Thao tác</th></tr></thead>
+                        <tbody id="suppliers-table-body" class="divide-y divide-purple-500/10"></tbody>
+                    </table>
+                </div>
             </div>
-
-            <!-- Empty state -->
-            <div id="empty-state" class="hidden text-center py-12">
-                <i data-feather="truck" class="mx-auto h-16 w-16 text-gray-400 mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Chưa có nhà cung cấp nào</h3>
-                <p class="text-gray-500">Hãy thêm nhà cung cấp đầu tiên để bắt đầu.</p>
-            </div>
-
-
         </main>
     </div>
-
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-96 max-w-[90vw] mx-4">
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
-                    <h3 class="text-lg font-semibold text-gray-800">Xác nhận đăng xuất</h3>
-                </div>
-                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelLogout" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        Hủy
-                    </button>
-                    <button id="confirmLogout" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Đăng xuất
-                    </button>
-                </div>
-            </div>
+    <div id="logoutModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-[#2c1250] rounded-2xl w-96 border border-purple-500/20 p-6">
+            <div class="flex items-center mb-4"><i data-feather="alert-triangle" class="w-6 h-6 text-yellow-400 mr-3"></i><h3 class="text-lg font-semibold text-white">Xác nhận đăng xuất</h3></div>
+            <p class="text-gray-400 mb-6">Bạn có chắc muốn đăng xuất?</p>
+            <div class="flex justify-end gap-3"><button id="cancelLogout" class="px-5 py-2.5 border border-gray-600 rounded-lg text-gray-300">Hủy</button><button id="confirmLogout" class="px-5 py-2.5 bg-red-600 text-white rounded-lg">Đăng xuất</button></div>
         </div>
     </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script>VANTA.GLOBE({ el: "#vanta-background", mouseControls: true, touchControls: true, gyroControls: false, minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1, color: 0x9857d3, backgroundColor: 0x11071f, size: 0.8 });</script>
     <script src="js/app.js"></script>
     <script src="js/quan-ly-ncc.js"></script>
-    <script>
-        // Mobile sidebar toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebarToggle = document.querySelector('.sidebar-toggle');
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarOverlay = document.querySelector('.sidebar-overlay');
-
-            if (sidebarToggle && sidebar && sidebarOverlay) {
-                const toggleSidebar = () => {
-                    sidebar.classList.toggle('open');
-                    sidebarOverlay.classList.toggle('hidden');
-                };
-
-                sidebarToggle.addEventListener('click', toggleSidebar);
-                sidebarOverlay.addEventListener('click', toggleSidebar);
-
-                // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', (e) => {
-                    if (window.innerWidth < 768 && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains('open')) {
-                        sidebar.classList.remove('open');
-                        sidebarOverlay.classList.add('hidden');
-                    }
-                });
-            }
-
-            // Highlight active sidebar link
-            const currentPath = window.location.pathname.split('/').pop();
-            const sidebarLinks = document.querySelectorAll('.sidebar a');
-            sidebarLinks.forEach(link => {
-                if (link.getAttribute('href') === currentPath) {
-                    link.classList.add('active');
-                    link.classList.remove('text-blue-200');
-                    link.classList.add('text-blue-100', 'bg-blue-800');
-                } else {
-                    link.classList.remove('active', 'text-blue-100', 'bg-blue-800');
-                    link.classList.add('text-blue-200');
-                }
-            });
-
-            // Re-initialize Feather icons
-            feather.replace();
-        });
-    </script>
 </body>
 </html>

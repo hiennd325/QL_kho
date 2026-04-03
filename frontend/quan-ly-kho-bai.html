@@ -4,434 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Kho Bãi - SMART STOCK</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="js/auth.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/portfolio-theme.css">
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-        
-        .animate-slide-up {
-            animation: slideUp 0.3s ease-out forwards;
-        }
+        body { background-color: #11071f; }
+        .sidebar { background: linear-gradient(180deg, #1a0b2e 0%, #11071f 100%); border-right: 1px solid rgba(152, 87, 211, 0.1); }
+        .sidebar-link { color: #b5bddb; }
+        .sidebar-link:hover, .sidebar-link.active { background: linear-gradient(135deg, rgba(152, 87, 211, 0.3) 0%, rgba(58, 134, 255, 0.2) 100%); color: #ffffff; }
+        .header { background: rgba(26, 11, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(152, 87, 211, 0.1); }
+        .table-container { background: linear-gradient(135deg, #2c1250 0%, #2b215a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .stats-card { background: linear-gradient(135deg, #2c1250 0%, #2b0b3a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
+        .form-input { background: rgba(44, 18, 80, 0.6); border: 1px solid rgba(152, 87, 211, 0.3); color: #ffffff; }
+        .modal-content { background: linear-gradient(135deg, #2c1250 0%, #1a0b2e 100%); border: 1px solid rgba(152, 87, 211, 0.2); border-radius: 20px; }
     </style>
     <script>
-        // Check authentication when page loads
         document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
             Auth.redirectIfNotAuthenticated();
-
-            // Logout modal functionality
             const logoutModal = document.getElementById('logoutModal');
-            const cancelLogout = document.getElementById('cancelLogout');
-            const confirmLogout = document.getElementById('confirmLogout');
-
-            function showLogoutModal() {
-                logoutModal.classList.remove('hidden');
-            }
-
-            function hideLogoutModal() {
-                logoutModal.classList.add('hidden');
-            }
-
-            // Add logout button event listeners
-            const logoutButton = document.getElementById('logoutButton');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showLogoutModal();
-                });
-            }
-
-            // Modal button event listeners
-            if (cancelLogout) {
-                cancelLogout.addEventListener('click', hideLogoutModal);
-            }
-
-            if (confirmLogout) {
-                confirmLogout.addEventListener('click', () => {
-                    hideLogoutModal();
-                    Auth.logout();
-                });
-            }
-
-            // Close modal when clicking outside
-            logoutModal.addEventListener('click', (e) => {
-                if (e.target === logoutModal) {
-                    hideLogoutModal();
-                }
-            });
+            document.getElementById('logoutBtn').addEventListener('click', () => logoutModal.classList.remove('hidden'));
+            document.getElementById('cancelLogout').addEventListener('click', () => logoutModal.classList.add('hidden'));
+            document.getElementById('confirmLogout').addEventListener('click', () => { logoutModal.classList.add('hidden'); Auth.logout(); });
+            logoutModal.addEventListener('click', (e) => { if (e.target === logoutModal) logoutModal.classList.add('hidden'); });
         });
     </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex">
-    <!-- Sidebar Navigation -->
-    <div class="sidebar bg-blue-900 text-white w-72 min-h-screen flex flex-col">
-        <div class="p-5 border-b border-blue-800">
-            <h1 class="text-xl font-bold flex items-center">
-                <i data-feather="package" class="mr-2"></i> SMART STOCK
-            </h1>
-            <p class="text-blue-200 text-sm">Hệ thống quản lý kho thông minh</p>
+<body class="min-h-screen flex">
+    <div id="vanta-background"></div>
+    <aside class="sidebar w-72 min-h-screen flex flex-col fixed">
+        <div class="p-6 border-b border-purple-500/20">
+            <h1 class="text-2xl font-bold flex items-center text-white"><i data-feather="package" class="mr-3 text-purple-400"></i> SMART STOCK</h1>
+            <p class="text-purple-300/60 text-sm mt-1">Hệ thống quản lý kho thông minh</p>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto pt-5">
-            <div class="px-4 space-y-2">
-                <a href="index.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="home" class="mr-3"></i> Tổng quan
-                </a>
-                <a href="quan-ly-hang-hoa.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="box" class="mr-3"></i> Quản lý hàng hóa
-                </a>
-                <a href="nhap-xuat-ton.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn
-                </a>
-                <a href="quan-ly-kho-bai.html" class="flex items-center px-4 py-3 text-blue-100 bg-blue-800 rounded-lg">
-                    <i data-feather="database" class="mr-3"></i> Quản lý kho bãi
-                </a>
-                <a href="kiem-ke-bao-cao.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo
-                </a>
-                <a href="quan-ly-nguoi-dung.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="users" class="mr-3"></i> Quản lý người dùng
-                </a>
-                <a href="quan-ly-ncc.html" class="flex items-center px-4 py-3 text-blue-200 hover:bg-blue-800 rounded-lg">
-                    <i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp
-                </a>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <div class="px-4 space-y-1">
+                <a href="index.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="home" class="mr-3"></i> Tổng quan</a>
+                <a href="quan-ly-hang-hoa.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="box" class="mr-3"></i> Quản lý hàng hóa</a>
+                <a href="nhap-xuat-ton.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="trending-up" class="mr-3"></i> Nhập - Xuất - Tồn</a>
+                <a href="quan-ly-kho-bai.html" class="sidebar-link active flex items-center px-4 py-3 rounded-lg"><i data-feather="database" class="mr-3"></i> Quản lý kho bãi</a>
+                <a href="kiem-ke-bao-cao.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="clipboard" class="mr-3"></i> Kiểm kê & Báo cáo</a>
+                <a href="quan-ly-nguoi-dung.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="users" class="mr-3"></i> Quản lý người dùng</a>
+                <a href="quan-ly-ncc.html" class="sidebar-link flex items-center px-4 py-3 rounded-lg"><i data-feather="truck" class="mr-3"></i> Quản lý nhà cung cấp</a>
             </div>
         </nav>
-
-        <div class="p-4 border-t border-blue-800">
-            <div class="flex items-center">
-                <div>
-                    <p id="user-name" class="text-sm font-medium">Nguyễn Văn A</p>
-                    <p id="user-role" class="text-xs text-blue-300">Quản lý kho</p>
-                </div>
+        <div class="p-4 border-t border-purple-500/20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center"><i data-feather="user" class="text-white"></i></div>
+                <div><p class="text-sm font-medium text-white">Nguyễn Văn A</p><p class="text-xs text-purple-300">Quản lý kho</p></div>
             </div>
-
         </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 overflow-auto">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <div class="flex items-center justify-between px-6 py-4">
-                <div class="flex items-center">
-                    <h2 class="text-xl font-semibold">Quản Lý Kho Bãi</h2>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="flex space-x-3">
-                        <button id="addWarehouseBtn" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 flex items-center font-medium shadow-md hover:shadow-lg transition-all duration-200">
-                            <i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm kho
-                        </button>
-                        <button id="openTransferModal" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-purple-700 flex items-center font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">
-                            <i data-feather="repeat" class="mr-2 h-4 w-4"></i> Điều chuyển
-                        </button>
-                    </div>
-                    <button id="logoutBtn" class="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-all duration-200 hover:shadow-md" title="Đăng xuất">
-                        <i data-feather="log-out"></i>
-                    </button>
+    </aside>
+    <div class="flex-1 ml-72">
+        <header class="header px-8 py-5 fixed top-0 right-0 left-72 z-40">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-white">Quản Lý Kho Bãi</h2>
+                <div class="flex items-center gap-3">
+                    <button id="addWarehouseBtn" class="btn-primary px-4 py-2.5 rounded-lg flex items-center"><i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm kho</button>
+                    <button id="openTransferModal" class="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2.5 rounded-lg flex items-center"><i data-feather="repeat" class="mr-2 h-4 w-4"></i> Điều chuyển</button>
+                    <button id="logoutBtn" class="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400"><i data-feather="log-out"></i></button>
                 </div>
             </div>
         </header>
-
-        <!-- Tabs Navigation -->
-        <div class="bg-white border-b">
-            <div class="flex px-6">
-                <button class="px-4 py-3 tab-active">Danh sách kho</button>
-                <button class="px-4 py-3 text-gray-600 hover:text-blue-600" id="transfer-tab">Điều chuyển hàng</button>
-            </div>
-        </div>
-
-        <!-- Warehouse Content -->
-        <main class="p-6">
-            <!-- Warehouse Stats -->
+        <main class="pt-24 px-8 pb-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tổng số kho</p>
-                            <p class="text-2xl font-bold text-blue-600" id="total-warehouses">0</p>
-                            <p class="text-sm text-gray-500">Kho đang hoạt động</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <i data-feather="database"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tổng sức chứa</p>
-                            <p class="text-2xl font-bold text-green-600" id="total-capacity">0</p>
-                            <p class="text-sm text-gray-500">Sản phẩm tối đa</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-green-100 text-green-600">
-                            <i data-feather="box"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Đang sử dụng</p>
-                            <p class="text-2xl font-bold text-purple-600" id="current-usage">0</p>
-                            <p class="text-sm text-gray-500">Sản phẩm hiện có</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <i data-feather="package"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-500 text-sm">Tỷ lệ sử dụng</p>
-                            <p class="text-2xl font-bold text-yellow-600" id="usage-rate">0%</p>
-                            <p class="text-sm text-gray-500">Mức độ lấp đầy</p>
-                        </div>
-                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                            <i data-feather="bar-chart-2"></i>
-                        </div>
-                    </div>
-                </div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tổng số kho</p><p class="text-3xl font-bold text-white mt-1" id="total-warehouses">0</p><p class="text-sm text-gray-500">Kho đang hoạt động</p></div><div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center"><i data-feather="database" class="text-blue-400"></i></div></div></div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tổng sức chứa</p><p class="text-3xl font-bold text-green-400 mt-1" id="total-capacity">0</p><p class="text-sm text-gray-500">Sản phẩm tối đa</p></div><div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center"><i data-feather="box" class="text-green-400"></i></div></div></div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Đang sử dụng</p><p class="text-3xl font-bold text-purple-400 mt-1" id="current-usage">0</p><p class="text-sm text-gray-500">Sản phẩm hiện có</p></div><div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><i data-feather="package" class="text-purple-400"></i></div></div></div>
+                <div class="stats-card p-6"><div class="flex items-center justify-between"><div><p class="text-gray-400 text-sm">Tỷ lệ sử dụng</p><p class="text-3xl font-bold text-yellow-400 mt-1" id="usage-rate">0%</p><p class="text-sm text-gray-500">Mức độ lấp đầy</p></div><div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center"><i data-feather="bar-chart-2" class="text-yellow-400"></i></div></div></div>
             </div>
-
-            <!-- Warehouses Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="warehouses-grid">
-                <!-- Warehouse cards will be dynamically generated here -->
-            </div>
-
-            <!-- Transfer Management Section -->
-            <div id="transfer-section" class="bg-white rounded-lg shadow-md p-6 hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-semibold">Quản lý điều chuyển hàng</h3>
-                    <button id="openTransferModal2" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
-                                                <i data-feather="plus" class="mr-2 h-4 w-4"></i> Tạo phiếu điều chuyển
-                                            </button>
-                </div>
-                
-                <!-- Transfer List -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200" id="transfersTable">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Mã điều chuyển
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Ngày
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Từ kho
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Đến kho
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Sản phẩm
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Trạng thái
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Thao tác
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                                    Đang tải dữ liệu...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="warehouses-grid"></div>
         </main>
     </div>
-
-    <!-- Transfer Modal -->
-    <div id="transferModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 animate-fade-in backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform scale-95 transition-all duration-300 ease-out overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white flex items-center">
-                    <i data-feather="repeat" class="mr-2"></i> Tạo phiếu điều chuyển
-                </h3>
-                <button id="closeTransferModal" class="text-white hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-white/20">
-                    <i data-feather="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-            <div class="p-6 bg-gray-50">
-                <form id="transferForm" class="space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- From Warehouse -->
-                        <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-800 flex items-center">
-                                <i data-feather="home" class="w-4 h-4 mr-2 text-blue-500"></i> Kho nguồn
-                            </label>
-                            <div class="relative">
-                                <select id="from_warehouse_id" name="from_warehouse_id" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white shadow-sm transition-all duration-200 hover:shadow-md" required>
-                                    <option value="" disabled selected>Chọn kho nguồn</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-600">
-                                    <i data-feather="chevron-down" class="h-5 w-5"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- To Warehouse -->
-                        <div class="space-y-2">
-                            <label class="block text-sm font-semibold text-gray-800 flex items-center">
-                                <i data-feather="navigation" class="w-4 h-4 mr-2 text-indigo-500"></i> Kho đích
-                            </label>
-                            <div class="relative">
-                                <select id="to_warehouse_id" name="to_warehouse_id" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white shadow-sm transition-all duration-200 hover:shadow-md" required>
-                                    <option value="" disabled selected>Chọn kho đích</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-600">
-                                    <i data-feather="chevron-down" class="h-5 w-5"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product Items List -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <label class="block text-sm font-semibold text-gray-800 flex items-center">
-                                <i data-feather="box" class="w-4 h-4 mr-2 text-green-500"></i> Danh sách sản phẩm
-                            </label>
-                            <button type="button" id="addProductRowBtn" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 flex items-center font-medium transition-colors">
-                                <i data-feather="plus" class="w-4 h-4 mr-1"></i> Thêm sản phẩm
-                            </button>
-                        </div>
-                        
-                        <div id="productRowsContainer" class="space-y-3 max-h-60 overflow-y-auto p-1">
-                            <!-- Product rows will be added here dynamically -->
-                        </div>
-                    </div>
-                    
-                    <!-- Notes -->
-                    <div class="space-y-2">
-                        <label class="block text-sm font-semibold text-gray-800 flex items-center">
-                            <i data-feather="edit-3" class="w-4 h-4 mr-2 text-purple-500"></i> Ghi chú
-                        </label>
-                        <textarea id="notes" name="notes" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md" placeholder="Nhập ghi chú (nếu có)" rows="2"></textarea>
-                    </div>
-                    
-                    <!-- Buttons -->
-                    <div class="flex justify-between pt-4">
-                        <button type="button" id="cancelTransferBtn" class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 flex items-center font-medium shadow-sm hover:shadow-md">
-                            <i data-feather="x" class="w-4 h-4 mr-2"></i> Hủy bỏ
-                        </button>
-                        <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center">
-                            <i data-feather="save" class="w-4 h-4 mr-2"></i> Tạo phiếu
-                        </button>
-                    </div>
-                </form>
-            </div>
+    <div id="logoutModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-[#2c1250] rounded-2xl w-96 border border-purple-500/20 p-6">
+            <div class="flex items-center mb-4"><i data-feather="alert-triangle" class="w-6 h-6 text-yellow-400 mr-3"></i><h3 class="text-lg font-semibold text-white">Xác nhận đăng xuất</h3></div>
+            <p class="text-gray-400 mb-6">Bạn có chắc muốn đăng xuất?</p>
+            <div class="flex justify-end gap-3"><button id="cancelLogout" class="px-5 py-2.5 border border-gray-600 rounded-lg text-gray-300">Hủy</button><button id="confirmLogout" class="px-5 py-2.5 bg-red-600 text-white rounded-lg">Đăng xuất</button></div>
         </div>
     </div>
-
-    <!-- Warehouse Modal -->
-    <div id="warehouseModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 id="modalTitle" class="text-lg font-semibold">Thêm kho mới</h3>
-                <button id="closeWarehouseModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="warehouseForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Mã kho</label>
-                        <input type="text" id="warehouseCustomId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập mã kho (tuỳ chọn)">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên kho</label>
-                        <input type="text" id="warehouseName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên kho" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sức chứa (sản phẩm)</label>
-                        <input type="number" id="warehouseCapacity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập sức chứa" min="1" required>
-                    </div>
-                    <!-- Note: 'Địa chỉ' and 'Loại kho' fields removed per requirement -->
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="cancelWarehouseBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Hủy</button>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Lưu</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Warehouse Detail Modal -->
-    <div id="warehouseDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="border-b px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Chi tiết kho</h3>
-                <button id="closeWarehouseDetailModal" class="text-gray-500 hover:text-gray-700">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <div id="warehouseDetailContent">
-                    <!-- Warehouse detail content will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl w-96 max-w-[90vw] mx-4">
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
-                    <h3 class="text-lg font-semibold text-gray-800">Xác nhận đăng xuất</h3>
-                </div>
-                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
-                <div class="flex justify-end space-x-3">
-                    <button id="cancelLogout" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                        Hủy
-                    </button>
-                    <button id="confirmLogout" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        Đăng xuất
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script>VANTA.GLOBE({ el: "#vanta-background", mouseControls: true, touchControls: true, gyroControls: false, minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1, color: 0x9857d3, backgroundColor: 0x11071f, size: 0.8 });</script>
     <script src="js/app.js"></script>
     <script src="js/quan-ly-kho-bai.js"></script>
-    <script src="js/chuyen-kho.js"></script>
 </body>
 </html>
