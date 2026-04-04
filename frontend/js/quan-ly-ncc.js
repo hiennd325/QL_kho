@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const suppliersGrid = document.getElementById('suppliers-grid');
     const emptyState = document.getElementById('empty-state');
-    const addSupplierButton = document.querySelector('.add-supplier-btn');
-    const searchInput = document.getElementById('search-input');
+    const addSupplierButton = document.getElementById('addSupplierBtn');
+    const searchInput = document.getElementById('searchInput');
 
     const renderSuppliers = (suppliers) => {
         suppliersGrid.innerHTML = '';
@@ -17,25 +17,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.className = 'supplier-card p-6 animate-fade-in';
             card.style.animationDelay = `${index * 0.1}s`;
             card.innerHTML = `
-                <div class="supplier-info">
-                    <div class="supplier-icon">${supplier.name.charAt(0).toUpperCase()}</div>
+                <div class="supplier-info flex items-center mb-4">
+                    <div class="supplier-icon w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-xl font-bold mr-4 shadow-lg">
+                        ${supplier.name.charAt(0).toUpperCase()}
+                    </div>
                     <div class="supplier-details">
-                        <h3 class="font-semibold text-lg text-gray-900">${supplier.name}</h3>
-                        <p class="text-sm text-gray-600">Mã: ${supplier.code}</p>
-                        <p class="text-sm text-gray-600">ID: ${supplier.id}</p>
+                        <h3 class="font-bold text-lg text-white mb-0.5">${supplier.name}</h3>
+                        <p class="text-xs text-purple-300 font-medium">Mã: ${supplier.code}</p>
                     </div>
                 </div>
-                <div class="supplier-details mt-4">
-                    <p><i data-feather="map-pin" class="inline h-4 w-4 mr-2"></i>${supplier.address || 'Chưa có địa chỉ'}</p>
-                    <p><i data-feather="phone" class="inline h-4 w-4 mr-2"></i>${supplier.phone || 'Chưa có SĐT'}</p>
-                    <p><i data-feather="mail" class="inline h-4 w-4 mr-2"></i>${supplier.email || 'Chưa có email'}</p>
+                <div class="space-y-3 mt-6 border-t border-purple-500/10 pt-4">
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i data-feather="map-pin" class="h-4 w-4 mr-3 text-purple-400"></i>
+                        <span class="truncate">${supplier.address || 'Chưa có địa chỉ'}</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i data-feather="phone" class="h-4 w-4 mr-3 text-purple-400"></i>
+                        <span>${supplier.phone || 'Chưa có SĐT'}</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-400">
+                        <i data-feather="mail" class="h-4 w-4 mr-3 text-purple-400"></i>
+                        <span class="truncate">${supplier.email || 'Chưa có email'}</span>
+                    </div>
                 </div>
-                <div class="supplier-actions">
-                    <button type="button" class="btn-edit edit-btn" data-id="${supplier.id}" data-name="${supplier.name}" data-address="${supplier.address || ''}" data-phone="${supplier.phone || ''}" data-email="${supplier.email || ''}">
+                <div class="supplier-actions flex items-center gap-2 mt-6 pt-4 border-t border-purple-500/10">
+                    <button type="button" class="flex-1 edit-btn flex items-center justify-center gap-2 py-2 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all text-sm font-medium" data-id="${supplier.id}">
                         <i data-feather="edit-2" class="h-4 w-4"></i>
                         Sửa
                     </button>
-                    <button type="button" class="btn-delete delete-btn" data-id="${supplier.id}">
+                    <button type="button" class="flex-1 delete-btn flex items-center justify-center gap-2 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-sm font-medium" data-id="${supplier.id}">
                         <i data-feather="trash-2" class="h-4 w-4"></i>
                         Xóa
                     </button>
@@ -59,7 +69,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderSuppliers(suppliers);
         } catch (error) {
             console.error('Error loading suppliers:', error);
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Lỗi tải dữ liệu</td></tr>`;
+            if (suppliersGrid) {
+                suppliersGrid.innerHTML = `<div class="col-span-full py-12 text-center text-red-400 bg-red-500/10 rounded-2xl border border-red-500/20">Lỗi tải dữ liệu: ${error.message}</div>`;
+            }
         }
     }
 
@@ -127,39 +139,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         const supplierEmail = supplier.email || '';
         
         modal.innerHTML = `
-            <div class="supplier-modal w-full max-w-md">
-                <div class="supplier-modal-header">
-                    <i data-feather="edit" class="mx-auto mb-2 h-8 w-8"></i>
-                    <h3 class="text-xl font-bold">Chỉnh sửa nhà cung cấp</h3>
+            <div class="bg-[#2c1250] rounded-2xl w-full max-w-md border border-purple-500/20 shadow-2xl overflow-hidden animate-scale-in">
+                <div class="p-6 border-b border-purple-500/10 bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/20">
+                        <i data-feather="edit" class="text-white h-8 w-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Chỉnh sửa nhà cung cấp</h3>
+                    <p class="text-purple-300/60 text-sm mt-1">Cập nhật thông tin chi tiết</p>
                 </div>
-                <div class="supplier-modal-body">
-                    <div class="supplier-form-group">
-                        <label>Mã nhà cung cấp</label>
-                        <input type="text" id="editSupplierCode" value="${supplierCode}" readonly>
+                <div class="p-6 space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Mã nhà cung cấp</label>
+                        <input type="text" id="editSupplierCode" value="${supplierCode}" readonly class="w-full bg-black/30 border border-purple-500/20 rounded-xl px-4 py-3 text-gray-500 cursor-not-allowed">
                     </div>
-                    <div class="supplier-form-group">
-                        <label>Tên nhà cung cấp</label>
-                        <input type="text" id="editSupplierName" value="${supplierName}">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Tên nhà cung cấp</label>
+                        <input type="text" id="editSupplierName" value="${supplierName}" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
                     </div>
-                    <div class="supplier-form-group">
-                        <label>Địa chỉ</label>
-                        <input type="text" id="editSupplierAddress" value="${supplierAddress}">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Địa chỉ</label>
+                        <input type="text" id="editSupplierAddress" value="${supplierAddress}" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
                     </div>
-                    <div class="supplier-form-group">
-                        <label>Số điện thoại</label>
-                        <input type="text" id="editSupplierPhone" value="${supplierPhone}">
-                    </div>
-                    <div class="supplier-form-group">
-                        <label>Email</label>
-                        <input type="email" id="editSupplierEmail" value="${supplierEmail}">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Số điện thoại</label>
+                            <input type="text" id="editSupplierPhone" value="${supplierPhone}" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Email</label>
+                            <input type="email" id="editSupplierEmail" value="${supplierEmail}" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
+                        </div>
                     </div>
                 </div>
-                <div class="supplier-modal-footer">
-                    <button type="button" class="btn-cancel" id="cancelEditBtn">
-                        <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
+                <div class="p-6 bg-black/20 flex gap-3">
+                    <button type="button" class="flex-1 py-3 px-4 rounded-xl border border-purple-500/20 text-gray-400 hover:bg-gray-800 transition-all font-medium flex items-center justify-center gap-2" id="cancelEditBtn">
+                        <i data-feather="x" class="h-4 w-4"></i> Hủy
                     </button>
-                    <button type="button" class="btn-save" id="saveEditBtn">
-                        <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
+                    <button type="button" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 transition-all font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20" id="saveEditBtn">
+                        <i data-feather="save" class="h-4 w-4"></i> Lưu thay đổi
                     </button>
                 </div>
             </div>
@@ -227,39 +244,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
             modal.innerHTML = `
-                <div class="supplier-modal w-full max-w-md">
-                    <div class="supplier-modal-header">
-                        <i data-feather="plus" class="mx-auto mb-2 h-8 w-8"></i>
-                        <h3 class="text-xl font-bold">Thêm nhà cung cấp mới</h3>
+                <div class="bg-[#2c1250] rounded-2xl w-full max-w-md border border-purple-500/20 shadow-2xl overflow-hidden animate-scale-in">
+                    <div class="p-6 border-b border-purple-500/10 bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/20">
+                            <i data-feather="plus" class="text-white h-8 w-8"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Thêm nhà cung cấp mới</h3>
+                        <p class="text-purple-300/60 text-sm mt-1">Điền thông tin để bắt đầu hợp tác</p>
                     </div>
-                    <div class="supplier-modal-body">
-                        <div class="supplier-form-group">
-                            <label>Mã nhà cung cấp</label>
-                            <input type="text" id="supplierCode" placeholder="Nhập mã nhà cung cấp">
+                    <div class="p-6 space-y-4">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Mã nhà cung cấp</label>
+                            <input type="text" id="supplierCode" placeholder="Ví dụ: NCC001" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
                         </div>
-                        <div class="supplier-form-group">
-                            <label>Tên nhà cung cấp</label>
-                            <input type="text" id="supplierName" placeholder="Nhập tên nhà cung cấp">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Tên nhà cung cấp</label>
+                            <input type="text" id="supplierName" placeholder="Tên công ty hoặc cá nhân" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
                         </div>
-                        <div class="supplier-form-group">
-                            <label>Địa chỉ</label>
-                            <input type="text" id="supplierAddress" placeholder="Nhập địa chỉ">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Địa chỉ</label>
+                            <input type="text" id="supplierAddress" placeholder="Số nhà, tên đường, quận/huyện..." class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
                         </div>
-                        <div class="supplier-form-group">
-                            <label>Số điện thoại</label>
-                            <input type="text" id="supplierPhone" placeholder="Nhập số điện thoại">
-                        </div>
-                        <div class="supplier-form-group">
-                            <label>Email</label>
-                            <input type="email" id="supplierEmail" placeholder="Nhập email">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Số điện thoại</label>
+                                <input type="text" id="supplierPhone" placeholder="0123 456 789" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold text-purple-300 uppercase tracking-wider">Email</label>
+                                <input type="email" id="supplierEmail" placeholder="ncc@example.com" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all outline-none">
+                            </div>
                         </div>
                     </div>
-                    <div class="supplier-modal-footer">
-                        <button type="button" class="btn-cancel" id="cancelBtn">
-                            <i data-feather="x" class="h-4 w-4 mr-2"></i>Hủy
+                    <div class="p-6 bg-black/20 flex gap-3">
+                        <button type="button" class="flex-1 py-3 px-4 rounded-xl border border-purple-500/20 text-gray-400 hover:bg-gray-800 transition-all font-medium flex items-center justify-center gap-2" id="cancelBtn">
+                            <i data-feather="x" class="h-4 w-4"></i> Hủy
                         </button>
-                        <button type="button" class="btn-save" id="saveBtn">
-                            <i data-feather="save" class="h-4 w-4 mr-2"></i>Lưu
+                        <button type="button" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 transition-all font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20" id="saveBtn">
+                            <i data-feather="save" class="h-4 w-4"></i> Lưu nhà cung cấp
                         </button>
                     </div>
                 </div>

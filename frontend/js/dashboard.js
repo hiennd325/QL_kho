@@ -650,72 +650,49 @@ async function fetchDashboardData() {
 }
 
 function updateAlerts(alerts) {
-    const alertContainer = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-2.gap-6.mb-8');
-    if (!alertContainer) return;
+    const newOrdersAlert = document.getElementById('new-orders-alert');
+    if (newOrdersAlert) {
+        newOrdersAlert.textContent = `${alerts.newOrders || 0} đơn hàng mới cần xử lý`;
+    }
 
-    alertContainer.children[0].querySelector('p:last-child').textContent = `${alerts.newOrders || 0} đơn hàng mới cần xử lý`;
-
-    // Update system status alert with dynamic styling
-    const systemAlert = alertContainer.children[1];
-    const systemStatusText = systemAlert.querySelector('p:last-child');
-    const systemAlertDiv = systemAlert.querySelector('div[role="alert"]');
-
-    systemStatusText.textContent = alerts.systemStatus || 'Hệ thống hoạt động ổn định';
-
-    // Update alert styling based on system health
-    if (systemAlertDiv) {
-        // Remove existing color classes
-        systemAlertDiv.classList.remove('bg-green-100', 'border-green-500', 'text-green-700');
-        systemAlertDiv.classList.remove('bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
-        systemAlertDiv.classList.remove('bg-red-100', 'border-red-500', 'text-red-700');
-
-        // Add appropriate styling based on health status
-        if (alerts.systemHealth === 'critical') {
-            systemAlertDiv.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
-            // Update icon to warning
-            const iconSvg = systemAlertDiv.querySelector('svg');
-            if (iconSvg) {
-                iconSvg.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>';
-            }
-        } else if (alerts.systemHealth === 'warning') {
-            systemAlertDiv.classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
-            // Update icon to alert triangle
-            const iconSvg = systemAlertDiv.querySelector('svg');
-            if (iconSvg) {
-                iconSvg.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>';
-            }
-        } else {
-            // Default green for healthy
-            systemAlertDiv.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
-            // Update icon to check circle
-            const iconSvg = systemAlertDiv.querySelector('svg');
-            if (iconSvg) {
-                iconSvg.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>';
-            }
+    const systemStatusText = document.getElementById('system-status');
+    if (systemStatusText) {
+        systemStatusText.textContent = alerts.systemStatus || 'Hệ thống hoạt động ổn định';
+        
+        let systemAlertDiv = systemStatusText.closest('.alert');
+        if (systemAlertDiv) {
+            systemAlertDiv.className = 'alert ' + 
+                (alerts.systemHealth === 'critical' ? 'bg-red-500/20 text-red-400' :
+                 alerts.systemHealth === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
+                 'alert-success');
         }
     }
 }
 
 function updateStats(stats) {
-    const statsContainer = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-6.mb-8:nth-of-type(2)');
-    if (!statsContainer) return;
-
-    statsContainer.children[0].querySelector('.text-2xl').textContent = stats.totalProducts.toLocaleString('vi-VN');
-    statsContainer.children[1].querySelector('.text-2xl').textContent = stats.monthlyImports.toLocaleString('vi-VN');
-    statsContainer.children[2].querySelector('.text-2xl').textContent = stats.monthlyExports.toLocaleString('vi-VN');
+    const totalProducts = document.getElementById('total-products');
+    if (totalProducts) totalProducts.textContent = stats.totalProducts.toLocaleString('vi-VN');
     
-    // Format total value with proper currency notation
-    let totalValueText;
-    if (stats.totalValue >= 1000000000) {
-        totalValueText = `${(stats.totalValue / 1000000000).toFixed(1)}B VNĐ`;
-    } else if (stats.totalValue >= 1000000) {
-        totalValueText = `${(stats.totalValue / 1000000).toFixed(1)}M VNĐ`;
-    } else if (stats.totalValue >= 1000) {
-        totalValueText = `${(stats.totalValue / 1000).toFixed(1)}K VNĐ`;
-    } else {
-        totalValueText = `${stats.totalValue.toLocaleString('vi-VN')} VNĐ`;
+    const monthlyImports = document.getElementById('monthly-imports');
+    if (monthlyImports) monthlyImports.textContent = stats.monthlyImports.toLocaleString('vi-VN');
+    
+    const monthlyExports = document.getElementById('monthly-exports');
+    if (monthlyExports) monthlyExports.textContent = stats.monthlyExports.toLocaleString('vi-VN');
+    
+    const totalValue = document.getElementById('total-value');
+    if (totalValue) {
+        let totalValueText;
+        if (stats.totalValue >= 1000000000) {
+            totalValueText = `${(stats.totalValue / 1000000000).toFixed(1)}B VNĐ`;
+        } else if (stats.totalValue >= 1000000) {
+            totalValueText = `${(stats.totalValue / 1000000).toFixed(1)}M VNĐ`;
+        } else if (stats.totalValue >= 1000) {
+            totalValueText = `${(stats.totalValue / 1000).toFixed(1)}K VNĐ`;
+        } else {
+            totalValueText = `${stats.totalValue.toLocaleString('vi-VN')} VNĐ`;
+        }
+        totalValue.textContent = totalValueText;
     }
-    statsContainer.children[3].querySelector('.text-2xl').textContent = totalValueText;
 }
 
 function updateFunctionOverview(counts) {
@@ -777,13 +754,8 @@ function updateFunctionOverview(counts) {
 }
 
 function setupQuickActions(quickActions) {
-    const actionsContainer = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-4.gap-4');
-    if (!actionsContainer) return;
-
-    actionsContainer.children[0].addEventListener('click', () => window.location.href = '/quan-ly-hang-hoa.html');
-    actionsContainer.children[1].addEventListener('click', () => window.location.href = '/nhap-xuat-ton.html?mode=import');
-    actionsContainer.children[2].addEventListener('click', () => window.location.href = '/nhap-xuat-ton.html?mode=export');
-    actionsContainer.children[3].addEventListener('click', () => window.location.href = '/kiem-ke-bao-cao.html');
+    // Quick actions are now handled by specific forms setup in setupQuickActionForms
+    // keeping this function to prevent any undefined errors in case it's called
 }
 
 function updateRecentActivities(activities) {

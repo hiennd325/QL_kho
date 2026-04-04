@@ -16,6 +16,12 @@
         .header { background: rgba(26, 11, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(152, 87, 211, 0.1); }
         .table-container { background: linear-gradient(135deg, #2c1250 0%, #2b215a 100%); border: 1px solid rgba(152, 87, 211, 0.15); border-radius: 15px; }
         .form-input { background: rgba(44, 18, 80, 0.6); border: 1px solid rgba(152, 87, 211, 0.3); color: #ffffff; }
+        .supplier-card { background: rgba(44, 18, 80, 0.4); border: 1px solid rgba(152, 87, 211, 0.2); border-radius: 20px; backdrop-filter: blur(10px); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .supplier-card:hover { transform: translateY(-10px); border-color: #9857d3; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(152, 87, 211, 0.2); background: rgba(44, 18, 80, 0.6); }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-scale-in { animation: scaleIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -59,20 +65,26 @@
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-white">Quản Lý Nhà Cung Cấp</h2>
                 <div class="flex items-center gap-3">
-                    <div class="relative"><input type="text" id="searchInput" placeholder="Tìm kiếm..." class="form-input rounded-lg pl-10 pr-4 py-2.5 w-64"><i data-feather="search" class="absolute left-3 top-3 text-gray-500"></i></div>
-                    <button id="addSupplierBtn" class="btn-primary px-4 py-2.5 rounded-lg flex items-center"><i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm NCC</button>
+                    <div class="relative"><input type="text" id="searchInput" placeholder="Tìm kiếm nhà cung cấp..." class="form-input rounded-lg pl-10 pr-4 py-2.5 w-64 focus:w-80 transition-all outline-none"><i data-feather="search" class="absolute left-3 top-3 text-purple-400"></i></div>
+                    <button id="addSupplierBtn" class="btn-primary px-6 py-2.5 rounded-lg flex items-center shadow-lg shadow-purple-500/20"><i data-feather="plus" class="mr-2 h-4 w-4"></i> Thêm NCC</button>
                     <button id="logoutBtn" class="p-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400"><i data-feather="log-out"></i></button>
                 </div>
             </div>
         </header>
         <main class="pt-24 px-8 pb-8">
-            <div class="table-container">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-[#1a0b2e]"><tr><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Mã NCC</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Tên nhà cung cấp</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Số điện thoại</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Email</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Địa chỉ</th><th class="px-6 py-4 text-left text-sm font-semibold text-gray-400">Thao tác</th></tr></thead>
-                        <tbody id="suppliers-table-body" class="divide-y divide-purple-500/10"></tbody>
-                    </table>
+            <div id="suppliers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards will be rendered here -->
+            </div>
+            
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-24 h-24 rounded-full bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
+                    <i data-feather="truck" class="w-12 h-12 text-purple-400"></i>
                 </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Chưa có nhà cung cấp nào</h3>
+                <p class="text-purple-300/60 max-w-sm">Hãy bắt đầu bằng cách thêm nhà cung cấp đầu tiên vào hệ thống của bạn.</p>
+                <button onclick="document.getElementById('addSupplierBtn').click()" class="mt-8 px-6 py-3 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-xl border border-purple-500/20 transition-all font-semibold flex items-center gap-2 mx-auto">
+                    <i data-feather="plus" class="w-5 h-5"></i> Thêm nhà cung cấp
+                </button>
             </div>
         </main>
     </div>
